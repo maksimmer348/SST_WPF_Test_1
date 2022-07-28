@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net6.0-windows</TargetFramework>
+        <Nullable>enable</Nullable>
+        <UseWPF>true</UseWPF>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="GodSharp.SerialPort" Version="1.2.0.6" />
+      <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net40" Version="1.0.2">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+      <PackageReference Include="SerialPortLib" Version="1.0.23" />
+    </ItemGroup>
+    
+
+</Project>
