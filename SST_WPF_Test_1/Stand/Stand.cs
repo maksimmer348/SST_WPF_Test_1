@@ -65,6 +65,12 @@ public class Stand : Notify
             MultimeterStand.SetConfigDevice(TypePort.SerialInput, "COM3", 9600, 1, 0, 8);
             SupplyStand = new Supply("DS");
             SupplyStand.SetConfigDevice(TypePort.SerialInput, "COM4", 2400, 1, 0, 8);
+            VipsStand = new();
+            VipsStand.Add(new Vip { Name = "Vip 1", VoltageOut1 = 1, ID = 1});
+            VipsStand.Add(new Vip { Name = "Vip 2", VoltageOut1 = 10,  ID = 2});
+            VipsStand.Add(new Vip { Name = "Vip 3", VoltageOut1 = 22,  ID = 3});
+            VipsStand.Add(new Vip { Name = "Vip 5", VoltageOut1 = 1,  ID = 5});
+            VipsStand.Add(new Vip { Name = "Vip 10",VoltageOut1 = 44,  ID = 10});
         }
     }
 
@@ -88,6 +94,10 @@ public class Stand : Notify
             PercentCurrentTest = 80;
             await Task.Delay(TimeSpan.FromMilliseconds(500));
             MultimeterStand.StatusTest = StatusDeviceTest.Ok;
+            foreach (var vip in VipsStand)
+            {
+                vip.StatusTest = (StatusDeviceTest) Random.Shared.Next(0, 2);
+            }
             PercentCurrentTest = 100;
             //Уведомляем что первичный тест закончен
             TestRun = TypeOfTestRun.PrimaryCheckDevicesReady;

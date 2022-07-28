@@ -13,10 +13,21 @@ public class BaseDevice : Notify
     /// Имя прибора
     /// </summary>
     public string Name { get; set; }
-    
 
-    public StatusDeviceTest StatusTest{ get; set; }
+    private StatusDeviceTest statusTest;
+    public StatusDeviceTest StatusTest
+    {
+        get => statusTest;
+        set => Set(ref statusTest, value, nameof(StatusColor));
+    }
 
+    public Brush StatusColor =>
+        StatusTest switch
+        {
+            StatusDeviceTest.Error => Brushes.Red,
+            StatusDeviceTest.Ok => Brushes.Green,
+            _ => Brushes.Black
+        };
 
 
     public ConfigDeviceParams Config { get; set; } = new ConfigDeviceParams();

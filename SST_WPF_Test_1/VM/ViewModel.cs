@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -11,11 +12,17 @@ public class ViewModel : Notify
     private Stand StandTest = new ();
 
     private ObservableCollection<BaseDevice> devices = new();
+    private ObservableCollection<Vip> vips = new();
 
     public ObservableCollection<BaseDevice> Devices
     {
         get => devices;
         set => Set(ref devices, value);
+    }
+    public ObservableCollection<Vip> Vips
+    {
+        get => vips;
+        set => Set(ref vips, value);
     }
 
 
@@ -30,6 +37,10 @@ public class ViewModel : Notify
 
         devices.Add(StandTest.MultimeterStand);
         devices.Add(StandTest.SupplyStand);
+        foreach (var vip in StandTest.VipsStand)
+        {
+            vips.Add(vip);
+        }
 
         #region Команды
 
@@ -46,6 +57,8 @@ public class ViewModel : Notify
 
     private void StandTestOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
+        
+        
         if (e.PropertyName == "TestRun")
         {
             TestRun = StandTest.TestRun;
@@ -55,11 +68,7 @@ public class ViewModel : Notify
         {
             PercentCurrentTest = StandTest.PercentCurrentTest;
         }
-
-        if (e.PropertyName == "StatusTestColor")
-        {
-          
-        }
+        
     }
 
 
@@ -72,10 +81,12 @@ public class ViewModel : Notify
     /// </summary>
     public ICommand CancelAllTestCmd { get; }
 
-    void OnCancelAllTestCmdExecuted(object p)
+    Task OnCancelAllTestCmdExecuted(object p)
     {
         PrimaryCheckDevicesTab = false;
         //обработчик команды
+        
+        return Task.CompletedTask;
     }
 
     bool CanCancelAllTestCmdExecuted(object p)
@@ -88,10 +99,11 @@ public class ViewModel : Notify
     /// </summary>
     public ICommand NextCmd { get; }
 
-    void OnNextCmdExecuted(object p)
+    Task OnNextCmdExecuted(object p)
     {
         PrimaryCheckDevicesTab = true;
         //обработчик команды
+        return Task.CompletedTask;
     }
 
     bool CanNextCmdExecuted(object p)
@@ -108,13 +120,17 @@ public class ViewModel : Notify
     /// </summary>
     public ICommand StartTestDevicesCmd { get; }
 
-    async void OnStartTestDevicesCmdExecuted(object p)
+    async Task OnStartTestDevicesCmdExecuted(object p)
     {
         await StandTest.PrimaryCheckDevices();
     }
 
     bool CanStartTestDevicesCmdExecuted(object p)
     {
+        if (TestRun == TypeOfTestRun.PrimaryCheckDevices)
+        {
+            return false;
+        }
         return true;
     }
 
@@ -123,9 +139,10 @@ public class ViewModel : Notify
     /// </summary>
     public ICommand RepeatTestDevicesCmd { get; }
 
-    void OnRepeatTestDevicesCmdExecuted(object p)
+    Task OnRepeatTestDevicesCmdExecuted(object p)
     {
         //обработчик команды
+        return Task.CompletedTask;
     }
 
     bool CanRepeatTestDevicesCmdExecuted(object p)
@@ -138,9 +155,10 @@ public class ViewModel : Notify
     /// </summary>
     public ICommand OpenSettingsDevicesCmd { get; }
 
-    void OnOpenSettingsDevicesCmdExecuted(object p)
+    Task OnOpenSettingsDevicesCmdExecuted(object p)
     {
         //обработчик команды
+        return Task.CompletedTask;
     }
 
     bool CanOpenSettingsDevicesCmdExecuted(object p)
@@ -163,7 +181,7 @@ public class ViewModel : Notify
     /// </summary>
     public ICommand SaveSettingsCmd { get; }
 
-    void OnSaveSettingsCmdExecuted(object p)
+    Task OnSaveSettingsCmdExecuted(object p)
     {
         //обработчик команды
         var index = Devices.IndexOf(selectDevice);
@@ -175,6 +193,7 @@ public class ViewModel : Notify
         Dtr = selectDevice.GetConfigDevice().Dtr;
 
         Devices[index].SetConfigDevice(TypePort.SerialInput, PortName, Baud, StopBits, Parity, DataBits, Dtr);
+        return Task.CompletedTask;
     }
 
     bool CanSaveSettingsCmdExecuted(object p)
@@ -290,204 +309,6 @@ public class ViewModel : Notify
         //TODO уточнооить кк работает
         //get => TestRun is TypeOfTestRun.PrimaryCheckDevices or TypeOfTestRun.None;
         set => Set(ref primaryCheckDevicesTab, value);
-    }
-
-    private Brush indMultimeter;
-
-    /// <summary>
-    /// Индикатор мультиметр
-    /// </summary>
-    public Brush IndMultimeter
-    {
-        get => indMultimeter;
-        set => Set(ref indMultimeter, value);
-    }
-
-    private Brush indThermometer;
-
-    /// <summary>
-    /// Индикатор термометр
-    /// </summary>
-    public Brush IndThermometer
-    {
-        get => indThermometer;
-        set => Set(ref indThermometer, value);
-    }
-
-    private Brush indSupply;
-
-    /// <summary>
-    /// Индикатор БП
-    /// </summary>
-    public Brush IndSupply
-    {
-        get => indSupply;
-        set => Set(ref indSupply, value);
-    }
-
-    private Brush indHeat;
-
-    /// <summary>
-    /// Индикатор Нагрев
-    /// </summary>
-    public Brush IndHeat
-    {
-        get => indHeat;
-        set => Set(ref indHeat, value);
-    }
-
-    private Brush indLoadSmall;
-
-    /// <summary>
-    /// Индикатор Нагрузка Малая
-    /// </summary>
-    public Brush IndLoadSmall
-    {
-        get => indLoadSmall;
-        set => Set(ref indLoadSmall, value);
-    }
-
-    private Brush indLoadBig;
-
-    /// <summary>
-    /// Индикатор Нагрузка Большая/Генератор
-    /// </summary>
-    public Brush IndLoadBig
-    {
-        get => indLoadBig;
-        set => Set(ref indLoadBig, value);
-    }
-
-    private Brush indSwitch1;
-
-    /// <summary>
-    /// Индикатор 1
-    /// </summary>
-    public Brush IndSwitch1
-    {
-        get => indSwitch1;
-        set => Set(ref indSwitch1, value);
-    }
-
-    private Brush indSwitch2;
-
-    /// <summary>
-    /// Индикатор 2
-    /// </summary>
-    public Brush IndSwitch2
-    {
-        get => indSwitch2;
-        set => Set(ref indSwitch2, value);
-    }
-
-    private Brush indSwitch3;
-
-    /// <summary>
-    /// Индикатор 3
-    /// </summary>
-    public Brush IndSwitch3
-    {
-        get => indSwitch3;
-        set => Set(ref indSwitch3, value);
-    }
-
-    private Brush indSwitch4;
-
-    /// <summary>
-    /// Индикатор 4
-    /// </summary>
-    public Brush IndSwitch4
-    {
-        get => indSwitch4;
-        set => Set(ref indSwitch4, value);
-    }
-
-    private Brush indSwitch5;
-
-    /// <summary>
-    /// Индикатор 5
-    /// </summary>
-    public Brush IndSwitch5
-    {
-        get => indSwitch5;
-        set => Set(ref indSwitch5, value);
-    }
-
-    private Brush indSwitch6;
-
-    /// <summary>
-    /// Индикатор 6
-    /// </summary>
-    public Brush IndSwitch6
-    {
-        get => indSwitch6;
-        set => Set(ref indSwitch6, value);
-    }
-
-    private Brush indSwitch7;
-
-    /// <summary>
-    /// Индикатор 7
-    /// </summary>
-    public Brush IndSwitch7
-    {
-        get => indSwitch7;
-        set => Set(ref indSwitch7, value);
-    }
-
-    private Brush indSwitch8;
-
-    /// <summary>
-    /// Индикатор 8
-    /// </summary>
-    public Brush IndSwitch8
-    {
-        get => indSwitch8;
-        set => Set(ref indSwitch8, value);
-    }
-
-    private Brush indSwitch9;
-
-    /// <summary>
-    /// Индикатор 9
-    /// </summary>
-    public Brush IndSwitch9
-    {
-        get => indSwitch9;
-        set => Set(ref indSwitch9, value);
-    }
-
-    private Brush indSwitch10;
-
-    /// <summary>
-    /// Индикатор 10
-    /// </summary>
-    public Brush IndSwitch10
-    {
-        get => indSwitch10;
-        set => Set(ref indSwitch10, value);
-    }
-
-    private Brush indSwitch11;
-
-    /// <summary>
-    /// Индикатор 11
-    /// </summary>
-    public Brush IndSwitch11
-    {
-        get => indSwitch11;
-        set => Set(ref indSwitch11, value);
-    }
-
-    private Brush ind12;
-
-    /// <summary>
-    /// Индикатор 12
-    /// </summary>
-    public Brush Ind12
-    {
-        get => ind12;
-        set => Set(ref ind12, value);
     }
 
     #endregion

@@ -40,7 +40,7 @@ using System.Runtime.CompilerServices;
         /// <param name="propertyName">Имя свойства</param>
         /// <typeparam name="T">Тип свойства</typeparam>
         /// <returns></returns>
-        protected virtual bool Set<T>(ref T filed, T value, [CallerMemberName] string propertyName = null)
+        protected virtual bool Set<T>(ref T filed, T value, [CallerMemberName] string propertyName = null, params string[] dependentPropertyNames)
         {
             if (Equals(filed, value))
             {
@@ -49,6 +49,13 @@ using System.Runtime.CompilerServices;
 
             filed = value;
             OnPropertyChanged(propertyName);
+
+        
+            foreach (var dependentPropertyName in dependentPropertyNames)
+            {
+                OnPropertyChanged(dependentPropertyName);
+            }
+
             return true;
         }
     }

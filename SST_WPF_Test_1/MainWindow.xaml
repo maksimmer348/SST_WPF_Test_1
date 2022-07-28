@@ -27,163 +27,14 @@
                         <TextBlock VerticalAlignment="Center">Подключение устройств</TextBlock>
                     </DockPanel>
                 </TabItem.Header>
+                
                 <Grid Background="LightGray" ShowGridLines="True">
-                    <!--TabItem Grid-->
-
-                    <Grid.RowDefinitions>
-                        <RowDefinition />
-                        <RowDefinition Height="2*" />
-                        <RowDefinition Height="0.5*" />
-                    </Grid.RowDefinitions>
-
-                    <Grid Grid.Row="0" ShowGridLines="True">
-                        <!--Устройства Grid 1-->
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition></ColumnDefinition>
-                            <ColumnDefinition></ColumnDefinition>
-                            <ColumnDefinition></ColumnDefinition>
-                            <ColumnDefinition></ColumnDefinition>
-                            <ColumnDefinition></ColumnDefinition>
-                            <ColumnDefinition></ColumnDefinition>
-                        </Grid.ColumnDefinitions>
-
-                        <StackPanel Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <Rectangle Margin="10" MinHeight="20" MinWidth="20" HorizontalAlignment="Center"
-                                       VerticalAlignment="Center" Fill="{Binding IndMultimeter}">
-                            </Rectangle>
-                            <TextBlock Margin="10" HorizontalAlignment="Center" VerticalAlignment="Center">Мультимтер</TextBlock>
-                        </StackPanel>
-                        <StackPanel Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <Rectangle Margin="10" MinHeight="20" MinWidth="20" HorizontalAlignment="Center"
-                                       VerticalAlignment="Center" Fill="{Binding IndThermometer}">
-                            </Rectangle>
-                            <TextBlock Margin="10" HorizontalAlignment="Center" VerticalAlignment="Center">Термометр</TextBlock>
-                        </StackPanel>
-
-                        <StackPanel Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <Rectangle DockPanel.Dock="Left" Margin="10" MinHeight="20" MinWidth="20" Fill="{Binding IndSupply}"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center">
-                            </Rectangle>
-                            <TextBlock Margin="10" VerticalAlignment="Center" HorizontalAlignment="Center">БП</TextBlock>
-                        </StackPanel>
-                        <StackPanel Grid.Column="3" HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <Rectangle DockPanel.Dock="Left" Margin="10" MinHeight="20" MinWidth="20" Fill="{Binding IndHeat}"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center">
-                            </Rectangle>
-                            <TextBlock Margin="10" VerticalAlignment="Center" HorizontalAlignment="Center">Нагрев</TextBlock>
-                        </StackPanel>
-                        <StackPanel Grid.Column="4" HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <Rectangle DockPanel.Dock="Left" Margin="10" MinHeight="20" MinWidth="20"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center" Fill="{Binding IndLoadSmall}">
-                            </Rectangle>
-                            <TextBlock Margin="10" HorizontalAlignment="Center" VerticalAlignment="Center">Нагрузка малая</TextBlock>
-                        </StackPanel>
-                        <StackPanel Grid.Column="5" HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <Rectangle Margin="10" MinHeight="20" MinWidth="20" HorizontalAlignment="Center"
-                                       VerticalAlignment="Center" Fill="{Binding IndLoadBig}">
-                            </Rectangle>
-                            <TextBlock Margin="10" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                       TextWrapping="Wrap">
-                                Нагрузка большая/Генератор
-                            </TextBlock>
-                        </StackPanel>
-                        <!--Устройства Grid 1-->
-                    </Grid>
-
-                    <Grid ShowGridLines="True" Grid.Row="1">
-                        <!--Устройства Grid 2-->
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition></ColumnDefinition>
-                            <ColumnDefinition></ColumnDefinition>
-                            <ColumnDefinition></ColumnDefinition>
-                            <ColumnDefinition></ColumnDefinition>
-                            <ColumnDefinition></ColumnDefinition>
-                            <ColumnDefinition></ColumnDefinition>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition></RowDefinition>
-                            <RowDefinition></RowDefinition>
-                        </Grid.RowDefinitions>
-
-                        <!--Нагреватели-->
-                        <StackPanel Grid.Column="0">
-                            <Rectangle Margin="10" MinHeight="20" MinWidth="20" HorizontalAlignment="Center"
-                                       VerticalAlignment="Center" Fill="{Binding IndSwitch1}">
-                            </Rectangle>
-                            <TextBlock Margin="10" HorizontalAlignment="Center" VerticalAlignment="Center">1</TextBlock>
-                        </StackPanel>
-                        <StackPanel Grid.Column="1">
-                            <Rectangle Margin="10" MinHeight="20" MinWidth="20" HorizontalAlignment="Center"
-                                       VerticalAlignment="Center" Fill="{Binding IndSwitch2}">
-                            </Rectangle>
-                            <TextBlock Margin="10" HorizontalAlignment="Center" VerticalAlignment="Center">2</TextBlock>
-                        </StackPanel>
-                        <StackPanel Grid.Column="2">
-                            <Rectangle Margin="10" MinHeight="20" MinWidth="20" HorizontalAlignment="Center"
-                                       VerticalAlignment="Center" Fill="{Binding IndSwitch3}">
-                            </Rectangle>
-                            <TextBlock Margin="10" HorizontalAlignment="Center" VerticalAlignment="Center">3</TextBlock>
-                        </StackPanel>
-                        <StackPanel Grid.Column="3">
-                            <Rectangle Margin="10" MinHeight="20" MinWidth="20" HorizontalAlignment="Center"
-                                       VerticalAlignment="Center" Fill="{Binding IndSwitch4}">
-                            </Rectangle>
-                            <TextBlock Margin="10" HorizontalAlignment="Center" VerticalAlignment="Center">4</TextBlock>
-                        </StackPanel>
-                        <StackPanel Grid.Column="4">
-                            <Rectangle Margin="10" MinHeight="20" MinWidth="20" HorizontalAlignment="Center"
-                                       VerticalAlignment="Center" Fill="{Binding IndSwitch5}">
-                            </Rectangle>
-                            <TextBlock Margin="10" HorizontalAlignment="Center" VerticalAlignment="Center">5</TextBlock>
-                        </StackPanel>
-                        <StackPanel Grid.Column="5">
-                            <Rectangle Margin="10" MinHeight="20" MinWidth="20" HorizontalAlignment="Center"
-                                       VerticalAlignment="Center" Fill="{Binding IndSwitch6}">
-                            </Rectangle>
-                            <TextBlock Margin="10" HorizontalAlignment="Center" VerticalAlignment="Center">6</TextBlock>
-                        </StackPanel>
-
-                        <StackPanel Grid.Row="1" Grid.Column="0">
-                            <Rectangle Margin="10" MinHeight="20" MinWidth="20" HorizontalAlignment="Center"
-                                       VerticalAlignment="Center" Fill="{Binding IndSwitch7}">
-                            </Rectangle>
-                            <TextBlock Margin="10" HorizontalAlignment="Center" VerticalAlignment="Center">7</TextBlock>
-                        </StackPanel>
-                        <StackPanel Grid.Row="1" Grid.Column="1">
-                            <Rectangle Margin="10" MinHeight="20" MinWidth="20" HorizontalAlignment="Center"
-                                       VerticalAlignment="Center" Fill="{Binding IndSwitch8}">
-                            </Rectangle>
-                            <TextBlock Margin="10" HorizontalAlignment="Center" VerticalAlignment="Center">8</TextBlock>
-                        </StackPanel>
-                        <StackPanel Grid.Row="1" Grid.Column="2">
-                            <Rectangle Margin="10" MinHeight="20" MinWidth="20" HorizontalAlignment="Center"
-                                       VerticalAlignment="Center" Fill="{Binding IndSwitch9}">
-                            </Rectangle>
-                            <TextBlock Margin="10" HorizontalAlignment="Center" VerticalAlignment="Center">9</TextBlock>
-                        </StackPanel>
-                        <StackPanel Grid.Row="1" Grid.Column="3">
-                            <Rectangle Margin="10" MinHeight="20" MinWidth="20" HorizontalAlignment="Center"
-                                       VerticalAlignment="Center" Fill="{Binding IndSwitch10}">
-                            </Rectangle>
-                            <TextBlock Margin="10" HorizontalAlignment="Center" VerticalAlignment="Center">10</TextBlock>
-                        </StackPanel>
-                        <StackPanel Grid.Row="1" Grid.Column="4">
-                            <Rectangle Margin="10" MinHeight="20" MinWidth="20" HorizontalAlignment="Center"
-                                       VerticalAlignment="Center" Fill="{Binding IndSwitch11}">
-                            </Rectangle>
-                            <TextBlock Margin="10" HorizontalAlignment="Center" VerticalAlignment="Center">11</TextBlock>
-                        </StackPanel>
-                        <StackPanel Grid.Row="1" Grid.Column="5">
-                            <Rectangle Margin="10" MinHeight="20" MinWidth="20" HorizontalAlignment="Center"
-                                       VerticalAlignment="Center" Fill="{Binding IndSwitch12}">
-                            </Rectangle>
-                            <TextBlock Margin="10" HorizontalAlignment="Center" VerticalAlignment="Center">12</TextBlock>
-                        </StackPanel>
-                        <!--Нагреватели-->
-
-                        <!--Device Grid 2-->
-                    </Grid>
-                    <DockPanel MinWidth="300" Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center">
+                 
+            <Grid.RowDefinitions>
+                <RowDefinition></RowDefinition>
+                <RowDefinition></RowDefinition>
+            </Grid.RowDefinitions>
+                    <DockPanel MinWidth="300" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center">
                         <DockPanel Margin="5">
                             <Button Margin="10" Content="Начать тест" Command="{Binding StartTestDevicesCmd}" />
                             <Button Margin="10" Content="Проверить еще раз" Command="{Binding RepeatTestDevicesCmd}" />
@@ -191,7 +42,28 @@
                         </DockPanel>
 
                     </DockPanel>
-
+                    
+                    <ItemsControl Grid.Row="0" ItemsSource="{Binding Devices}" Margin="20">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <Rectangle Margin="10" MinHeight="20" MinWidth="20" HorizontalAlignment="Center"
+                                               VerticalAlignment="Center" Fill="{Binding StatusColor}">
+                                    </Rectangle>
+                                    <TextBlock Margin="10" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                               TextWrapping="Wrap" Text="{Binding Name}">
+                                        
+                                    </TextBlock>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                    
                     <!--Устройства Grid-->
                 </Grid>
                 <!--Устройства-->
@@ -205,141 +77,36 @@
                         <TextBlock VerticalAlignment="Center">Подключние ВИПов</TextBlock>
                     </DockPanel>
                 </TabItem.Header>
+                
+                <!-- <DockPanel Grid.Row="0" Grid.ColumnSpan="3" MinWidth="300" VerticalAlignment="Center" -->
+                <!--            HorizontalAlignment="Stretch"> -->
+                <!--     <ComboBox Margin="7" DockPanel.Dock="Left" MinHeight="10" MinWidth="200" -->
+                <!--               HorizontalAlignment="Stretch"> -->
+                <!--     </ComboBox> -->
+                <!--     <TextBlock Margin="10" DockPanel.Dock="Left">Выбор типа ВИПа</TextBlock> -->
+                <!-- </DockPanel> -->
 
-                <Grid ShowGridLines="True" Background="#FFE5E5E5">
-                    <!--Подключение ВИПОВ Grid-->
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition />
-                        <ColumnDefinition />
-                        <ColumnDefinition />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="0.5*"></RowDefinition>
-                        <RowDefinition></RowDefinition>
-                        <RowDefinition></RowDefinition>
-                        <RowDefinition></RowDefinition>
-                        <RowDefinition></RowDefinition>
-                    </Grid.RowDefinitions>
-
-                    <DockPanel Grid.Row="0" Grid.ColumnSpan="3" MinWidth="300" VerticalAlignment="Center"
-                               HorizontalAlignment="Stretch">
-                        <ComboBox Margin="7" DockPanel.Dock="Left" MinHeight="10" MinWidth="200"
-                                  HorizontalAlignment="Stretch">
-                        </ComboBox>
-                        <TextBlock Margin="10" DockPanel.Dock="Left">Выбор типа ВИПа</TextBlock>
-                    </DockPanel>
-
-                    <DockPanel Grid.Row="1" Grid.Column="0">
-                        <Rectangle DockPanel.Dock="Left" Margin="10" MinHeight="20" MinWidth="20" Fill="Red"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center">
-                        </Rectangle>
-                        <TextBox DockPanel.Dock="Left" Margin="10" MinHeight="20" MinWidth="150"
-                                 HorizontalAlignment="Center" VerticalAlignment="Center">
-                        </TextBox>
-                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center">1 ВИП</TextBlock>
-                    </DockPanel>
-                    <DockPanel Grid.Row="1" Grid.Column="1">
-                        <Rectangle DockPanel.Dock="Left" Margin="10" MinHeight="20" MinWidth="20" Fill="Red"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center">
-                        </Rectangle>
-                        <TextBox DockPanel.Dock="Left" Margin="10" MinHeight="20" MinWidth="150"
-                                 HorizontalAlignment="Center" VerticalAlignment="Center">
-                        </TextBox>
-                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center">2 ВИП</TextBlock>
-                    </DockPanel>
-                    <DockPanel Grid.Row="1" Grid.Column="2">
-                        <Rectangle DockPanel.Dock="Left" Margin="10" MinHeight="20" MinWidth="20" Fill="Red"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center">
-                        </Rectangle>
-                        <TextBox DockPanel.Dock="Left" Margin="10" MinHeight="20" MinWidth="150"
-                                 HorizontalAlignment="Center" VerticalAlignment="Center">
-                        </TextBox>
-                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center">3 ВИП</TextBlock>
-                    </DockPanel>
-                    <DockPanel Grid.Row="2" Grid.Column="0">
-                        <Rectangle DockPanel.Dock="Left" Margin="10" MinHeight="20" MinWidth="20" Fill="Red"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center">
-                        </Rectangle>
-                        <TextBox DockPanel.Dock="Left" Margin="10" MinHeight="20" MinWidth="150"
-                                 HorizontalAlignment="Center" VerticalAlignment="Center">
-                        </TextBox>
-                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center">4 ВИП</TextBlock>
-                    </DockPanel>
-                    <DockPanel Grid.Row="2" Grid.Column="1">
-                        <Rectangle DockPanel.Dock="Left" Margin="10" MinHeight="20" MinWidth="20" Fill="Red"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center">
-                        </Rectangle>
-                        <TextBox DockPanel.Dock="Left" Margin="10" MinHeight="20" MinWidth="150"
-                                 HorizontalAlignment="Center" VerticalAlignment="Center">
-                        </TextBox>
-                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center">5 ВИП</TextBlock>
-                    </DockPanel>
-                    <DockPanel Grid.Row="2" Grid.Column="3">
-                        <Rectangle DockPanel.Dock="Left" Margin="10" MinHeight="20" MinWidth="20" Fill="Red"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center">
-                        </Rectangle>
-                        <TextBox DockPanel.Dock="Left" Margin="10" MinHeight="20" MinWidth="150"
-                                 HorizontalAlignment="Center" VerticalAlignment="Center">
-                        </TextBox>
-                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center">6 ВИП</TextBlock>
-                    </DockPanel>
-                    <DockPanel Grid.Row="3" Grid.Column="0">
-                        <Rectangle DockPanel.Dock="Left" Margin="10" MinHeight="20" MinWidth="20" Fill="Red"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center">
-                        </Rectangle>
-                        <TextBox DockPanel.Dock="Left" Margin="10" MinHeight="20" MinWidth="150"
-                                 HorizontalAlignment="Center" VerticalAlignment="Center">
-                        </TextBox>
-                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center">7 ВИП</TextBlock>
-                    </DockPanel>
-                    <DockPanel Grid.Row="3" Grid.Column="1">
-                        <Rectangle DockPanel.Dock="Left" Margin="10" MinHeight="20" MinWidth="20" Fill="Red"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center">
-                        </Rectangle>
-                        <TextBox DockPanel.Dock="Left" Margin="10" MinHeight="20" MinWidth="150"
-                                 HorizontalAlignment="Center" VerticalAlignment="Center">
-                        </TextBox>
-                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center">8 ВИП</TextBlock>
-                    </DockPanel>
-                    <DockPanel Grid.Row="3" Grid.Column="2">
-                        <Rectangle DockPanel.Dock="Left" Margin="10" MinHeight="20" MinWidth="20" Fill="Red"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center">
-                        </Rectangle>
-                        <TextBox DockPanel.Dock="Left" Margin="10" MinHeight="20" MinWidth="150"
-                                 HorizontalAlignment="Center" VerticalAlignment="Center">
-                        </TextBox>
-                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center">9 ВИП</TextBlock>
-                    </DockPanel>
-                    <DockPanel Grid.Row="4" Grid.Column="0">
-                        <Rectangle DockPanel.Dock="Left" Margin="10" MinHeight="20" MinWidth="20" Fill="Red"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center">
-                        </Rectangle>
-                        <TextBox DockPanel.Dock="Left" Margin="10" MinHeight="20" MinWidth="150"
-                                 HorizontalAlignment="Center" VerticalAlignment="Center">
-                        </TextBox>
-                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center">10 ВИП</TextBlock>
-                    </DockPanel>
-                    <DockPanel Grid.Row="4" Grid.Column="1">
-                        <Rectangle DockPanel.Dock="Left" Margin="10" MinHeight="20" MinWidth="20" Fill="Red"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center">
-                        </Rectangle>
-                        <TextBox DockPanel.Dock="Left" Margin="10" MinHeight="20" MinWidth="150"
-                                 HorizontalAlignment="Center" VerticalAlignment="Center">
-                        </TextBox>
-                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center">11 ВИП</TextBlock>
-                    </DockPanel>
-                    <DockPanel Grid.Row="4" Grid.Column="2">
-                        <Rectangle DockPanel.Dock="Left" Margin="10" MinHeight="20" MinWidth="20" Fill="Red"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center">
-                        </Rectangle>
-                        <TextBox DockPanel.Dock="Left" Margin="10" MinHeight="20" MinWidth="150"
-                                 HorizontalAlignment="Center" VerticalAlignment="Center">
-                        </TextBox>
-                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center">12 ВИП</TextBlock>
-                    </DockPanel>
-
-                    <!--Подключение ВИПОВ Grid-->
-                </Grid>
+                
+                <ItemsControl ItemsSource="{Binding Vips}" Margin="20">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <DockPanel>
+                                <Rectangle DockPanel.Dock="Left" Margin="10" MinHeight="20" MinWidth="20" Fill="{Binding StatusColor}"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center">
+                                </Rectangle>
+                                <TextBox DockPanel.Dock="Left" Margin="10" MinHeight="20" MinWidth="150"
+                                         HorizontalAlignment="Center" VerticalAlignment="Center">
+                                </TextBox>
+                                <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Text="{Binding Name}"></TextBlock>
+                            </DockPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                </ItemsControl>
 
             </TabItem>
             <TabItem>
