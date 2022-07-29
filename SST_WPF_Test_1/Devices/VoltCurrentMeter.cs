@@ -2,6 +2,7 @@
 
 public class  VoltageCurrentMeter : BaseDevice
 {
+    
     public double VoltageOut1 { get; set; }
     public double VoltageOut2 { get; set; }
     public double CurrentIn { get; set; }
@@ -10,6 +11,7 @@ public class  VoltageCurrentMeter : BaseDevice
 
     public VoltageCurrentMeter(string name) : base(name)
     {
+        IsDeviceType = $"Вольтметр {name}";
     }
 }
 

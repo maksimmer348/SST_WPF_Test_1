@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SST_WPF_Test_1"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" MinHeight="450" MinWidth="1000" Height="450" Width="1000">
     <Window.DataContext>
         <local:ViewModel />
     </Window.DataContext>
@@ -13,10 +13,7 @@
     <Grid ShowGridLines="True">
         <!--Main Grid-->
 
-        <Grid.RowDefinitions>
-            <RowDefinition></RowDefinition>
-            <RowDefinition Height="0.1*"></RowDefinition>
-        </Grid.RowDefinitions>
+
         <TabControl SelectedIndex="0">
 
             <TabItem IsEnabled="{Binding PrimaryCheckDevicesTab}">
@@ -33,39 +30,123 @@
                         <RowDefinition></RowDefinition>
                         <RowDefinition Height="0.2*"></RowDefinition>
                     </Grid.RowDefinitions>
-                    <DockPanel MinWidth="300" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center">
-                        <DockPanel Margin="5">
-                            <Button Margin="10" Content="Начать тест" Command="{Binding StartTestDevicesCmd}" />
-                            <Button Margin="10" Content="Проверить еще раз" Command="{Binding RepeatTestDevicesCmd}" />
-                            <Button Margin="10" Content="Открыть конфиг" Command="{Binding OpenSettingsDevicesCmd}" />
-                        </DockPanel>
+
+                    <DockPanel Grid.Row="1">
+
+                        <Grid ShowGridLines="True">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="0"></ColumnDefinition>
+                                <ColumnDefinition MinWidth="300"></ColumnDefinition>
+                                <ColumnDefinition Width="1*"></ColumnDefinition>
+                                <ColumnDefinition Width="1*"></ColumnDefinition>
+                                <ColumnDefinition Width="1*"></ColumnDefinition>
+                                <ColumnDefinition Width="1*"></ColumnDefinition>
+                                <ColumnDefinition Width="1*"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+
+
+                            <Grid Grid.Column="1">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition></RowDefinition>
+                                    <RowDefinition></RowDefinition>
+                                </Grid.RowDefinitions>
+                                <TextBlock Margin="0,5,0,0" Grid.Column="0" DockPanel.Dock="Left"
+                                           Text="{Binding TextCurrentTest}"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center" />
+                                <ProgressBar Grid.Row="1"
+                                             Value="{Binding PercentCurrentTest}" Margin="0 ,0,0,5"
+                                             Maximum="100" MinWidth="200"
+                                             MinHeight="30" Width="165"
+                                             HorizontalAlignment="Center"
+                                             VerticalAlignment="Center" />
+                                <TextBlock Grid.Row="1" Margin="0 ,0,0,5"
+                                           Text="{Binding StringFormat={}{0}%,Path=PercentCurrentTest, UpdateSourceTrigger=Explicit}"
+                                           MinWidth="40" HorizontalAlignment="Center"
+                                           VerticalAlignment="Center" />
+                            </Grid>
+
+
+                            <Button Grid.Column="2" MinHeight="20" MinWidth="80"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center" Content="Открыть конфиг"
+                                    Command="{Binding OpenSettingsDevicesCmd}" />
+                            <Button Grid.Column="3" MinHeight="20" MinWidth="80"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center" Content="Проверить еще раз"
+                                    Command="{Binding RepeatTestDevicesCmd}" />
+                            <Button Grid.Column="4" MinHeight="20" MinWidth="80"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center" Content="Начать тест"
+                                    Command="{Binding StartTestDevicesCmd}" />
+                            <Button Grid.Column="5" MinHeight="20" MinWidth="80"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center" Command="{Binding CancelAllTestCmd}">
+                                Отмена
+                            </Button>
+                            <Button Grid.Column="6" MinHeight="20" MinWidth="80"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center" Command="{Binding NextCmd}">
+                                Далее
+                            </Button>
+
+                        </Grid>
+
+
                     </DockPanel>
-                    <ItemsControl HorizontalAlignment="Center" VerticalAlignment="Stretch" Grid.Row="0"
-                                  ItemsSource="{Binding Devices}" >
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                               
-                                    <Border BorderBrush="Black" BorderThickness="1">
-                                    <StackPanel Margin="0,5,0,0">
-                                        <Rectangle Margin="5" MinHeight="20" MinWidth="20"
-                                                   HorizontalAlignment="Center"
-                                                   VerticalAlignment="Center" Fill="{Binding StatusColor}" />
-                                        <TextBlock Margin="5" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                   TextWrapping="Wrap" Text="{Binding IsDeviceType}"/>
-                                    </StackPanel>
-                                    </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
+
+
+                    <ItemsControl Grid.Row="0"
+                                  ItemsSource="{Binding Devices}" Grid.IsSharedSizeScope="True">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <StackPanel />
+                                <Grid ShowGridLines="True">
+
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="1*" />
+                                        <RowDefinition Height="1*" />
+                                        <RowDefinition Height="1*" />
+
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="1*" />
+                                        <ColumnDefinition Width="1*" />
+                                        <ColumnDefinition Width="1*" />
+                                        <ColumnDefinition Width="1*" />
+                                        <ColumnDefinition Width="1*" />
+                                        <ColumnDefinition Width="1*" />
+                                    </Grid.ColumnDefinitions>
+                                </Grid>
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemContainerStyle>
+                            <Style>
+                                <d:Style.DataContext>
+                                    <x:Type Type="local:BaseDevice" />
+                                </d:Style.DataContext>
+                                <Setter Property="Grid.Row" Value="{Binding RowIndex}" />
+                                <Setter Property="Grid.Column" Value="{Binding ColumnIndex}" />
+                            </Style>
+                        </ItemsControl.ItemContainerStyle>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Margin="0,5,0,0" HorizontalAlignment="Center"
+                                            VerticalAlignment="Center">
+                                    <Rectangle Margin="5" MinHeight="20" MinWidth="20"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center" Fill="{Binding StatusColor}" />
+                                    <TextBlock Margin="5" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                               TextWrapping="Wrap" Text="{Binding IsDeviceType}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+
                     </ItemsControl>
+
 
                     <!--Устройства Grid-->
                 </Grid>
-                <!--Устройства-->
+                <!--УсwDefinitionsтройства-->
             </TabItem>
 
             <TabItem IsEnabled="{Binding PrimaryCheckDevicesTab}">
@@ -76,39 +157,69 @@
                         <TextBlock VerticalAlignment="Center">Подключние ВИПов</TextBlock>
                     </DockPanel>
                 </TabItem.Header>
+                <Grid ShowGridLines="True">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="0.2*"></RowDefinition>
+                        <RowDefinition></RowDefinition>
+                    </Grid.RowDefinitions>
+                    <DockPanel Grid.Row="0" Grid.ColumnSpan="3" MinWidth="300" VerticalAlignment="Center"
+                               HorizontalAlignment="Stretch">
+                        <ComboBox Margin="7" DockPanel.Dock="Left" MinHeight="10" MinWidth="200"
+                                  HorizontalAlignment="Stretch">
+                        </ComboBox>
+                        <TextBlock Margin="10" DockPanel.Dock="Left">Выбор типа ВИПа</TextBlock>
+                    </DockPanel>
 
-                <!-- <DockPanel Grid.Row="0" Grid.ColumnSpan="3" MinWidth="300" VerticalAlignment="Center" -->
-                <!--            HorizontalAlignment="Stretch"> -->
-                <!--     <ComboBox Margin="7" DockPanel.Dock="Left" MinHeight="10" MinWidth="200" -->
-                <!--               HorizontalAlignment="Stretch"> -->
-                <!--     </ComboBox> -->
-                <!--     <TextBlock Margin="10" DockPanel.Dock="Left">Выбор типа ВИПа</TextBlock> -->
-                <!-- </DockPanel> -->
+                    <ItemsControl Grid.Row="1"
+                                  ItemsSource="{Binding AllVips}" Grid.IsSharedSizeScope="True">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <Grid ShowGridLines="True">
 
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="1*" />
+                                        <RowDefinition Height="1*" />
+                                        <RowDefinition Height="1*" />
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="1*" />
+                                        <ColumnDefinition Width="1*" />
+                                        <ColumnDefinition Width="1*" />
+                                        <ColumnDefinition Width="1*" />
 
-                <ItemsControl ItemsSource="{Binding Vips}" Margin="20">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <DockPanel>
-                                <Rectangle DockPanel.Dock="Left" Margin="10" MinHeight="20" MinWidth="20"
-                                           Fill="{Binding StatusColor}"
-                                           HorizontalAlignment="Center" VerticalAlignment="Center">
-                                </Rectangle>
-                                <TextBox DockPanel.Dock="Left" Margin="10" MinHeight="20" MinWidth="150"
-                                         HorizontalAlignment="Center" VerticalAlignment="Center">
-                                </TextBox>
-                                <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center"
-                                           Text="{Binding Name}">
-                                </TextBlock>
-                            </DockPanel>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <WrapPanel />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                </ItemsControl>
+                                    </Grid.ColumnDefinitions>
+                                </Grid>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemContainerStyle>
+                            <Style>
+                                <d:Style.DataContext>
+                                    <x:Type Type="local:Vip" />
+                                </d:Style.DataContext>
+                                <Setter Property="Grid.Row" Value="{Binding RowIndex}" />
+                                <Setter Property="Grid.Column" Value="{Binding ColumnIndex}" />
+                            </Style>
+                        </ItemsControl.ItemContainerStyle>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel HorizontalAlignment="Center"
+                                            VerticalAlignment="Center">
+                                    <Rectangle Margin="5" MinHeight="20" MinWidth="20"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center" Fill="{Binding Relay.StatusColor}" />
+                                    <TextBlock Margin="5" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                               TextWrapping="Wrap"
+                                               Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" />
+                                    <TextBox DockPanel.Dock="Left" Margin="10" MinHeight="20" MinWidth="150"
+                                             HorizontalAlignment="Center" VerticalAlignment="Center"
+                                             Text="{Binding Number, UpdateSourceTrigger=PropertyChanged}">
+                                    </TextBox>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
+
 
             </TabItem>
             <TabItem>
@@ -120,189 +231,290 @@
                     </DockPanel>
                 </TabItem.Header>
 
-                <Grid ShowGridLines="True" Background="#FFE5E5E5">
-                    <!--Испытания Grid-->
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition />
-                        <ColumnDefinition />
-                        <ColumnDefinition />
-                    </Grid.ColumnDefinitions>
+                <Grid ShowGridLines="True">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="0.5*"></RowDefinition>
-                        <RowDefinition></RowDefinition>
-                        <RowDefinition></RowDefinition>
-                        <RowDefinition></RowDefinition>
+                        <RowDefinition Height="0.2*"></RowDefinition>
                         <RowDefinition></RowDefinition>
                     </Grid.RowDefinitions>
+                    <DockPanel Grid.Row="0" Grid.ColumnSpan="3" MinWidth="300" VerticalAlignment="Center"
+                               HorizontalAlignment="Stretch">
+                    </DockPanel>
 
+                    <Grid ShowGridLines="True">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition></ColumnDefinition>
+                            <ColumnDefinition></ColumnDefinition>
+                            <ColumnDefinition></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
 
-                    <TextBlock MinWidth="210" Margin="10"> Начало испытаний 25.07.01/ 12:07:10</TextBlock>
-                    <TextBlock Grid.Row="0" Grid.Column="1" MinWidth="240" Margin="10">До конца испытаний 10:00:48</TextBlock>
-                    <TextBlock Grid.Row="0" Grid.Column="2" MinWidth="240" Margin="10">Следующий замер через 00:21:32</TextBlock>
+                        <TextBlock MinWidth="210" VerticalAlignment="Center" HorizontalAlignment="Center"> Начало испытаний 25.07.01/ 12:07:10</TextBlock>
+                        <TextBlock Grid.Row="0" Grid.Column="1" MinWidth="240" VerticalAlignment="Center"
+                                   HorizontalAlignment="Center">
+                            До конца испытаний 10:00:48
+                        </TextBlock>
+                        <TextBlock Grid.Row="0" Grid.Column="2" MinWidth="240" VerticalAlignment="Center"
+                                   HorizontalAlignment="Center">
+                            Следующий замер через 00:21:32
+                        </TextBlock>
+                    </Grid>
 
+                    <ItemsControl Grid.Row="1"
+                                  ItemsSource="{Binding AllVips}" Grid.IsSharedSizeScope="True">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <Grid ShowGridLines="True">
 
-                    <Button Grid.Row="1" Grid.Column="0">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="1*" />
+                                        <RowDefinition Height="1*" />
+                                        <RowDefinition Height="1*" />
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="1*" />
+                                        <ColumnDefinition Width="1*" />
+                                        <ColumnDefinition Width="1*" />
+                                        <ColumnDefinition Width="1*" />
 
-                        <DockPanel Margin="5">
-                            <Rectangle Margin="10" DockPanel.Dock="Left" MinHeight="20" MinWidth="20" Fill="Red"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center">
-                            </Rectangle>
-                            <TextBlock DockPanel.Dock="Top">1 ВИП # 909488</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">T = 20 C</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">U1 = 40 V</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">U2 = 41 V</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">I = 10 A</TextBlock>
-                        </DockPanel>
-                    </Button>
+                                    </Grid.ColumnDefinitions>
+                                </Grid>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemContainerStyle>
+                            <Style>
+                                <d:Style.DataContext>
+                                    <x:Type Type="local:Vip" />
+                                </d:Style.DataContext>
+                                <Setter Property="Grid.Row" Value="{Binding RowIndex}" />
+                                <Setter Property="Grid.Column" Value="{Binding ColumnIndex}" />
+                            </Style>
+                        </ItemsControl.ItemContainerStyle>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
 
-                    <Button Grid.Row="1" Grid.Column="1">
+                                <Button Grid.Row="1" Grid.Column="0">
 
-                        <DockPanel Margin="5">
-                            <Rectangle Margin="10" DockPanel.Dock="Left" MinHeight="20" MinWidth="20" Fill="Red"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center">
-                            </Rectangle>
-                            <TextBlock DockPanel.Dock="Top">2 ВИП # 909488</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">T = 20 C</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">U1 = 40 V</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">U2 = 41 V</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">I = 10 A</TextBlock>
-                        </DockPanel>
-                    </Button>
-                    <Button Grid.Row="1" Grid.Column="2">
+                                    <DockPanel Margin="5">
+                                        <Rectangle Margin="10" DockPanel.Dock="Left" MinHeight="20" MinWidth="20"
+                                                   Fill="{Binding StatusColor}"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        </Rectangle>
+                                        <TextBlock DockPanel.Dock="Top"
+                                                   Text="{Binding Name}" />
+                                        <TextBlock DockPanel.Dock="Top"
+                                                   Text="{Binding StringFormat=Температура  {0} ℃,Path=Temperature}" />
+                                        <TextBlock DockPanel.Dock="Top"
+                                                   Text="{Binding StringFormat=Uₒᵤₜ₁  {0} V,Path=VoltageOut1}" />
+                                        <TextBlock DockPanel.Dock="Top"
+                                                   Text="{Binding StringFormat=Uₒᵤₜ₂  {0} V,Path=VoltageOut2}" />
+                                        <TextBlock DockPanel.Dock="Top"
+                                                   Text="{Binding StringFormat=Iᵢₙ  {0} A,Path=CurrentIn}" />
+                                    </DockPanel>
+                                </Button>
 
-                        <DockPanel Margin="5">
-                            <Rectangle Margin="10" DockPanel.Dock="Left" MinHeight="20" MinWidth="20" Fill="Red"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center">
-                            </Rectangle>
-                            <TextBlock DockPanel.Dock="Top">3 ВИП # 909488</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">T = 20 C</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">U1 = 40 V</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">U2 = 41 V</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">I = 10 A</TextBlock>
-                        </DockPanel>
+                                <!-- -->
+                                <!-- <StackPanel HorizontalAlignment="Center" -->
+                                <!--             VerticalAlignment="Center"> -->
+                                <!--     <Rectangle Margin="5" MinHeight="20" MinWidth="20" -->
+                                <!--                HorizontalAlignment="Center" -->
+                                <!--                VerticalAlignment="Center" Fill="{Binding Relay.StatusColor}" /> -->
+                                <!--     <TextBlock Margin="5" HorizontalAlignment="Center" VerticalAlignment="Center" -->
+                                <!--                TextWrapping="Wrap" -->
+                                <!--                Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" /> -->
+                                <!--     <TextBox DockPanel.Dock="Left" Margin="10" MinHeight="20" MinWidth="150" -->
+                                <!--              HorizontalAlignment="Center" VerticalAlignment="Center" -->
+                                <!--              Text="{Binding Number, UpdateSourceTrigger=PropertyChanged}"> -->
+                                <!--     </TextBox> -->
+                                <!-- -->
+                                <!-- </StackPanel> -->
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
 
-                    </Button>
-                    <Button Grid.Row="2" Grid.Column="0">
-
-                        <DockPanel Margin="5">
-                            <Rectangle Margin="10" DockPanel.Dock="Left" MinHeight="20" MinWidth="20" Fill="Red"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center">
-                            </Rectangle>
-                            <TextBlock DockPanel.Dock="Top">4 ВИП # 909488</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">T = 20 C</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">U1 = 40 V</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">U2 = 41 V</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">I = 10 A</TextBlock>
-                        </DockPanel>
-                    </Button>
-                    <Button Grid.Row="2" Grid.Column="1">
-
-                        <DockPanel Margin="5">
-                            <Rectangle Margin="10" DockPanel.Dock="Left" MinHeight="20" MinWidth="20" Fill="Red"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center">
-                            </Rectangle>
-                            <TextBlock DockPanel.Dock="Top">5 ВИП # 909488</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">T = 20 C</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">U1 = 40 V</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">U2 = 41 V</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">I = 10 A</TextBlock>
-                        </DockPanel>
-                    </Button>
-                    <Button Grid.Row="2" Grid.Column="2">
-
-                        <DockPanel Margin="5">
-                            <Rectangle Margin="10" DockPanel.Dock="Left" MinHeight="20" MinWidth="20" Fill="Red"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center">
-                            </Rectangle>
-                            <TextBlock DockPanel.Dock="Top">6 ВИП # 909488</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">T = 20 C</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">U1 = 40 V</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">U2 = 41 V</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">I = 10 A</TextBlock>
-                        </DockPanel>
-                    </Button>
-                    <Button Grid.Row="3" Grid.Column="0">
-
-                        <DockPanel Margin="5">
-                            <Rectangle Margin="10" DockPanel.Dock="Left" MinHeight="20" MinWidth="20" Fill="Red"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center">
-                            </Rectangle>
-                            <TextBlock DockPanel.Dock="Top">7 ВИП # 909488</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">T = 20 C</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">U1 = 40 V</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">U2 = 41 V</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">I = 10 A</TextBlock>
-                        </DockPanel>
-                    </Button>
-                    <Button Grid.Row="3" Grid.Column="1">
-
-                        <DockPanel Margin="5">
-                            <Rectangle Margin="10" DockPanel.Dock="Left" MinHeight="20" MinWidth="20" Fill="Red"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center">
-                            </Rectangle>
-                            <TextBlock DockPanel.Dock="Top">8 ВИП # 909488</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">T = 20 C</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">U1 = 40 V</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">U2 = 41 V</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">I = 10 A</TextBlock>
-                        </DockPanel>
-                    </Button>
-                    <Button Grid.Row="3" Grid.Column="2">
-
-                        <DockPanel Margin="5">
-                            <Rectangle Margin="10" DockPanel.Dock="Left" MinHeight="20" MinWidth="20" Fill="Red"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center">
-                            </Rectangle>
-                            <TextBlock DockPanel.Dock="Top">9 ВИП # 909488</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">T = 20 C</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">U1 = 40 V</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">U2 = 41 V</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">I = 10 A</TextBlock>
-                        </DockPanel>
-                    </Button>
-                    <Button Grid.Row="4" Grid.Column="0">
-
-                        <DockPanel Margin="5">
-                            <Rectangle Margin="10" DockPanel.Dock="Left" MinHeight="20" MinWidth="20" Fill="Red"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center">
-                            </Rectangle>
-                            <TextBlock DockPanel.Dock="Top">10 ВИП # 909488</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">T = 20 C</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">U1 = 40 V</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">U2 = 41 V</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">I = 9 A</TextBlock>
-                        </DockPanel>
-                    </Button>
-                    <Button Grid.Row="4" Grid.Column="1">
-
-                        <DockPanel Margin="5">
-                            <Rectangle Margin="10" DockPanel.Dock="Left" MinHeight="20" MinWidth="20" Fill="Red"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center">
-                            </Rectangle>
-                            <TextBlock DockPanel.Dock="Top">11 ВИП # 909488</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">T = 20 C</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">U1 = 40 V</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">U2 = 41 V</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">I = 11 A</TextBlock>
-                        </DockPanel>
-                    </Button>
-                    <Button Grid.Row="4" Grid.Column="2">
-
-                        <DockPanel Margin="5">
-                            <Rectangle Margin="10" DockPanel.Dock="Left" MinHeight="20" MinWidth="20" Fill="Red"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center">
-                            </Rectangle>
-                            <TextBlock DockPanel.Dock="Top">12 ВИП # 909488</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">T = 20 C</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">U1 = 40 V</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">U2 = 41 V</TextBlock>
-                            <TextBlock DockPanel.Dock="Top">I = 10 A</TextBlock>
-                        </DockPanel>
-                    </Button>
-
-
-                    <!--Испытания Grid-->
                 </Grid>
+
+                <!-- <Grid ShowGridLines="True"> -->
+                <!--     ~1~Испытания Grid@1@ -->
+                <!--     <Grid.ColumnDefinitions> -->
+                <!--         <ColumnDefinition /> -->
+                <!--         <ColumnDefinition /> -->
+                <!--         <ColumnDefinition /> -->
+                <!--     </Grid.ColumnDefinitions> -->
+                <!--     <Grid.RowDefinitions> -->
+                <!--         <RowDefinition Height="0.5*"></RowDefinition> -->
+                <!--         <RowDefinition></RowDefinition> -->
+                <!--         <RowDefinition></RowDefinition> -->
+                <!--         <RowDefinition></RowDefinition> -->
+                <!--         <RowDefinition></RowDefinition> -->
+                <!--     </Grid.RowDefinitions> -->
+                <!-- -->
+                <!-- -->
+                <!--     <TextBlock MinWidth="210" Margin="10"> Начало испытаний 25.07.01/ 12:07:10</TextBlock> -->
+                <!--     <TextBlock Grid.Row="0" Grid.Column="1" MinWidth="240" Margin="10">До конца испытаний 10:00:48</TextBlock> -->
+                <!--     <TextBlock Grid.Row="0" Grid.Column="2" MinWidth="240" Margin="10">Следующий замер через 00:21:32</TextBlock> -->
+                <!-- -->
+                <!-- -->
+                <!--     <Button Grid.Row="1" Grid.Column="0"> -->
+                <!-- -->
+                <!--         <DockPanel Margin="5"> -->
+                <!--             <Rectangle Margin="10" DockPanel.Dock="Left" MinHeight="20" MinWidth="20" Fill="Red" -->
+                <!--                        HorizontalAlignment="Center" VerticalAlignment="Center"> -->
+                <!--             </Rectangle> -->
+                <!--             <TextBlock DockPanel.Dock="Top">1 ВИП # 909488</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">T = 20 C</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">U1 = 40 V</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">U2 = 41 V</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">I = 10 A</TextBlock> -->
+                <!--         </DockPanel> -->
+                <!--     </Button> -->
+                <!-- -->
+                <!--     <Button Grid.Row="1" Grid.Column="1"> -->
+                <!-- -->
+                <!--         <DockPanel Margin="5"> -->
+                <!--             <Rectangle Margin="10" DockPanel.Dock="Left" MinHeight="20" MinWidth="20" Fill="Red" -->
+                <!--                        HorizontalAlignment="Center" VerticalAlignment="Center"> -->
+                <!--             </Rectangle> -->
+                <!--             <TextBlock DockPanel.Dock="Top">2 ВИП # 909488</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">T = 20 C</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">U1 = 40 V</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">U2 = 41 V</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">I = 10 A</TextBlock> -->
+                <!--         </DockPanel> -->
+                <!--     </Button> -->
+                <!--     <Button Grid.Row="1" Grid.Column="2"> -->
+                <!-- -->
+                <!--         <DockPanel Margin="5"> -->
+                <!--             <Rectangle Margin="10" DockPanel.Dock="Left" MinHeight="20" MinWidth="20" Fill="Red" -->
+                <!--                        HorizontalAlignment="Center" VerticalAlignment="Center"> -->
+                <!--             </Rectangle> -->
+                <!--             <TextBlock DockPanel.Dock="Top">3 ВИП # 909488</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">T = 20 C</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">U1 = 40 V</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">U2 = 41 V</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">I = 10 A</TextBlock> -->
+                <!--         </DockPanel> -->
+                <!-- -->
+                <!--     </Button> -->
+                <!--     <Button Grid.Row="2" Grid.Column="0"> -->
+                <!-- -->
+                <!--         <DockPanel Margin="5"> -->
+                <!--             <Rectangle Margin="10" DockPanel.Dock="Left" MinHeight="20" MinWidth="20" Fill="Red" -->
+                <!--                        HorizontalAlignment="Center" VerticalAlignment="Center"> -->
+                <!--             </Rectangle> -->
+                <!--             <TextBlock DockPanel.Dock="Top">4 ВИП # 909488</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">T = 20 C</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">U1 = 40 V</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">U2 = 41 V</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">I = 10 A</TextBlock> -->
+                <!--         </DockPanel> -->
+                <!--     </Button> -->
+                <!--     <Button Grid.Row="2" Grid.Column="1"> -->
+                <!-- -->
+                <!--         <DockPanel Margin="5"> -->
+                <!--             <Rectangle Margin="10" DockPanel.Dock="Left" MinHeight="20" MinWidth="20" Fill="Red" -->
+                <!--                        HorizontalAlignment="Center" VerticalAlignment="Center"> -->
+                <!--             </Rectangle> -->
+                <!--             <TextBlock DockPanel.Dock="Top">5 ВИП # 909488</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">T = 20 C</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">U1 = 40 V</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">U2 = 41 V</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">I = 10 A</TextBlock> -->
+                <!--         </DockPanel> -->
+                <!--     </Button> -->
+                <!--     <Button Grid.Row="2" Grid.Column="2"> -->
+                <!-- -->
+                <!--         <DockPanel Margin="5"> -->
+                <!--             <Rectangle Margin="10" DockPanel.Dock="Left" MinHeight="20" MinWidth="20" Fill="Red" -->
+                <!--                        HorizontalAlignment="Center" VerticalAlignment="Center"> -->
+                <!--             </Rectangle> -->
+                <!--             <TextBlock DockPanel.Dock="Top">6 ВИП # 909488</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">T = 20 C</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">U1 = 40 V</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">U2 = 41 V</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">I = 10 A</TextBlock> -->
+                <!--         </DockPanel> -->
+                <!--     </Button> -->
+                <!--     <Button Grid.Row="3" Grid.Column="0"> -->
+                <!-- -->
+                <!--         <DockPanel Margin="5"> -->
+                <!--             <Rectangle Margin="10" DockPanel.Dock="Left" MinHeight="20" MinWidth="20" Fill="Red" -->
+                <!--                        HorizontalAlignment="Center" VerticalAlignment="Center"> -->
+                <!--             </Rectangle> -->
+                <!--             <TextBlock DockPanel.Dock="Top">7 ВИП # 909488</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">T = 20 C</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">U1 = 40 V</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">U2 = 41 V</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">I = 10 A</TextBlock> -->
+                <!--         </DockPanel> -->
+                <!--     </Button> -->
+                <!--     <Button Grid.Row="3" Grid.Column="1"> -->
+                <!-- -->
+                <!--         <DockPanel Margin="5"> -->
+                <!--             <Rectangle Margin="10" DockPanel.Dock="Left" MinHeight="20" MinWidth="20" Fill="Red" -->
+                <!--                        HorizontalAlignment="Center" VerticalAlignment="Center"> -->
+                <!--             </Rectangle> -->
+                <!--             <TextBlock DockPanel.Dock="Top">8 ВИП # 909488</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">T = 20 C</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">U1 = 40 V</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">U2 = 41 V</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">I = 10 A</TextBlock> -->
+                <!--         </DockPanel> -->
+                <!--     </Button> -->
+                <!--     <Button Grid.Row="3" Grid.Column="2"> -->
+                <!-- -->
+                <!--         <DockPanel Margin="5"> -->
+                <!--             <Rectangle Margin="10" DockPanel.Dock="Left" MinHeight="20" MinWidth="20" Fill="Red" -->
+                <!--                        HorizontalAlignment="Center" VerticalAlignment="Center"> -->
+                <!--             </Rectangle> -->
+                <!--             <TextBlock DockPanel.Dock="Top">9 ВИП # 909488</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">T = 20 C</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">U1 = 40 V</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">U2 = 41 V</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">I = 10 A</TextBlock> -->
+                <!--         </DockPanel> -->
+                <!--     </Button> -->
+                <!--     <Button Grid.Row="4" Grid.Column="0"> -->
+                <!-- -->
+                <!--         <DockPanel Margin="5"> -->
+                <!--             <Rectangle Margin="10" DockPanel.Dock="Left" MinHeight="20" MinWidth="20" Fill="Red" -->
+                <!--                        HorizontalAlignment="Center" VerticalAlignment="Center"> -->
+                <!--             </Rectangle> -->
+                <!--             <TextBlock DockPanel.Dock="Top">10 ВИП # 909488</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">T = 20 C</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">U1 = 40 V</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">U2 = 41 V</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">I = 9 A</TextBlock> -->
+                <!--         </DockPanel> -->
+                <!--     </Button> -->
+                <!--     <Button Grid.Row="4" Grid.Column="1"> -->
+                <!-- -->
+                <!--         <DockPanel Margin="5"> -->
+                <!--             <Rectangle Margin="10" DockPanel.Dock="Left" MinHeight="20" MinWidth="20" Fill="Red" -->
+                <!--                        HorizontalAlignment="Center" VerticalAlignment="Center"> -->
+                <!--             </Rectangle> -->
+                <!--             <TextBlock DockPanel.Dock="Top">11 ВИП # 909488</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">T = 20 C</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">U1 = 40 V</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">U2 = 41 V</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">I = 11 A</TextBlock> -->
+                <!--         </DockPanel> -->
+                <!--     </Button> -->
+                <!--     <Button Grid.Row="4" Grid.Column="2"> -->
+                <!-- -->
+                <!--         <DockPanel Margin="5"> -->
+                <!--             <Rectangle Margin="10" DockPanel.Dock="Left" MinHeight="20" MinWidth="20" Fill="Red" -->
+                <!--                        HorizontalAlignment="Center" VerticalAlignment="Center"> -->
+                <!--             </Rectangle> -->
+                <!--             <TextBlock DockPanel.Dock="Top">12 ВИП # 909488</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">T = 20 C</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">U1 = 40 V</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">U2 = 41 V</TextBlock> -->
+                <!--             <TextBlock DockPanel.Dock="Top">I = 10 A</TextBlock> -->
+                <!--         </DockPanel> -->
+                <!--     </Button> -->
+                <!-- -->
+                <!-- -->
+                <!--     ~1~Испытания Grid@1@ -->
+                <!-- </Grid> -->
 
                 <!--Испытания-->
             </TabItem>
@@ -403,29 +615,6 @@
 
         </TabControl>
 
-        <DockPanel Grid.Row="1">
-
-            <ProgressBar Margin="10" DockPanel.Dock="Left" Value="{Binding PercentCurrentTest}"
-                         Maximum="100" MinWidth="100"
-                         MinHeight="20" Width="165" HorizontalAlignment="Center" VerticalAlignment="Center" />
-
-            <TextBlock DockPanel.Dock="Left"
-                       Text="{Binding StringFormat={}{0}%,Path=PercentCurrentTest, UpdateSourceTrigger=Explicit}"
-                       HorizontalAlignment="Center"
-                       VerticalAlignment="Center" MinWidth="40" />
-            <TextBlock DockPanel.Dock="Left" Text="{Binding TextCurrentTest}" HorizontalAlignment="Center"
-                       VerticalAlignment="Center" />
-
-            <Button DockPanel.Dock="Right" Margin="10" MinHeight="20" MinWidth="80" HorizontalAlignment="Right"
-                    VerticalAlignment="Center" Command="{Binding NextCmd}">
-                Далее
-            </Button>
-            <Button DockPanel.Dock="Right" Margin="10" MinHeight="20" MinWidth="80" HorizontalAlignment="Right"
-                    VerticalAlignment="Center" Command="{Binding CancelAllTestCmd}">
-                Отмена
-            </Button>
-
-        </DockPanel>
 
         <!--Main Grid-->
     </Grid>

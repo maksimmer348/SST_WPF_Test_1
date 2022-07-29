@@ -9,12 +9,16 @@ namespace SST_WPF_Test_1;
 
 public class BaseDevice : Notify
 {
+    public string IsDeviceType { get; set; }
+
     /// <summary>
     /// Имя прибора
     /// </summary>
     public string Name { get; set; }
-
+    
+    
     private StatusDeviceTest statusTest;
+
     public StatusDeviceTest StatusTest
     {
         get => statusTest;
@@ -26,7 +30,7 @@ public class BaseDevice : Notify
         {
             StatusDeviceTest.Error => Brushes.Red,
             StatusDeviceTest.Ok => Brushes.Green,
-            _ => Brushes.Black
+            _ => Brushes.DarkGray
         };
 
 
@@ -69,12 +73,16 @@ public class BaseDevice : Notify
     public Action<BaseDevice, string> Receive;
 
     Stopwatch stopwatch = new();
+    //
+    public int RowIndex { get; set; }
+    public int ColumnIndex { get; set; }
+    //
 
     public BaseDevice(string name)
     {
         Name = name;
     }
-
+    
     /// <summary>
     /// Конфигурация компортра утройства
     /// </summary>

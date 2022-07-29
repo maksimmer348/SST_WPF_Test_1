@@ -6,7 +6,7 @@ public class RelayVip : BaseDevice
     public RelayVipError ErrorVip { get; set; }
     public RelayVip(string name) : base(name)
     {
-        
+        IsDeviceType = $"Релейная плата №{name}";
     }
 }
 

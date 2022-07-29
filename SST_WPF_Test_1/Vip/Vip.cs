@@ -6,22 +6,39 @@ namespace SST_WPF_Test_1;
 public class Vip : Notify
 {
     public int ID { get; set; }
-    public string Name { get; set; }
-    public TypeVip Type { get; set; }
+    private string name;
 
-    //Текущие значения на Випеs
-    public double VoltageOut1 { get; set; }
-    public double VoltageOut2 { get; set; }
-    public double CurrentIn { get; set; }
+    public string Name
+    {
+        get => name;
+        set => Set(ref name, value);
+    }
 
-    public double Temperature { get; set; }
+    public bool NeedTesting { get; set; }
+    public string number;
 
-    public double VoltageIn { get; set; }
+    public string Number
+    {
+        get => number;
+        set
+        {
+            if (!Set(ref number, value, nameof(Name), nameof(NeedTesting))) return;
 
-    public bool Output { get; set; }
-
+            if (!string.IsNullOrWhiteSpace(number))
+            {
+                Name = $"Вип-{ID}, Номер-{number}";
+                NeedTesting = true;
+            }
+            else
+            {
+                Name = $"Вип-{ID}";
+                NeedTesting = false;
+            }
+        }
+    }
     
     private StatusDeviceTest statusTest;
+
     public StatusDeviceTest StatusTest
     {
         get => statusTest;
@@ -33,10 +50,26 @@ public class Vip : Notify
         {
             StatusDeviceTest.Error => Brushes.Red,
             StatusDeviceTest.Ok => Brushes.Green,
-            _ => Brushes.Black
+            _ => Brushes.DarkGray
         };
-
     
-    private RelayVip Relay;
+    
+    public TypeVip Type { get; set; }
+
+    //Текущие значения на Випе
+    public double VoltageOut1 { get; set; }
+    public double VoltageOut2 { get; set; }
+    public double CurrentIn { get; set; }
+    public double Temperature { get; set; }
+    public double VoltageIn { get; set; }
+    public bool Output { get; set; }
+    
+    public RelayVip Relay { get; set; }
+    
+    //
+    public int RowIndex { get; set; }
+
+    public int ColumnIndex { get; set; }
+    //
     
 }

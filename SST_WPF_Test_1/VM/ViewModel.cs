@@ -9,27 +9,26 @@ namespace SST_WPF_Test_1;
 
 public class ViewModel : Notify
 {
-    private Stand StandTest = new ();
+    private Stand StandTest = new();
 
     private ObservableCollection<BaseDevice> devices = new();
-    private ObservableCollection<Vip> vips = new();
-
     public ObservableCollection<BaseDevice> Devices
     {
         get => devices;
         set => Set(ref devices, value);
     }
-    public ObservableCollection<Vip> Vips
+    
+    private ObservableCollection<Vip> allVips = new();
+    public ObservableCollection<Vip> AllVips
     {
-        get => vips;
-        set => Set(ref vips, value);
+        get => allVips;
+        set => Set(ref allVips, value);
     }
 
 
     public ViewModel()
     {
         StandTest.PropertyChanged += StandTestOnPropertyChanged;
-
         //включаем кладку Подключения Устройств
         PrimaryCheckDevicesTab = true;
         //TODO остальные выключаем
@@ -37,9 +36,19 @@ public class ViewModel : Notify
 
         devices.Add(StandTest.MultimeterStand);
         devices.Add(StandTest.SupplyStand);
+        devices.Add(StandTest.SupplyStand);
+        devices.Add(StandTest.ThermometerStand);
+        devices.Add(StandTest.BigLoadStand);
+        devices.Add(StandTest.SmallLoadStand);
+        devices.Add(StandTest.HeatStand);
+        foreach (var device in StandTest.SwitchersMetersStand)
+        {
+            devices.Add(device);
+        }
+        
         foreach (var vip in StandTest.VipsStand)
         {
-            vips.Add(vip);
+            allVips.Add(vip);
         }
 
         #region Команды
@@ -57,8 +66,6 @@ public class ViewModel : Notify
 
     private void StandTestOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        
-        
         if (e.PropertyName == "TestRun")
         {
             TestRun = StandTest.TestRun;
@@ -68,7 +75,6 @@ public class ViewModel : Notify
         {
             PercentCurrentTest = StandTest.PercentCurrentTest;
         }
-        
     }
 
 
@@ -85,7 +91,7 @@ public class ViewModel : Notify
     {
         PrimaryCheckDevicesTab = false;
         //обработчик команды
-        
+
         return Task.CompletedTask;
     }
 
@@ -131,6 +137,7 @@ public class ViewModel : Notify
         {
             return false;
         }
+
         return true;
     }
 
@@ -230,42 +237,42 @@ public class ViewModel : Notify
 
             if (testRun == TypeOfTestRun.PrimaryCheckDevices)
             {
-                TextCurrentTest = " Идет проверка внешних устройств";
+                TextCurrentTest = " Проверка устройств";
             }
 
             if (testRun == TypeOfTestRun.PrimaryCheckDevicesReady)
             {
-                TextCurrentTest = " Проверка внешних устройств завершена";
+                TextCurrentTest = " Проверка устройств ОК";
             }
 
             if (testRun == TypeOfTestRun.MeasurementZero)
             {
-                TextCurrentTest = " Идет нулевой замер";
+                TextCurrentTest = " Нулевой замер";
             }
 
             if (testRun == TypeOfTestRun.MeasurementZeroReady)
             {
-                TextCurrentTest = " Нулевой замер завершен";
+                TextCurrentTest = " Нулевой замер ОК";
             }
 
             if (testRun == TypeOfTestRun.WaitSettingToOperatingMode)
             {
-                TextCurrentTest = " Идет Выход на режим (нагрев основания)";
+                TextCurrentTest = " Нагрев основания";
             }
 
             if (testRun == TypeOfTestRun.SettingToOperatingModeReady)
             {
-                TextCurrentTest = " Выход на режим (нагрев основания) завершен";
+                TextCurrentTest = " Нагрев основания ОК";
             }
 
             if (testRun == TypeOfTestRun.CyclicMeasurement)
             {
-                TextCurrentTest = " Идет циклический замер";
+                TextCurrentTest = " Циклический замер";
             }
 
             if (testRun == TypeOfTestRun.Error)
             {
-                TextCurrentTest = " Ошибка";
+                TextCurrentTest = " Ошибка!";
             }
         }
     }
@@ -294,8 +301,7 @@ public class ViewModel : Notify
     }
 
     #endregion
-
-    //
+    
 
     #region Поля Подключение устройств
 
@@ -313,7 +319,13 @@ public class ViewModel : Notify
 
     #endregion
 
-    #region Настройки
+    #region Поля подключение ВИПов
+
+    
+
+    #endregion
+    
+    #region Поля Настройки
 
     private BaseDevice selectDevice;
 
