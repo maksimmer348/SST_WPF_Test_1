@@ -204,12 +204,15 @@ public class Stand : Notify
 
     public async Task<bool> PrimaryCheckDevices()
     {
+        //сброс статуса теста
         TestRun = TypeOfTestRun.None;
-        //Уведомляем что начался первычный тест через енум
+
+        //установка статуса теста первичноая провека устройств
         TestRun = TypeOfTestRun.PrimaryCheckDevices;
+
         if (true)
         {
-            //
+            //для отладки
             TestCurrentDevice = MultimeterStand;
             MultimeterStand.StatusTest = StatusDeviceTest.Ok;
             //
@@ -219,7 +222,7 @@ public class Stand : Notify
             await Task.Delay(TimeSpan.FromMilliseconds(100));
             PercentCurrentTest = 40;
             await Task.Delay(TimeSpan.FromMilliseconds(100));
-            //
+            //для отладки
             TestCurrentDevice = SupplyStand;
             SupplyStand.StatusTest = StatusDeviceTest.Ok;
             //
@@ -229,9 +232,10 @@ public class Stand : Notify
             await Task.Delay(TimeSpan.FromMilliseconds(100));
             PercentCurrentTest = 100;
 
-
-            //Уведомляем что первичный тест закончен
+            //уведомляем что первичный тест закончен
             TestRun = TypeOfTestRun.PrimaryCheckDevicesReady;
+
+            //сброс текущего проверямего устройства
             TestCurrentDevice = new BaseDevice("0");
             return true;
         }
@@ -243,16 +247,19 @@ public class Stand : Notify
 
     public async Task<bool> PrimaryCheckVips()
     {
+        //сброс статуса теста
         TestRun = TypeOfTestRun.None;
-        //Уведомляем что начался тест первичный платок випов через енум
+
+        //установка тест первичный платок випов 
         TestRun = TypeOfTestRun.PrimaryCheckVips;
 
         if (true)
         {
             PercentCurrentTest = 0;
             await Task.Delay(TimeSpan.FromMilliseconds(100));
-            //
+            //для отладки
             TestCurrentDevice = VipsStand[0].Relay;
+            VipsStand[0].Relay.StatusTest = StatusDeviceTest.Ok;
             //
             PercentCurrentTest = 20;
             await Task.Delay(TimeSpan.FromMilliseconds(100));
@@ -260,23 +267,23 @@ public class Stand : Notify
             await Task.Delay(TimeSpan.FromMilliseconds(100));
             PercentCurrentTest = 60;
             await Task.Delay(TimeSpan.FromMilliseconds(100));
-            //
+            //для отладки
             TestCurrentDevice = VipsStand[3].Relay;
+            VipsStand[3].Relay.StatusTest = StatusDeviceTest.Ok;
             //
             PercentCurrentTest = 80;
             await Task.Delay(TimeSpan.FromMilliseconds(100));
-
-            foreach (var vip in VipsStand)
-            {
-                vip.Relay.StatusTest = (StatusDeviceTest)Random.Shared.Next(0, 2);
-            }
-
+            //foreach (var vip in VipsStand)
+            //{
+            //    vip.Relay.StatusTest = (StatusDeviceTest)Random.Shared.Next(0, 2);
+            //}
             PercentCurrentTest = 100;
 
             TestRun = TypeOfTestRun.PrimaryCheckVipsReady;
-            //
+
+            //сброс текущего проверямего устройства
             TestCurrentDevice = new BaseDevice("0");
-            //
+
             return true;
         }
 
@@ -297,19 +304,19 @@ public class Stand : Notify
             TestCurrentDevice = BigLoadStand;
             //
             PercentCurrentTest = 0;
-            await Task.Delay(TimeSpan.FromMilliseconds(1000));
+            await Task.Delay(TimeSpan.FromMilliseconds(100));
             //
             TestCurrentDevice = SupplyStand;
             //
             TestRun = TypeOfTestRun.DeviceOperationReady;
             PercentCurrentTest = 20;
-            await Task.Delay(TimeSpan.FromMilliseconds(1000));
+            await Task.Delay(TimeSpan.FromMilliseconds(100));
             TestRun = TypeOfTestRun.MeasurementZero;
             PercentCurrentTest = 20;
             PercentCurrentTest = 40;
-            await Task.Delay(TimeSpan.FromMilliseconds(1000));
+            await Task.Delay(TimeSpan.FromMilliseconds(100));
             PercentCurrentTest = 60;
-            await Task.Delay(TimeSpan.FromMilliseconds(1000));
+            await Task.Delay(TimeSpan.FromMilliseconds(100));
             TestRun = TypeOfTestRun.DeviceOperation;
             //
             TestCurrentDevice = BigLoadStand;
@@ -378,12 +385,12 @@ public class Stand : Notify
             TestCurrentDevice = BigLoadStand;
             //
             PercentCurrentTest = 0;
-            await Task.Delay(TimeSpan.FromMilliseconds(1000));
+            await Task.Delay(TimeSpan.FromMilliseconds(100));
             //
             TestCurrentDevice = SupplyStand;
             //
             PercentCurrentTest = 20;
-            await Task.Delay(TimeSpan.FromMilliseconds(1000));
+            await Task.Delay(TimeSpan.FromMilliseconds(100));
             PercentCurrentTest = 40;
             await Task.Delay(TimeSpan.FromMilliseconds(100));
             PercentCurrentTest = 60;

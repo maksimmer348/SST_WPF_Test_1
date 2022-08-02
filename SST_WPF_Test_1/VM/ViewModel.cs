@@ -57,7 +57,6 @@ public class ViewModel : Notify
         #region Команды
 
         StartTestDevicesCmd = new ActionCommand(OnStartTestDevicesCmdExecuted, CanStartTestDevicesCmdExecuted);
-        RepeatTestDevicesCmd = new ActionCommand(OnRepeatTestDevicesCmdExecuted, CanRepeatTestDevicesCmdExecuted);
         OpenSettingsDevicesCmd = new ActionCommand(OnOpenSettingsDevicesCmdExecuted, CanOpenSettingsDevicesCmdExecuted);
         CancelAllTestCmd = new ActionCommand(OnCancelAllTestCmdExecuted, CanCancelAllTestCmdExecuted);
         NextCmd = new ActionCommand(OnNextCmdExecuted, CanNextCmdExecuted);
@@ -110,7 +109,10 @@ public class ViewModel : Notify
         }
         //обработчик команды
     }
-
+    bool CanNextCmdExecuted(object p)
+    {
+        return TestRun == TypeOfTestRun.PrimaryCheckDevicesReady || TestRun == TypeOfTestRun.PrimaryCheckVipsReady;
+    }
     /// <summary>
     /// Команда ОТМЕНИТЬ испытания
     /// </summary>
@@ -126,13 +128,7 @@ public class ViewModel : Notify
 
     bool CanCancelAllTestCmdExecuted(object p)
     {
-        return TestRun == TypeOfTestRun.PrimaryCheckDevices || TestRun == TypeOfTestRun.PrimaryCheckVips;
-    }
-
-
-    bool CanNextCmdExecuted(object p)
-    {
-        return TestRun == TypeOfTestRun.PrimaryCheckDevicesReady || TestRun == TypeOfTestRun.PrimaryCheckVipsReady;
+        return true;
     }
 
     #endregion
@@ -159,23 +155,7 @@ public class ViewModel : Notify
 
     bool CanStartTestDevicesCmdExecuted(object p)
     {
-        return TestRun != TypeOfTestRun.PrimaryCheckDevices || TestRun != TypeOfTestRun.PrimaryCheckVips;
-    }
-
-    /// <summary>
-    /// Команда ПОВТОРИТЬ проверку устройств
-    /// </summary>
-    public ICommand RepeatTestDevicesCmd { get; }
-
-    Task OnRepeatTestDevicesCmdExecuted(object p)
-    {
-        //обработчик команды
-        return Task.CompletedTask;
-    }
-
-    bool CanRepeatTestDevicesCmdExecuted(object p)
-    {
-        return TestRun != TypeOfTestRun.PrimaryCheckDevices || TestRun != TypeOfTestRun.PrimaryCheckVips;
+        return TestRun != TypeOfTestRun.PrimaryCheckDevices || TestRun != TypeOfTestRun.PrimaryCheckVips || TestRun != TypeOfTestRun.MeasurementZero;
     }
 
     /// <summary>
@@ -191,7 +171,8 @@ public class ViewModel : Notify
 
     bool CanOpenSettingsDevicesCmdExecuted(object p)
     {
-        return TestRun != TypeOfTestRun.PrimaryCheckDevices || TestRun != TypeOfTestRun.PrimaryCheckVips;
+        return
+            TestRun != TypeOfTestRun.PrimaryCheckDevices; //|| TestRun == TypeOfTestRun.PrimaryCheckVips || TestRun == TypeOfTestRun.MeasurementZero;
     }
 
     #endregion

@@ -574,16 +574,14 @@
                     Text="{Binding StringFormat={}{0}%,Path=PercentCurrentTest, UpdateSourceTrigger=Explicit}"
                     MinWidth="40" HorizontalAlignment="Center"
                     VerticalAlignment="Center" />
-                <TextBlock Grid.Column="1"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Center">
-                    <TextBlock.Text >
-                        <MultiBinding StringFormat="{}{0}{1}">
-                            <Binding Path="TextCurrentTest" />
-                            <Binding Path="TextCurrentTestDevice" />
-                        </MultiBinding>
-                    </TextBlock.Text>
-                </TextBlock>
+                <StackPanel Grid.Column="1" HorizontalAlignment="Center"
+                            VerticalAlignment="Center">
+                    <TextBlock HorizontalAlignment="Center"
+                               VerticalAlignment="Center" Text="{Binding TextCurrentTest}"/>
+                    <TextBlock HorizontalAlignment="Center"
+                               VerticalAlignment="Center" Text="{Binding TextCurrentTestDevice}"/>
+                </StackPanel>
+              
 
                 <DockPanel LastChildFill="False" Grid.Column="3">
                     <Button DockPanel.Dock="Right" MinHeight="20" MinWidth="80" Margin="20"
@@ -592,11 +590,10 @@
                             Command="{Binding CancelAllTestCmd}" Content="Отмена" />
                 </DockPanel>
 
-                <DockPanel LastChildFill="False" Grid.Column="2">
-                    <Button DockPanel.Dock="Right" MinHeight="20" MinWidth="80" Margin="20"
+                <DockPanel  Grid.Column="2">
+                    <Button DockPanel.Dock="Left" MinHeight="20" MinWidth="80" Margin="20"
                             Content="Открыть конфиг"
                             Command="{Binding OpenSettingsDevicesCmd}" />
-
                     <Button DockPanel.Dock="Right" MinHeight="20" MinWidth="80" Margin="20"
                             Content="Начать/повторить тест"
                             Command="{Binding StartTestDevicesCmd}" />
