@@ -12,13 +12,15 @@ public class ViewModel : Notify
     private Stand StandTest = new();
 
     private ObservableCollection<BaseDevice> devices = new();
+
     public ObservableCollection<BaseDevice> Devices
     {
         get => devices;
         set => Set(ref devices, value);
     }
-    
+
     private ObservableCollection<Vip> allVips = new();
+
     public ObservableCollection<Vip> AllVips
     {
         get => allVips;
@@ -45,11 +47,12 @@ public class ViewModel : Notify
         {
             devices.Add(device);
         }
-        
+
         foreach (var vip in StandTest.VipsStand)
         {
             allVips.Add(vip);
         }
+
 
         #region Команды
 
@@ -75,12 +78,38 @@ public class ViewModel : Notify
         {
             PercentCurrentTest = StandTest.PercentCurrentTest;
         }
+
+        if (e.PropertyName == "TestCurrentDevice")
+        {
+            TextCurrentTestDevice = StandTest.TestCurrentDevice.IsDeviceType;
+        }
     }
 
 
     #region Команды
 
     #region Команды Общие
+
+    /// <summary>
+    /// Команда ПРОДОЛЖИТЬ/ДАЛЕЕ
+    /// </summary>
+    public ICommand NextCmd { get; }
+
+
+    async Task OnNextCmdExecuted(object p)
+    {
+        if (TestRun == TypeOfTestRun.PrimaryCheckDevicesReady)
+        {
+            TestRun = TypeOfTestRun.None;
+            SelectTab = 1;
+        }
+        else if (TestRun == TypeOfTestRun.PrimaryCheckVipsReady)
+        {
+            SelectTab = 2;
+            await StandTest.MeasurementZero();
+        }
+        //обработчик команды
+    }
 
     /// <summary>
     /// Команда ОТМЕНИТЬ испытания
@@ -97,24 +126,13 @@ public class ViewModel : Notify
 
     bool CanCancelAllTestCmdExecuted(object p)
     {
-        return true;
+        return TestRun == TypeOfTestRun.PrimaryCheckDevices || TestRun == TypeOfTestRun.PrimaryCheckVips;
     }
 
-    /// <summary>
-    /// Команда ПРОДОЛЖИТЬ/ДАЛЕЕ
-    /// </summary>
-    public ICommand NextCmd { get; }
-
-    Task OnNextCmdExecuted(object p)
-    {
-        PrimaryCheckDevicesTab = true;
-        //обработчик команды
-        return Task.CompletedTask;
-    }
 
     bool CanNextCmdExecuted(object p)
     {
-        return true;
+        return TestRun == TypeOfTestRun.PrimaryCheckDevicesReady || TestRun == TypeOfTestRun.PrimaryCheckVipsReady;
     }
 
     #endregion
@@ -128,17 +146,20 @@ public class ViewModel : Notify
 
     async Task OnStartTestDevicesCmdExecuted(object p)
     {
-        await StandTest.PrimaryCheckDevices();
+        if (SelectTab == 0)
+        {
+            await StandTest.PrimaryCheckDevices();
+        }
+
+        else if (SelectTab == 1)
+        {
+            await StandTest.PrimaryCheckVips();
+        }
     }
 
     bool CanStartTestDevicesCmdExecuted(object p)
     {
-        if (TestRun == TypeOfTestRun.PrimaryCheckDevices)
-        {
-            return false;
-        }
-
-        return true;
+        return TestRun != TypeOfTestRun.PrimaryCheckDevices || TestRun != TypeOfTestRun.PrimaryCheckVips;
     }
 
     /// <summary>
@@ -154,7 +175,7 @@ public class ViewModel : Notify
 
     bool CanRepeatTestDevicesCmdExecuted(object p)
     {
-        return true;
+        return TestRun != TypeOfTestRun.PrimaryCheckDevices || TestRun != TypeOfTestRun.PrimaryCheckVips;
     }
 
     /// <summary>
@@ -170,7 +191,7 @@ public class ViewModel : Notify
 
     bool CanOpenSettingsDevicesCmdExecuted(object p)
     {
-        return true;
+        return TestRun != TypeOfTestRun.PrimaryCheckDevices || TestRun != TypeOfTestRun.PrimaryCheckVips;
     }
 
     #endregion
@@ -217,6 +238,20 @@ public class ViewModel : Notify
 
     #region Общие
 
+    void TabsDisable()
+    {
+        PrimaryCheckDevicesTab = false;
+        PrimaryCheckVipsTab = false;
+        CheckVipsTab = false;
+        SettingsTab = false;
+    }
+    void TabsEnable()
+    {
+        PrimaryCheckDevicesTab = true;
+        PrimaryCheckVipsTab = true;
+        CheckVipsTab = true;
+        SettingsTab = true;
+    }
     private TypeOfTestRun testRun;
 
     /// <summary>
@@ -233,43 +268,101 @@ public class ViewModel : Notify
             {
                 TextCurrentTest = "";
                 PercentCurrentTest = 0;
+
+                PrimaryCheckDevicesTab = true;
+                PrimaryCheckVipsTab = true;
+                CheckVipsTab = true;
+                SettingsTab = true;
             }
 
+            //
             if (testRun == TypeOfTestRun.PrimaryCheckDevices)
             {
-                TextCurrentTest = " Проверка устройств";
+                TextCurrentTest = " Предпроверка устройств";
+                TabsDisable();
+                PrimaryCheckDevicesTab = true;
             }
 
             if (testRun == TypeOfTestRun.PrimaryCheckDevicesReady)
             {
-                TextCurrentTest = " Проверка устройств ОК";
+                TextCurrentTest = " Предпроверка устройств ОК";
+                TabsEnable();
             }
+
+            //
+            if (testRun == TypeOfTestRun.PrimaryCheckVips)
+            {
+                TextCurrentTest = " Предпроверка Випов";
+               
+                TabsDisable();
+                PrimaryCheckVipsTab = true;
+            }
+
+            if (testRun == TypeOfTestRun.PrimaryCheckVipsReady)
+            {
+                TextCurrentTest = " Предпроверка Випов Ок";
+                TabsEnable();
+            }
+
+            //
+            if (testRun == TypeOfTestRun.DeviceOperation)
+            {
+                TextCurrentTest = $" Включение устройства";
+                TabsDisable();
+                CheckVipsTab = true;
+            }
+
+            if (testRun == TypeOfTestRun.DeviceOperationReady)
+            {
+                TextCurrentTest = " Включение устройства Ок";
+                TabsEnable();
+            }
+            //
 
             if (testRun == TypeOfTestRun.MeasurementZero)
             {
                 TextCurrentTest = " Нулевой замер";
+                TabsDisable();
+                CheckVipsTab = true;
             }
 
             if (testRun == TypeOfTestRun.MeasurementZeroReady)
             {
                 TextCurrentTest = " Нулевой замер ОК";
+                TabsEnable();
             }
 
             if (testRun == TypeOfTestRun.WaitSettingToOperatingMode)
             {
                 TextCurrentTest = " Нагрев основания";
+                TabsDisable();
+                CheckVipsTab = true;
             }
 
-            if (testRun == TypeOfTestRun.SettingToOperatingModeReady)
+            if (testRun == TypeOfTestRun.WaitSettingToOperatingModeReady)
             {
                 TextCurrentTest = " Нагрев основания ОК";
+                TabsEnable();
             }
 
             if (testRun == TypeOfTestRun.CyclicMeasurement)
             {
                 TextCurrentTest = " Циклический замер";
+                TabsDisable();
+                CheckVipsTab = true;
             }
-
+            if (testRun == TypeOfTestRun.CycleWait)
+            {
+                TextCurrentTest = " Ожидание замерф";
+                TabsDisable();
+                CheckVipsTab = true;
+            }
+            if (testRun == TypeOfTestRun.CyclicMeasurementReady)
+            {
+                TextCurrentTest = " Циклический замеы закончены";
+                TabsDisable();
+                CheckVipsTab = true;
+            }
             if (testRun == TypeOfTestRun.Error)
             {
                 TextCurrentTest = " Ошибка!";
@@ -280,13 +373,25 @@ public class ViewModel : Notify
     private string textCurrentTest;
 
     /// <summary>
-    /// Уведомляет текстом чей сейчас тест идет
+    /// Уведомляет текстом этап тестов
     /// </summary>
     public string TextCurrentTest
     {
         get => textCurrentTest;
         set => Set(ref textCurrentTest, value);
     }
+
+    private string textCurrentTestDevice;
+
+    /// <summary>
+    /// Уведомляет текстом этап тестов
+    /// </summary>
+    public string TextCurrentTestDevice
+    {
+        get => textCurrentTestDevice;
+        set => Set(ref textCurrentTestDevice, value);
+    }
+
 
     private double percentCurrentTest;
 
@@ -300,31 +405,78 @@ public class ViewModel : Notify
         set => Set(ref percentCurrentTest, value);
     }
 
+    private double selectTab;
+
+    /// <summary>
+    /// Уведомляет сколько процентов текущего теста прошло
+    /// </summary>
+    public double SelectTab
+    {
+        get => selectTab;
+
+        set => Set(ref selectTab, value);
+    }
+
     #endregion
-    
 
     #region Поля Подключение устройств
 
     private bool primaryCheckDevicesTab;
 
     /// <summary>
-    /// Включатель влкадки подключения устройств
+    /// Включатель влкадки подключения устройств 0
     /// </summary>
     public bool PrimaryCheckDevicesTab
     {
         //TODO уточнооить кк работает
-        //get => TestRun is TypeOfTestRun.PrimaryCheckDevices or TypeOfTestRun.None;
+        get => primaryCheckDevicesTab;
         set => Set(ref primaryCheckDevicesTab, value);
+    }
+
+
+    private bool primaryCheckVipsTab;
+
+    /// <summary>
+    /// Включатель влкадки предварительной проверки випов 1
+    /// </summary>
+    public bool PrimaryCheckVipsTab
+    {
+        //TODO уточнооить кк работает
+        get => primaryCheckVipsTab;
+        set => Set(ref primaryCheckVipsTab, value);
+    }
+
+
+    private bool checkVipsTab;
+
+    /// <summary>
+    /// Включатель влкадки проверки випов 2
+    /// </summary>
+    public bool CheckVipsTab
+    {
+        //TODO уточнооить кк работает
+        get => checkVipsTab;
+        set => Set(ref checkVipsTab, value);
+    }
+
+    private bool settingsTab;
+
+    /// <summary>
+    /// Включатель влкадки  настроек 3
+    /// </summary>
+    public bool SettingsTab
+    {
+        //TODO уточнооить кк работает
+        get => settingsTab;
+        set => Set(ref settingsTab, value);
     }
 
     #endregion
 
     #region Поля подключение ВИПов
 
-    
-
     #endregion
-    
+
     #region Поля Настройки
 
     private BaseDevice selectDevice;

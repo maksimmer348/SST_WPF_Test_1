@@ -37,6 +37,19 @@ public class Stand : Notify
         set => Set(ref testRun, value);
     }
 
+    public BaseDevice testCurrentDevice;
+
+    /// <summary>
+    /// Чей сейчас тест идет
+    /// </summary>
+    public BaseDevice TestCurrentDevice
+    {
+        get => testCurrentDevice;
+        set => Set(ref testCurrentDevice, value);
+    }
+
+
+    private const double MAX_PERCENT = 100;
     private double percentCurrentTest;
 
     /// <summary>
@@ -80,7 +93,6 @@ public class Stand : Notify
 
     public Stand()
     {
-        TestRun = TypeOfTestRun.None;
         GetDevices();
     }
 
@@ -99,39 +111,39 @@ public class Stand : Notify
     {
         if (true) //TODO (true) - если сеарилизатор недосутпен выводим исключение и создаем приборы со станрдартными настройками
         {
-            MultimeterStand = new("VOLT-21") {RowIndex = 0, ColumnIndex = 0};
+            MultimeterStand = new("VOLT-21") { RowIndex = 0, ColumnIndex = 0 };
             MultimeterStand.SetConfigDevice(TypePort.SerialInput, "COM3", 9600, 1, 0, 8);
 
-            SupplyStand = new("SUPPL-787") {RowIndex = 0, ColumnIndex = 1};
+            SupplyStand = new("SUPPL-787") { RowIndex = 0, ColumnIndex = 1 };
             SupplyStand.SetConfigDevice(TypePort.SerialInput, "COM4", 2400, 1, 0, 8);
 
-            ThermometerStand = new("THERM-99") {RowIndex = 0, ColumnIndex = 2};
+            ThermometerStand = new("THERM-99") { RowIndex = 0, ColumnIndex = 2 };
             MultimeterStand.SetConfigDevice(TypePort.SerialInput, "COM5", 9600, 1, 0, 8);
 
-            SmallLoadStand = new("SMLL LOAD-87") {RowIndex = 0, ColumnIndex = 3};
+            SmallLoadStand = new("SMLL LOAD-87") { RowIndex = 0, ColumnIndex = 3 };
             SupplyStand.SetConfigDevice(TypePort.SerialInput, "COM6", 2400, 1, 0, 8);
 
-            BigLoadStand = new("BIG LOAD-90") {RowIndex = 0, ColumnIndex = 4};
+            BigLoadStand = new("BIG LOAD-90") { RowIndex = 0, ColumnIndex = 4 };
             MultimeterStand.SetConfigDevice(TypePort.SerialInput, "COM7", 9600, 1, 0, 8);
 
-            HeatStand = new("BIG LOAD-90") {RowIndex = 0, ColumnIndex = 5};
+            HeatStand = new("BIG LOAD-90") { RowIndex = 0, ColumnIndex = 5 };
             MultimeterStand.SetConfigDevice(TypePort.SerialInput, "COM19", 9600, 1, 0, 8);
 
 
             SwitchersMetersStand = new();
 
-            SwitchersMetersStand.Add(new SwitcherMeter("1") {RowIndex = 1, ColumnIndex = 0});
-            SwitchersMetersStand.Add(new SwitcherMeter("2") {RowIndex = 1, ColumnIndex = 1});
-            SwitchersMetersStand.Add(new SwitcherMeter("3") {RowIndex = 1, ColumnIndex = 2});
-            SwitchersMetersStand.Add(new SwitcherMeter("4") {RowIndex = 1, ColumnIndex = 3});
-            SwitchersMetersStand.Add(new SwitcherMeter("5") {RowIndex = 1, ColumnIndex = 4});
-            SwitchersMetersStand.Add(new SwitcherMeter("6") {RowIndex = 1, ColumnIndex = 5});
-            SwitchersMetersStand.Add(new SwitcherMeter("7") {RowIndex = 2, ColumnIndex = 0});
-            SwitchersMetersStand.Add(new SwitcherMeter("8") {RowIndex = 2, ColumnIndex = 1});
-            SwitchersMetersStand.Add(new SwitcherMeter("9") {RowIndex = 2, ColumnIndex = 2});
-            SwitchersMetersStand.Add(new SwitcherMeter("10") {RowIndex = 2, ColumnIndex = 3});
-            SwitchersMetersStand.Add(new SwitcherMeter("11") {RowIndex = 2, ColumnIndex = 4});
-            SwitchersMetersStand.Add(new SwitcherMeter("12") {RowIndex = 2, ColumnIndex = 5});
+            SwitchersMetersStand.Add(new SwitcherMeter("1") { RowIndex = 1, ColumnIndex = 0 });
+            SwitchersMetersStand.Add(new SwitcherMeter("2") { RowIndex = 1, ColumnIndex = 1 });
+            SwitchersMetersStand.Add(new SwitcherMeter("3") { RowIndex = 1, ColumnIndex = 2 });
+            SwitchersMetersStand.Add(new SwitcherMeter("4") { RowIndex = 1, ColumnIndex = 3 });
+            SwitchersMetersStand.Add(new SwitcherMeter("5") { RowIndex = 1, ColumnIndex = 4 });
+            SwitchersMetersStand.Add(new SwitcherMeter("6") { RowIndex = 1, ColumnIndex = 5 });
+            SwitchersMetersStand.Add(new SwitcherMeter("7") { RowIndex = 2, ColumnIndex = 0 });
+            SwitchersMetersStand.Add(new SwitcherMeter("8") { RowIndex = 2, ColumnIndex = 1 });
+            SwitchersMetersStand.Add(new SwitcherMeter("9") { RowIndex = 2, ColumnIndex = 2 });
+            SwitchersMetersStand.Add(new SwitcherMeter("10") { RowIndex = 2, ColumnIndex = 3 });
+            SwitchersMetersStand.Add(new SwitcherMeter("11") { RowIndex = 2, ColumnIndex = 4 });
+            SwitchersMetersStand.Add(new SwitcherMeter("12") { RowIndex = 2, ColumnIndex = 5 });
             foreach (var switcherMeter in SwitchersMetersStand)
             {
                 switcherMeter.SetConfigDevice(TypePort.SerialInput, "COM8", 9600, 1, 0, 8);
@@ -195,33 +207,200 @@ public class Stand : Notify
         TestRun = TypeOfTestRun.None;
         //Уведомляем что начался первычный тест через енум
         TestRun = TypeOfTestRun.PrimaryCheckDevices;
-
         if (true)
         {
-            StatusTest = StatusDeviceTest.Error;
-            PercentCurrentTest = 0;
-            await Task.Delay(TimeSpan.FromMilliseconds(500));
-            PercentCurrentTest = 20;
-            await Task.Delay(TimeSpan.FromMilliseconds(500));
-            PercentCurrentTest = 40;
-            await Task.Delay(TimeSpan.FromMilliseconds(500));
-            PercentCurrentTest = 60;
-            await Task.Delay(TimeSpan.FromMilliseconds(500));
-            PercentCurrentTest = 80;
-            await Task.Delay(TimeSpan.FromMilliseconds(500));
+            //
+            TestCurrentDevice = MultimeterStand;
             MultimeterStand.StatusTest = StatusDeviceTest.Ok;
-            foreach (var vip in VipsStand)
-            {
-                vip.Relay.StatusTest = (StatusDeviceTest) Random.Shared.Next(0, 2);
-            }
-
+            //
+            PercentCurrentTest = 0;
+            await Task.Delay(TimeSpan.FromMilliseconds(100));
+            PercentCurrentTest = 20;
+            await Task.Delay(TimeSpan.FromMilliseconds(100));
+            PercentCurrentTest = 40;
+            await Task.Delay(TimeSpan.FromMilliseconds(100));
+            //
+            TestCurrentDevice = SupplyStand;
+            SupplyStand.StatusTest = StatusDeviceTest.Ok;
+            //
+            PercentCurrentTest = 60;
+            await Task.Delay(TimeSpan.FromMilliseconds(100));
+            PercentCurrentTest = 80;
+            await Task.Delay(TimeSpan.FromMilliseconds(100));
             PercentCurrentTest = 100;
+
+
             //Уведомляем что первичный тест закончен
             TestRun = TypeOfTestRun.PrimaryCheckDevicesReady;
+            TestCurrentDevice = new BaseDevice("0");
             return true;
         }
 
-        //Уведомляем что первичный тест закончен
+        //Уведомляем что первичный тест не закончен
+        return false;
+    }
+
+
+    public async Task<bool> PrimaryCheckVips()
+    {
+        TestRun = TypeOfTestRun.None;
+        //Уведомляем что начался тест первичный платок випов через енум
+        TestRun = TypeOfTestRun.PrimaryCheckVips;
+
+        if (true)
+        {
+            PercentCurrentTest = 0;
+            await Task.Delay(TimeSpan.FromMilliseconds(100));
+            //
+            TestCurrentDevice = VipsStand[0].Relay;
+            //
+            PercentCurrentTest = 20;
+            await Task.Delay(TimeSpan.FromMilliseconds(100));
+            PercentCurrentTest = 40;
+            await Task.Delay(TimeSpan.FromMilliseconds(100));
+            PercentCurrentTest = 60;
+            await Task.Delay(TimeSpan.FromMilliseconds(100));
+            //
+            TestCurrentDevice = VipsStand[3].Relay;
+            //
+            PercentCurrentTest = 80;
+            await Task.Delay(TimeSpan.FromMilliseconds(100));
+
+            foreach (var vip in VipsStand)
+            {
+                vip.Relay.StatusTest = (StatusDeviceTest)Random.Shared.Next(0, 2);
+            }
+
+            PercentCurrentTest = 100;
+
+            TestRun = TypeOfTestRun.PrimaryCheckVipsReady;
+            //
+            TestCurrentDevice = new BaseDevice("0");
+            //
+            return true;
+        }
+
+        return false;
+    }
+
+
+    public async Task<bool> MeasurementZero()
+    {
+        TestRun = TypeOfTestRun.None;
+        //Уведомляем что начался тест 0
+        
+
+        if (true)
+        {
+            TestRun = TypeOfTestRun.DeviceOperation;
+            //
+            TestCurrentDevice = BigLoadStand;
+            //
+            PercentCurrentTest = 0;
+            await Task.Delay(TimeSpan.FromMilliseconds(1000));
+            //
+            TestCurrentDevice = SupplyStand;
+            //
+            TestRun = TypeOfTestRun.DeviceOperationReady;
+            PercentCurrentTest = 20;
+            await Task.Delay(TimeSpan.FromMilliseconds(1000));
+            TestRun = TypeOfTestRun.MeasurementZero;
+            PercentCurrentTest = 20;
+            PercentCurrentTest = 40;
+            await Task.Delay(TimeSpan.FromMilliseconds(1000));
+            PercentCurrentTest = 60;
+            await Task.Delay(TimeSpan.FromMilliseconds(1000));
+            TestRun = TypeOfTestRun.DeviceOperation;
+            //
+            TestCurrentDevice = BigLoadStand;
+            //
+            PercentCurrentTest = 80;
+            await Task.Delay(TimeSpan.FromMilliseconds(1000));
+            TestRun = TypeOfTestRun.DeviceOperationReady;
+            PercentCurrentTest = 100;
+
+            
+            TestCurrentDevice = new BaseDevice("0");
+            TestRun = TypeOfTestRun.MeasurementZeroReady;
+            return true;
+        }
+
+        return false;
+    }
+
+    public async Task<bool> WaitSettingToOperatingMode()
+    {
+        TestRun = TypeOfTestRun.None;
+        //Уведомляем что начался выход на режим 
+        TestRun = TypeOfTestRun.WaitSettingToOperatingMode;
+
+        if (true)
+        {
+            //
+            TestCurrentDevice = BigLoadStand;
+            //
+            PercentCurrentTest = 0;
+            await Task.Delay(TimeSpan.FromMilliseconds(1000));
+            //
+            TestCurrentDevice = SupplyStand;
+            //
+            PercentCurrentTest = 20;
+            await Task.Delay(TimeSpan.FromMilliseconds(1000));
+            PercentCurrentTest = 40;
+            await Task.Delay(TimeSpan.FromMilliseconds(100));
+            PercentCurrentTest = 60;
+            await Task.Delay(TimeSpan.FromMilliseconds(100));
+            //
+            TestCurrentDevice = BigLoadStand;
+            //
+            PercentCurrentTest = 80;
+            await Task.Delay(TimeSpan.FromMilliseconds(100));
+            PercentCurrentTest = 100;
+
+
+            TestCurrentDevice = new BaseDevice("0");
+            TestRun = TypeOfTestRun.WaitSettingToOperatingModeReady;
+            return true;
+        }
+
+        return false;
+    }
+
+    public async Task<bool> CyclicMeasurement()
+    {
+        TestRun = TypeOfTestRun.None;
+        //Уведомляем что начался выход на режим 
+        TestRun = TypeOfTestRun.CyclicMeasurement;
+
+        if (true)
+        {
+            //
+            TestCurrentDevice = BigLoadStand;
+            //
+            PercentCurrentTest = 0;
+            await Task.Delay(TimeSpan.FromMilliseconds(1000));
+            //
+            TestCurrentDevice = SupplyStand;
+            //
+            PercentCurrentTest = 20;
+            await Task.Delay(TimeSpan.FromMilliseconds(1000));
+            PercentCurrentTest = 40;
+            await Task.Delay(TimeSpan.FromMilliseconds(100));
+            PercentCurrentTest = 60;
+            await Task.Delay(TimeSpan.FromMilliseconds(100));
+            //
+            TestCurrentDevice = BigLoadStand;
+            //
+            PercentCurrentTest = 80;
+            await Task.Delay(TimeSpan.FromMilliseconds(100));
+            PercentCurrentTest = 100;
+
+
+            TestCurrentDevice = new BaseDevice("0");
+            TestRun = TypeOfTestRun.CyclicMeasurement;
+            return true;
+        }
+
         return false;
     }
 }
@@ -231,11 +410,16 @@ public enum TypeOfTestRun
     None,
     PrimaryCheckDevices,
     PrimaryCheckDevicesReady,
+    PrimaryCheckVips,
+    PrimaryCheckVipsReady,
+    DeviceOperation,
+    DeviceOperationReady,
     MeasurementZero,
     MeasurementZeroReady,
     WaitSettingToOperatingMode,
-    SettingToOperatingModeReady,
+    WaitSettingToOperatingModeReady,
     CyclicMeasurement,
     CyclicMeasurementReady,
+    CycleWait,
     Error
 }
