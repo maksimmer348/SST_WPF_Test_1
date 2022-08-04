@@ -2,8 +2,9 @@
 
 public class BigLoad : BaseDevice
 {
+   
     public BigLoad(string name) : base(name)
     {
-        IsDeviceType = $"Большая нагрузка/Генератор - {name}";
+        IsDeviceType = "Большая нагрузка/Генератор";
     }
 }

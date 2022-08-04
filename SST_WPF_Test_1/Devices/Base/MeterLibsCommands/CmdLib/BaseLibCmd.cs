@@ -110,6 +110,82 @@ public class BaseLibCmd
 
         #endregion
 
+        #region Другие команды
+
+        //команда с шаблоном ответа
+        DeviceCommands.Add(
+            new DeviceIdentCmd()
+            {
+                //имя устройктсва
+                NameDevice = "GDM-78255A",
+                //имя команды
+                NameCmd = "Test1"
+            },
+            new DeviceCmd()
+            {
+                //запрос
+                Transmit = "*Test?",
+                //окончание строки
+                Terminator = "\n",
+                //ожидаемый ответ
+                Receive = "GDMTestOk",
+                //тип ожидаемого ответа - текстовый
+                MessageType = TypeCmd.Text,
+                //задержка между запросом и ответом 
+                Delay = 70
+            });
+
+        //команда с шаблоном ответа
+        DeviceCommands.Add(
+            new DeviceIdentCmd()
+            {
+                //имя устройктсва
+                NameDevice = "PSW7-800-2.88",
+                //имя команды
+                NameCmd = "Test1"
+            },
+            new DeviceCmd()
+            {
+                //запрос
+                Transmit = "*Test?",
+                //окончание строки
+                Terminator = "\n",
+                //ожидаемый ответ
+                Receive = "PSWTestOK",
+                //задержка между запросом и ответом 
+                Delay = 100
+            });
+
+
+        DeviceCommands.Add(
+            new DeviceIdentCmd()
+            {
+                //имя устройктсва
+                NameDevice = "PSP-405",
+                //имя команды
+                NameCmd = "Trst405"
+            },
+            new DeviceCmd()
+            {
+                //запрос
+                Transmit = "Test",
+                //окончание строки
+                Terminator = "\r\n",
+                //ожидаемый ответ
+                Receive = "TestOk",
+                //тип ожидаемого ответа - текстовый
+                MessageType = TypeCmd.Hex,
+                //задержка между запросом и ответом 
+                Delay = 100,
+
+                StartOfString = "W",
+                PingCount = 3,
+                EndOfString = "\r\n",
+            });
+
+        #endregion
+
+
         #region RelayCommands
 
         DeviceCommands.Add(
@@ -170,6 +246,13 @@ public class BaseLibCmd
 
         #endregion
     }
+
+    //public List<DeviceCmd> FindCommand(BaseDevice device)
+    //{
+    //   var s = DeviceCommands.Where(x => x.Key.NameDevice == device.Name);
+    //   List<DeviceCmd> result = new List<DeviceCmd>();
+    //  result.AddRange();
+    //}
 
     /// <summary>
     /// Добавление команды в общую билиотеку команд

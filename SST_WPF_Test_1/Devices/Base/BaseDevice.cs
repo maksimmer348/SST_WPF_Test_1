@@ -9,14 +9,24 @@ namespace SST_WPF_Test_1;
 
 public class BaseDevice : Notify
 {
-    public string IsDeviceType { get; set; }
+    private string isDeviceType;
 
+    public string IsDeviceType
+    {
+        get => isDeviceType;
+        set => Set(ref isDeviceType, value);
+    }
+    private string name;
     /// <summary>
     /// Имя прибора
     /// </summary>
-    public string Name { get; set; }
-    
-    
+    public string Name
+    {
+        get => name;
+        set => Set(ref name, value);
+    }
+
+
     private StatusDeviceTest statusTest;
 
     public StatusDeviceTest StatusTest

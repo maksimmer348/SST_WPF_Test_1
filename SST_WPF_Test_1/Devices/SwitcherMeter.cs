@@ -7,6 +7,6 @@ public class SwitcherMeter : BaseDevice
     
     public SwitcherMeter(string name) : base(name)
     {
-        IsDeviceType = $"Переключатель № {name}";
+        IsDeviceType = $"Переключатель";
     }
 }

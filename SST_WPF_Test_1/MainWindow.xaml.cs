@@ -12,6 +12,9 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Syncfusion.XlsIO;
+using System.ComponentModel;
+using System.IO;
 
 namespace SST_WPF_Test_1
 {
@@ -23,11 +26,6 @@ namespace SST_WPF_Test_1
         public MainWindow()
         {
             InitializeComponent();
-        }
-
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-
         }
     }
 }

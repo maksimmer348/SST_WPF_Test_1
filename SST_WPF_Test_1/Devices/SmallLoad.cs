@@ -4,6 +4,6 @@ public class SmallLoad : BaseDevice
 {
     public SmallLoad(string name) : base(name)
     {
-        IsDeviceType = $"Малая нагрузка - {name}";
+        IsDeviceType = "Малая нагрузка";
     }
 }

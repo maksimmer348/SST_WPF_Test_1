@@ -6,6 +6,6 @@ public class Heat : BaseDevice
     public bool Output { get; set; }
     public Heat(string name ) : base(name)
     {
-        IsDeviceType = $"Нагрев {name}";
+        IsDeviceType = "Нагрев";
     }
 }

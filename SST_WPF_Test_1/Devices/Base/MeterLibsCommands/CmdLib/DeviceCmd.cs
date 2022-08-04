@@ -73,3 +73,4 @@ public class DeviceCmd
             StartOfString, EndOfString);
     }
 }
+

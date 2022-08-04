@@ -15,6 +15,11 @@
       </PackageReference>
       <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
       <PackageReference Include="SerialPortLib" Version="1.0.23" />
+      <PackageReference Include="Syncfusion.XlsIO.Wpf" Version="20.2.0.40" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Saved Reports\" />
     </ItemGroup>
     
 

@@ -11,7 +11,7 @@ public class  VoltageCurrentMeter : BaseDevice
 
     public VoltageCurrentMeter(string name) : base(name)
     {
-        IsDeviceType = $"Вольтметр {name}";
+        IsDeviceType = "Вольтметр";
     }
 }
 

@@ -1,8 +1,12 @@
-﻿namespace SST_WPF_Test_1;
+﻿using System.ComponentModel;
 
-    public enum TypeCmd
-    {
-        Text,
-        Hex
-    }
+namespace SST_WPF_Test_1;
+
+public enum TypeCmd
+{
+    [Description("Text")]
+    Text,
+    [Description("Hex")]
+    Hex
+}
 
