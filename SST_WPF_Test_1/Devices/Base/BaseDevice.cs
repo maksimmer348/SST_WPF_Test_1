@@ -104,7 +104,7 @@ public class BaseDevice : Notify
     /// <param name="dataBits">Data bits count</param>
     /// <param name="dtr"></param>
     /// <returns></returns>
-    public void ConfigDevice()
+    public void Start()
     {
         if (Config.TypePort == TypePort.GodSerial)
         {
@@ -153,7 +153,7 @@ public class BaseDevice : Notify
 
     public void PortConnect()
     {
-        port.Connect();
+         port.Connect();
     }
 
     public void PortDisconnect()

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Input;
@@ -180,7 +181,7 @@ public class ViewModel : Notify
     #endregion
 
     #region Команды Подключение устройств
-
+    
     /// <summary>
     /// Команда ЗАПУСТИТЬ исптания
     /// </summary>

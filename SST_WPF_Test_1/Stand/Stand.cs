@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -12,6 +14,14 @@ namespace SST_WPF_Test_1;
 public class Stand : Notify
 {
     #region Компоноенты стенда
+
+    private ObservableCollection<BaseDevice> devices = new();
+
+    public ObservableCollection<BaseDevice> Devices
+    {
+        get => devices;
+        set => Set(ref devices, value);
+    }
 
     public VoltageCurrentMeter MultimeterStand { get; set; }
     public ObservableCollection<SwitcherMeter> SwitchersMetersStand { get; set; } = new();
@@ -121,7 +131,6 @@ public class Stand : Notify
 
     #region Отчет
 
-  
     private string fileName;
 
     public string FileName
@@ -129,7 +138,6 @@ public class Stand : Notify
         get => fileName;
         set => Set(ref fileName, value);
     }
-
 
     #endregion
 
@@ -144,7 +152,9 @@ public class Stand : Notify
         {
             MultimeterStand = new("GDM-78255A") { RowIndex = 0, ColumnIndex = 0 };
             MultimeterStand.SetConfigDevice(TypePort.SerialInput, "COM3", 9600, 1, 0, 8);
-
+            MultimeterStand.ConnectPort += OnCheckConnectPort;
+            MultimeterStand.ConnectDevice += OnCheckDevice;
+            MultimeterStand.Receive += Receive;
             SupplyStand = new("PSW7-800-2.88") { RowIndex = 0, ColumnIndex = 1 };
             SupplyStand.SetConfigDevice(TypePort.SerialInput, "COM4", 2400, 1, 0, 8);
 
@@ -291,9 +301,61 @@ public class Stand : Notify
                 ColumnIndex = 3
             });
         }
+
+
+        devices.Add(MultimeterStand);
+        devices.Add(SupplyStand);
+        devices.Add(ThermometerStand);
+        devices.Add(SmallLoadStand);
+        devices.Add(BigLoadStand);
+        devices.Add(HeatStand);
+
+        foreach (var device in SwitchersMetersStand)
+        {
+            devices.Add(device);
+        }
     }
 
-    public void MultiSetConfigSwitcher(TypePort typePort, string portName, int baud, int stopBits, int parity, int dataBits,
+
+    #region Прием данных с приборов
+
+    private void Receive(BaseDevice arg1, string arg2)
+    {
+    }
+
+    private void OnCheckDevice(BaseDevice arg1, bool arg2)
+    {
+    }
+
+    public void OnCheckConnectPort(BaseDevice baseDevice, bool connect)
+    {
+        if (connect)
+        {
+            TempVerifiedDevices.Add(baseDevice);
+        }
+        // else
+        // {
+        //     //TODO возможно использовать событие 
+        //     throw new StandException(
+        //         $"Stand Exception: ComPort {baseDevice.GetConfigDevice().PortName} - не отвечает");
+        // }
+    }
+
+    #endregion
+
+
+    /// <summary>
+    ///Для настройки одинаковых плат => 1 настройка на 12 плат
+    /// </summary>
+    /// <param name="typePort"></param>
+    /// <param name="portName"></param>
+    /// <param name="baud"></param>
+    /// <param name="stopBits"></param>
+    /// <param name="parity"></param>
+    /// <param name="dataBits"></param>
+    /// <param name="dtr"></param>
+    public void MultiSetConfigSwitcher(TypePort typePort, string portName, int baud, int stopBits, int parity,
+        int dataBits,
         bool dtr = true)
     {
         foreach (var switcherMeter in SwitchersMetersStand)
@@ -302,46 +364,196 @@ public class Stand : Notify
         }
     }
 
+    #region Инструменты проверки
 
-    public async Task<bool> PrimaryCheckDevices()
+    public ObservableCollection<BaseDevice> TempVerifiedDevices { get; set; } = new();
+
+    /// <summary>
+    /// Проверка на физическое существование порта  
+    /// </summary>
+    /// <param name="tempCheckDevices"></param>
+    /// <param name="delay">Общая задержка проверки (по умолчанию 10)</param>
+    /// <returns></returns>
+    public async Task<List<BaseDevice>> CheckConnectPorts(List<BaseDevice> tempCheckDevices, int delay = 100)
     {
-        //сброс статуса теста
-        TestRun = TypeOfTestRun.None;
-
-        //установка статуса теста первичноая провека устройств
-        TestRun = TypeOfTestRun.PrimaryCheckDevices;
-
-        if (true)
+        //
+        PercentCurrentTest = 0;
+        //
+        foreach (var device in tempCheckDevices)
         {
-            //для отладки
-            TestCurrentDevice = MultimeterStand;
-            MultimeterStand.StatusTest = StatusDeviceTest.Ok;
-            //
-            PercentCurrentTest = 0;
-            await Task.Delay(TimeSpan.FromMilliseconds(100));
-            PercentCurrentTest = 20;
-            await Task.Delay(TimeSpan.FromMilliseconds(100));
-            PercentCurrentTest = 40;
-            await Task.Delay(TimeSpan.FromMilliseconds(100));
-            //для отладки
-            TestCurrentDevice = SupplyStand;
-            SupplyStand.StatusTest = StatusDeviceTest.Ok;
-            //
-            PercentCurrentTest = 60;
-            await Task.Delay(TimeSpan.FromMilliseconds(100));
-            PercentCurrentTest = 80;
-            await Task.Delay(TimeSpan.FromMilliseconds(100));
-            PercentCurrentTest = 100;
-
-            //уведомляем что первичный тест закончен
-            TestRun = TypeOfTestRun.PrimaryCheckDevicesReady;
-
-            //сброс текущего проверямего устройства
-            TestCurrentDevice = new BaseDevice("0");
-            return true;
+            device.Start();
+            device.PortConnect();
         }
 
-        //Уведомляем что первичный тест не закончен
+        //
+        PercentCurrentTest = 20;
+        //
+        await Task.Delay(TimeSpan.FromMilliseconds(delay));
+
+        //после задержки в этом списке будут устройства не прошедшие проверку
+        var tempErrorDevices = GetErrorDevices(tempCheckDevices);
+        return tempErrorDevices;
+    }
+
+    /// <summary>
+    /// Проверка устройств пингуются ли они
+    /// </summary>
+    /// <param name="tempCheckDevices"></param>
+    /// <param name="externalDelay"></param>
+    /// <returns></returns>
+    public async Task<List<BaseDevice>> CheckConnectDevices(List<BaseDevice> tempCheckDevices,
+        int externalDelay = 0)
+    {
+        //список для задержек из приборов
+        var delaysList = new List<int>();
+        //временный список дефетктивынх приборов
+        var tempErrorDevices = new List<BaseDevice>();
+
+        foreach (var device in tempCheckDevices)
+        {
+            //отправляем команду проверки на устройство
+            device.CheckedConnectDevice();
+            delaysList.Add(device.CmdDelay);
+        }
+
+        double delay = 0;
+        if (externalDelay == 0)
+        {
+            //используем самую большую задержку из всех проверяемых приборов
+            delay = Convert.ToDouble(delaysList?.Max());
+        }
+        else
+        {
+            delay = externalDelay;
+        }
+
+        //ждем (если по прношесвтии этого времени в tempErrorDevices чтот появится значит проверка не прошла)
+        await Task.Delay(TimeSpan.FromMilliseconds(delay));
+
+        tempErrorDevices = GetErrorDevices(tempCheckDevices);
+        return tempErrorDevices;
+    }
+
+    private List<BaseDevice> GetErrorDevices(List<BaseDevice> checkedDevices)
+    {
+        if (!TempVerifiedDevices.Any())
+        {
+          
+            return checkedDevices.ToList();
+        }
+
+        //сравниваем 
+        var tempErrorDevices = checkedDevices.Except(TempVerifiedDevices).ToList();
+        TempVerifiedDevices.Clear();
+
+       
+        //возвращаем список приборов не прошедших проверку
+        return tempErrorDevices;
+    }
+
+    #endregion
+
+
+    #region ПРОВЕРКИ устройств
+
+    /// <summary>
+    /// ПРЕДВАРИТЕЛЬНАЯ ПРОВЕРКА устройств
+    /// </summary>
+    /// <returns></returns>
+    public async Task<bool> PrimaryCheckDevices()
+    {
+        bool isPrimaryCheckDevices = false;
+        //сброс статуса теста
+        TestRun = TypeOfTestRun.None;
+        //установка статуса теста первичноая провека устройств
+        TestRun = TypeOfTestRun.PrimaryCheckDevices;
+        
+        var tempCheckDevices =  Devices.ToList();
+        
+        int checkCount = 3;
+        for (int i = 0; i < checkCount; i++)
+        {
+            //сброс всех статусов
+            foreach (var device in tempCheckDevices)
+            {
+                device.StatusTest = StatusDeviceTest.None;
+            }
+            
+            //принимает сбойные компорты
+            List<BaseDevice> errorPortsList = await CheckConnectPorts(tempCheckDevices);
+            //если сбойные компорты есть 
+            if (errorPortsList.Any())
+            {
+                //вписываем в них ошибку теста
+                foreach (var errorPort in errorPortsList)
+                {
+                    errorPort.StatusTest = StatusDeviceTest.Error;
+                }
+                
+                //отбираем прошедшие проверку компорты 
+                var noErrorPortsList = Devices.ToList().Except(errorPortsList).ToList();
+                //если такие компорты есть проводим проверку приборов на них на предмет пинга
+                if (noErrorPortsList.Any())
+                {
+                    //собираем приборы котороые не ответили на команду статус - сбойные
+                    List<BaseDevice> errorDevicesList = await CheckConnectDevices(noErrorPortsList, 1000);
+
+                    //елси сбойные утройства есть
+                    if (errorDevicesList.Any())
+                    {
+                        //вписываем в них ошибку теста
+                        foreach (var errorDevice in errorDevicesList)
+                        {
+                            errorDevice.StatusTest = StatusDeviceTest.Error;
+                        }
+                    }
+                    
+                    //отбираем нормальные устройства прошедшие и проверку портов и проверку пинга
+                    var noErrorList = Devices.ToList().Except(errorDevicesList).ToList();
+
+                    //вписываем в них ок теста
+                    foreach (var noErrorDevice in noErrorList)
+                    {
+                        noErrorDevice.StatusTest = StatusDeviceTest.Ok;
+                    }
+                    //для следующей итерации отбираем устройства 
+                    tempCheckDevices = Devices.Where(x=>x.StatusTest == StatusDeviceTest.Error).ToList();
+                }
+            }
+
+            //если сбойных компортов нет 
+            else if (!errorPortsList.Any())
+            {
+                //преребор провереных копортов
+                foreach (var device in tempCheckDevices)
+                {
+                    Console.WriteLine(
+                        $"Programm message: Порт {device.GetConfigDevice().PortName} для устройства - {device.Name} открыт, попытка - {i}");
+                }
+
+                //
+                // Console.WriteLine(
+                //     $"Programm message: Время выполнения CheckedComPorts = true {stopwatch.ElapsedMilliseconds} мс, {i} раз");
+                // stopwatch.Restart();
+                //
+                //метод возварщает тру все порты проверены и работают
+                return true;
+            }
+        }
+
+
+        // //проверка птортов устройств
+        // await CheckConnectPorts(Devices.ToList());
+        //
+        // //проверка устройств
+        // await CheckConnectDevices(Devices.ToList());
+        //
+        // //сброс текущего проверямего устройства
+        // TestCurrentDevice = new BaseDevice("0");
+        //
+        // return true;
+        //
+        // //Уведомляем что первичный тест не закончен
         return false;
     }
 
@@ -355,6 +567,7 @@ public class Stand : Notify
         {
             return true;
         }
+
         return false;
     }
 
@@ -365,6 +578,7 @@ public class Stand : Notify
 
         //установка тест первичный платок випов 
         TestRun = TypeOfTestRun.PrimaryCheckVips;
+
 
         if (true)
         {
@@ -399,6 +613,7 @@ public class Stand : Notify
         return false;
     }
 
+    #endregion
 
     public async Task<bool> MeasurementZero()
     {
@@ -529,22 +744,19 @@ public class Stand : Notify
 
     public void SetTimesTest(TimeSpan all, TimeSpan interval)
     {
-
         TestAllTime = all;
         TestIntervalTime = interval;
-
     }
 
     public void ReportCreate()
     {
-
     }
 
 
     public void SaveReportPlace()
     {
-       var txtEditor = "Test";
-       var nameFile = "Report ";
+        var txtEditor = "Test";
+        var nameFile = "Report ";
         if (FileName != null)
         {
             FileName = string.Empty;
@@ -552,14 +764,13 @@ public class Stand : Notify
 
         SaveFileDialog saveFileDialog = new SaveFileDialog();
         saveFileDialog.RestoreDirectory = true;
-        saveFileDialog.InitialDirectory= @"Saved Reports";
+        saveFileDialog.InitialDirectory = @"Saved Reports";
         saveFileDialog.Filter = "Excel files (*.xmls)|*.xmls";
         var fileNameReplace = nameFile + $"{DateTime.Now}".Replace("/", "-").Replace(":", "-");
         saveFileDialog.FileName = fileNameReplace;
-        
+
         if (saveFileDialog.ShowDialog() == true)
             File.WriteAllText(saveFileDialog.FileName, txtEditor);
-        
     }
 }
 
