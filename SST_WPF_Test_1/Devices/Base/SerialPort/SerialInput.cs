@@ -13,6 +13,8 @@ public class SerialInput : ISerialLib
     public bool Dtr { get; set; }
     public string GetPortNum { get; set; }
     public int Delay { get; set; }
+    
+    
     public Action<bool> ConnectionStatusChanged { get; set; }
     public Action<string> MessageReceived { get; set; }
 
@@ -20,6 +22,7 @@ public class SerialInput : ISerialLib
     {
         var adaptSettings = SetPortAdapter(stopBits, parity, dataBits);
         port = new SerialPortInput(new NullLogger<SerialPortInput>());
+        port.ConnectionStatusChanged += OnPortConnectionStatusChanged;
         port.MessageReceived += OnPortMessageReceived;
         try
         {
@@ -48,9 +51,24 @@ public class SerialInput : ISerialLib
     {
         if (port != null)
         {
-            port.Disconnect();
+            if (port.IsConnected)
+            {
+                port.Disconnect();
+            }
         }
     }
+    
+    
+    /// <summary>
+    /// Прием ответа соединения от serial port
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="args">Наличие коннекта true/false</param>
+    public void OnPortConnectionStatusChanged(object sender, ConnectionStatusChangedEventArgs args)
+    {
+        ConnectionStatusChanged.Invoke(args.Connected);
+    }
+
     /// <summary>
     /// Прием сообщения из устройства
     /// </summary>

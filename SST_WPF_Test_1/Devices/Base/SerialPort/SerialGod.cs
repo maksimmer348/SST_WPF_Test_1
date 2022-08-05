@@ -50,7 +50,6 @@ public class SerialGod : ISerialLib
     public bool Open()
     {
       return port.Open();
-      
     }
 
     public void Close()

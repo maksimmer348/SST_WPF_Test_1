@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Windows.Media;
 
 namespace SST_WPF_Test_1;
@@ -16,7 +17,9 @@ public class BaseDevice : Notify
         get => isDeviceType;
         set => Set(ref isDeviceType, value);
     }
+
     private string name;
+
     /// <summary>
     /// Имя прибора
     /// </summary>
@@ -26,7 +29,9 @@ public class BaseDevice : Notify
         set => Set(ref name, value);
     }
 
+    public bool IsConnect { get; set; }
 
+    
     private StatusDeviceTest statusTest;
 
     public StatusDeviceTest StatusTest
@@ -83,8 +88,10 @@ public class BaseDevice : Notify
     public Action<BaseDevice, string> Receive;
 
     Stopwatch stopwatch = new();
+
     //
     public int RowIndex { get; set; }
+
     public int ColumnIndex { get; set; }
     //
 
@@ -92,6 +99,7 @@ public class BaseDevice : Notify
     {
         Name = name;
     }
+
     public void SetConfigDevice(TypePort typePort, string portName, int baud, int stopBits, int parity, int dataBits,
         bool dtr = true)
     {
@@ -103,7 +111,7 @@ public class BaseDevice : Notify
         Config.DataBits = dataBits;
         Config.Dtr = dtr;
     }
-    
+
     public bool Open()
     {
         return port.Open();
@@ -116,8 +124,8 @@ public class BaseDevice : Notify
             port.Close();
         }
     }
-    
-    
+
+
     /// <summary>
     /// Конфигурация компортра утройства
     /// </summary>
@@ -143,16 +151,13 @@ public class BaseDevice : Notify
 
         port.ConnectionStatusChanged += ConnectionStatusChanged;
         port.MessageReceived += MessageReceived;
-
+        
         port.SetPort(Config.PortName, Config.Baud, Config.StopBits, Config.Parity, Config.DataBits);
-        Open();
+        port.Open();
+        
         port.Dtr = Config.Dtr;
     }
     
-    
-    
-    
-
     public ConfigDeviceParams GetConfigDevice()
     {
         if (Config != null)
@@ -162,7 +167,7 @@ public class BaseDevice : Notify
 
         throw new DeviceException("BaseDevice exception: Файл конфига отсутствует");
     }
-    
+
     /// <summary>
     /// Проверка устройства на коннект
     /// </summary>
@@ -245,36 +250,25 @@ public class BaseDevice : Notify
     /// </summary>
     private void ConnectionStatusChanged(bool isConnect)
     {
-        //для отладки
-        //Console.WriteLine($"BaseDevice message: Время работы программы: {stopwatch.Elapsed.TotalMilliseconds} милисекунд");
-        //stopwatch.Restart(); // Остановить отсчет времени
-        //для отладки
-        //Console.WriteLine($"BaseDevice message: Oтвет от порта {port.GetPortNum} - {isConnect}, устройство {Name}");
+        IsConnect = true;
         ConnectPort.Invoke(this, true);
     }
 
+  
     /// <summary>
     /// Обработка прнятого сообщения из устройства
     /// </summary>
     private void MessageReceived(string receive)
     {
-        //для отладки
-        // Console.WriteLine(
-        //     $"BaseDevice message: Время работы программы: {stopwatch.Elapsed.TotalMilliseconds} милисекунд");
-
-        //для отладки
-        //Console.WriteLine($"BaseDevice message: ответ от устройства {Name} - {receive}, порт {port.GetPortNum} ");
-        //
         //для проверки на статус 
         var selectCmd = GetLibItem("Status", Name);
-        //если ответ от устройства соотвествует ответу на кодмаду Status то вернем true
-
-
+        
         if (typeReceive == TypeCmd.Text)
         {
             if (receive.Contains(selectCmd.Receive))
             {
                 ConnectDevice.Invoke(this, true);
+                return;
             }
 
             Receive.Invoke(this, receive);
@@ -285,6 +279,7 @@ public class BaseDevice : Notify
             if (GetStringTextInHex(receive).Contains(selectCmd.Receive))
             {
                 ConnectDevice.Invoke(this, true);
+                return;
             }
 
             Receive.Invoke(this, GetStringTextInHex(receive));
