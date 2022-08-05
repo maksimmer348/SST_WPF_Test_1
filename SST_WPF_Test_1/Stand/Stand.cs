@@ -155,21 +155,37 @@ public class Stand : Notify
             MultimeterStand.ConnectPort += OnCheckConnectPort;
             MultimeterStand.ConnectDevice += OnCheckDevice;
             MultimeterStand.Receive += Receive;
+            
             SupplyStand = new("PSW7-800-2.88") { RowIndex = 0, ColumnIndex = 1 };
-            SupplyStand.SetConfigDevice(TypePort.SerialInput, "COM4", 2400, 1, 0, 8);
-
+            SupplyStand.SetConfigDevice(TypePort.SerialInput, "COM4", 9600, 1, 0, 8);
+            SupplyStand.ConnectPort += OnCheckConnectPort;
+            SupplyStand.ConnectDevice += OnCheckDevice;
+            SupplyStand.Receive += Receive;
+            
             ThermometerStand = new("THERM-99") { RowIndex = 0, ColumnIndex = 2 };
             ThermometerStand.SetConfigDevice(TypePort.SerialInput, "COM5", 9600, 1, 0, 8);
-
+            ThermometerStand.ConnectPort += OnCheckConnectPort;
+            ThermometerStand.ConnectDevice += OnCheckDevice;
+            ThermometerStand.Receive += Receive;
+            
+            
             SmallLoadStand = new("SMLL LOAD-87") { RowIndex = 0, ColumnIndex = 3 };
             SmallLoadStand.SetConfigDevice(TypePort.SerialInput, "COM6", 2400, 1, 0, 8);
-
+            SmallLoadStand.ConnectPort += OnCheckConnectPort;
+            SmallLoadStand.ConnectDevice += OnCheckDevice;
+            SmallLoadStand.Receive += Receive;
+            
             BigLoadStand = new("BIG LOAD-90") { RowIndex = 0, ColumnIndex = 4 };
             BigLoadStand.SetConfigDevice(TypePort.SerialInput, "COM7", 9600, 1, 0, 8);
-
+            BigLoadStand.ConnectPort += OnCheckConnectPort;
+            BigLoadStand.ConnectDevice += OnCheckDevice;
+            BigLoadStand.Receive += Receive;
+            
             HeatStand = new("Heat") { RowIndex = 0, ColumnIndex = 5 };
             HeatStand.SetConfigDevice(TypePort.SerialInput, "COM8", 9600, 1, 0, 8);
-
+            HeatStand.ConnectPort += OnCheckConnectPort;
+            HeatStand.ConnectDevice += OnCheckDevice;
+            HeatStand.Receive += Receive;
 
             SwitchersMetersStand = new();
             SwitchersMetersStand.Add(new SwitcherMeter("1") { RowIndex = 1, ColumnIndex = 0 });
@@ -189,6 +205,9 @@ public class Stand : Notify
             foreach (var switcherMeter in SwitchersMetersStand)
             {
                 switcherMeter.SetConfigDevice(TypePort.SerialInput, "COM9", 9600, 1, 0, 8);
+                switcherMeter.ConnectPort += OnCheckConnectPort;
+                switcherMeter.ConnectDevice += OnCheckDevice;
+                switcherMeter.Receive += Receive;
             }
 
             VipsStand = new();
@@ -333,12 +352,6 @@ public class Stand : Notify
         {
             TempVerifiedDevices.Add(baseDevice);
         }
-        // else
-        // {
-        //     //TODO возможно использовать событие 
-        //     throw new StandException(
-        //         $"Stand Exception: ComPort {baseDevice.GetConfigDevice().PortName} - не отвечает");
-        // }
     }
 
     #endregion
@@ -381,20 +394,22 @@ public class Stand : Notify
         //
         foreach (var device in tempCheckDevices)
         {
+            device.Close();
             device.Start();
-            device.PortConnect();
         }
 
+        await Task.Delay(TimeSpan.FromMilliseconds(100));
         //
         PercentCurrentTest = 20;
         //
-        await Task.Delay(TimeSpan.FromMilliseconds(delay));
-
         //после задержки в этом списке будут устройства не прошедшие проверку
         var tempErrorDevices = GetErrorDevices(tempCheckDevices);
         return tempErrorDevices;
     }
 
+    
+    
+    
     /// <summary>
     /// Проверка устройств пингуются ли они
     /// </summary>
@@ -426,10 +441,7 @@ public class Stand : Notify
         {
             delay = externalDelay;
         }
-
-        //ждем (если по прношесвтии этого времени в tempErrorDevices чтот появится значит проверка не прошла)
-        await Task.Delay(TimeSpan.FromMilliseconds(delay));
-
+        await Task.Delay(TimeSpan.FromMilliseconds(1000));
         tempErrorDevices = GetErrorDevices(tempCheckDevices);
         return tempErrorDevices;
     }
@@ -468,11 +480,13 @@ public class Stand : Notify
         //установка статуса теста первичноая провека устройств
         TestRun = TypeOfTestRun.PrimaryCheckDevices;
         
-        var tempCheckDevices =  Devices.ToList();
+       
         
         int checkCount = 3;
         for (int i = 0; i < checkCount; i++)
         {
+            //вставка во временный список список приоров для проверки
+            var tempCheckDevices =  Devices.ToList();
             //сброс всех статусов
             foreach (var device in tempCheckDevices)
             {
@@ -480,64 +494,75 @@ public class Stand : Notify
             }
             
             //принимает сбойные компорты
-            List<BaseDevice> errorPortsList = await CheckConnectPorts(tempCheckDevices);
-            //если сбойные компорты есть 
-            if (errorPortsList.Any())
+            if (tempCheckDevices != null)
             {
-                //вписываем в них ошибку теста
-                foreach (var errorPort in errorPortsList)
+                List<BaseDevice> errorList = await CheckConnectPorts(tempCheckDevices);
+                //ждем (если по прношесвтии этого времени в errorPortsList чтот появится значит проверка не прошла)
+          
+                //если сбойные компорты есть 
+                if (errorList.Any())
                 {
-                    errorPort.StatusTest = StatusDeviceTest.Error;
-                }
-                
-                //отбираем прошедшие проверку компорты 
-                var noErrorPortsList = Devices.ToList().Except(errorPortsList).ToList();
-                //если такие компорты есть проводим проверку приборов на них на предмет пинга
-                if (noErrorPortsList.Any())
-                {
-                    //собираем приборы котороые не ответили на команду статус - сбойные
-                    List<BaseDevice> errorDevicesList = await CheckConnectDevices(noErrorPortsList, 1000);
-
-                    //елси сбойные утройства есть
-                    if (errorDevicesList.Any())
+                    //вписываем в них ошибку теста
+                    foreach (var errorPort in errorList)
                     {
-                        //вписываем в них ошибку теста
+                        errorPort.StatusTest = StatusDeviceTest.Error;
+                    }
+                
+                    //отбираем прошедшие проверку компорты (сбоыйные порты отброшены)
+                    var noErrorPortsList = tempCheckDevices.Except(errorList).ToList();
+                
+                    //если такие компорты есть проводим проверку приборов на них на предмет пинга
+                    if (noErrorPortsList.Any())
+                    {
+                        //собираем приборы котороые не ответили на команду статус - сбойные
+                        List<BaseDevice> errorDevicesList = await CheckConnectDevices(noErrorPortsList);
                         foreach (var errorDevice in errorDevicesList)
                         {
-                            errorDevice.StatusTest = StatusDeviceTest.Error;
+                            errorDevice.StatusTest = StatusDeviceTest.Ok;
                         }
+                        return true;
                     }
-                    
-                    //отбираем нормальные устройства прошедшие и проверку портов и проверку пинга
-                    var noErrorList = Devices.ToList().Except(errorDevicesList).ToList();
-
-                    //вписываем в них ок теста
-                    foreach (var noErrorDevice in noErrorList)
-                    {
-                        noErrorDevice.StatusTest = StatusDeviceTest.Ok;
-                    }
-                    //для следующей итерации отбираем устройства 
-                    tempCheckDevices = Devices.Where(x=>x.StatusTest == StatusDeviceTest.Error).ToList();
+                    //      //елси сбойные утройства есть
+                    //      if (errorDevicesList.Any())
+                    //      {
+                    //          //вписываем в них ошибку теста
+                    //          foreach (var errorDevice in errorDevicesList)
+                    //          {
+                    //              errorDevice.StatusTest = StatusDeviceTest.Error;
+                    //          }
+                    //      }
+                    //      
+                    //      //отбираем нормальные устройства прошедшие и проверку портов и проверку пинга
+                    //      var noErrorList = Devices.ToList().Except(errorDevicesList.Union(errorList)).ToList();
+                    //
+                    //      //вписываем в них ок теста
+                    //      foreach (var noErrorDevice in noErrorList)
+                    //      {
+                    //          noErrorDevice.StatusTest = StatusDeviceTest.Ok;
+                    //      }
+                    //      //для следующей итерации отбираем устройства 
+                    //      tempCheckDevices = Devices.Where(x=>x.StatusTest == StatusDeviceTest.Error).ToList();
+                    // }
                 }
-            }
 
-            //если сбойных компортов нет 
-            else if (!errorPortsList.Any())
-            {
-                //преребор провереных копортов
-                foreach (var device in tempCheckDevices)
+                //если сбойных компортов нет 
+                else if (!errorList.Any())
                 {
-                    Console.WriteLine(
-                        $"Programm message: Порт {device.GetConfigDevice().PortName} для устройства - {device.Name} открыт, попытка - {i}");
-                }
+                    //преребор провереных копортов
+                    foreach (var device in tempCheckDevices)
+                    {
+                        Console.WriteLine(
+                            $"Programm message: Порт {device.GetConfigDevice().PortName} для устройства - {device.Name} открыт, попытка - {i}");
+                    }
 
-                //
-                // Console.WriteLine(
-                //     $"Programm message: Время выполнения CheckedComPorts = true {stopwatch.ElapsedMilliseconds} мс, {i} раз");
-                // stopwatch.Restart();
-                //
-                //метод возварщает тру все порты проверены и работают
-                return true;
+                    //
+                    // Console.WriteLine(
+                    //     $"Programm message: Время выполнения CheckedComPorts = true {stopwatch.ElapsedMilliseconds} мс, {i} раз");
+                    // stopwatch.Restart();
+                    //
+                    //метод возварщает тру все порты проверены и работают
+                    return true;
+                }
             }
         }
 

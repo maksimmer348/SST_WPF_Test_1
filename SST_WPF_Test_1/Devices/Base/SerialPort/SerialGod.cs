@@ -47,14 +47,15 @@ public class SerialGod : ISerialLib
         }
     }
 
-    public bool IsOpen()
+    public bool Open()
     {
-        if (port != null)
-        {
-            return port.IsOpen;
-        }
+      return port.Open();
+      
+    }
 
-        return false;
+    public void Close()
+    {
+        port.Close();
     }
 
     public void Disconnect()

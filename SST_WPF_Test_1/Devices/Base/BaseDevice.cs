@@ -92,6 +92,31 @@ public class BaseDevice : Notify
     {
         Name = name;
     }
+    public void SetConfigDevice(TypePort typePort, string portName, int baud, int stopBits, int parity, int dataBits,
+        bool dtr = true)
+    {
+        Config.TypePort = typePort;
+        Config.PortName = $"{portName}";
+        Config.Baud = baud;
+        Config.StopBits = stopBits;
+        Config.Parity = parity;
+        Config.DataBits = dataBits;
+        Config.Dtr = dtr;
+    }
+    
+    public bool Open()
+    {
+        return port.Open();
+    }
+
+    public void Close()
+    {
+        if (port != null)
+        {
+            port.Close();
+        }
+    }
+    
     
     /// <summary>
     /// Конфигурация компортра утройства
@@ -119,27 +144,14 @@ public class BaseDevice : Notify
         port.ConnectionStatusChanged += ConnectionStatusChanged;
         port.MessageReceived += MessageReceived;
 
-        if (port.IsConnect)
-        {
-            PortDisconnect();
-        }
-
         port.SetPort(Config.PortName, Config.Baud, Config.StopBits, Config.Parity, Config.DataBits);
+        Open();
         port.Dtr = Config.Dtr;
     }
-
-
-    public void SetConfigDevice(TypePort typePort, string portName, int baud, int stopBits, int parity, int dataBits,
-        bool dtr = true)
-    {
-        Config.TypePort = typePort;
-        Config.PortName = $"{portName}";
-        Config.Baud = baud;
-        Config.StopBits = stopBits;
-        Config.Parity = parity;
-        Config.DataBits = dataBits;
-        Config.Dtr = dtr;
-    }
+    
+    
+    
+    
 
     public ConfigDeviceParams GetConfigDevice()
     {
@@ -150,17 +162,7 @@ public class BaseDevice : Notify
 
         throw new DeviceException("BaseDevice exception: Файл конфига отсутствует");
     }
-
-    public void PortConnect()
-    {
-         port.Connect();
-    }
-
-    public void PortDisconnect()
-    {
-        port.Disconnect();
-    }
-
+    
     /// <summary>
     /// Проверка устройства на коннект
     /// </summary>

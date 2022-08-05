@@ -13,7 +13,6 @@ public class SerialInput : ISerialLib
     public bool Dtr { get; set; }
     public string GetPortNum { get; set; }
     public int Delay { get; set; }
-    public bool IsConnect { get; set; }
     public Action<bool> ConnectionStatusChanged { get; set; }
     public Action<string> MessageReceived { get; set; }
 
@@ -21,7 +20,6 @@ public class SerialInput : ISerialLib
     {
         var adaptSettings = SetPortAdapter(stopBits, parity, dataBits);
         port = new SerialPortInput(new NullLogger<SerialPortInput>());
-        port.ConnectionStatusChanged += OnPortConnectionStatusChanged;
         port.MessageReceived += OnPortMessageReceived;
         try
         {
@@ -32,20 +30,27 @@ public class SerialInput : ISerialLib
             throw new SerialException(
                 $"SerialInput exception: Порт \"{GetPortNum}\" не конфигурирован, ошибка - {e.Message}");
         }
-        try
-        {
-            port.Connect();
-        }
-        catch (SerialException e)
-        {
-            throw new SerialException(
-                $"SerialInput exception: Порт \"{GetPortNum}\" не запущен, ошибка - {e.Message}");
-        }
 
         GetPortNum = pornName;
     }
 
+    public bool Open()
+    {
+        if (!port.IsConnected)
+        {
+         return port.Connect();
+        }
 
+        return false;
+    }
+
+    public void Close()
+    {
+        if (port != null)
+        {
+            port.Disconnect();
+        }
+    }
     /// <summary>
     /// Прием сообщения из устройства
     /// </summary>
@@ -57,56 +62,7 @@ public class SerialInput : ISerialLib
         var answer = (data);
         MessageReceived.Invoke(answer);
     }
-
-    /// <summary>
-    /// Прием ответа соединения от serial port
-    /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="args">Наличие коннекта true/false</param>
-    public void OnPortConnectionStatusChanged(object sender, ConnectionStatusChangedEventArgs args)
-    {
-        IsConnect = args.Connected;
-        ConnectionStatusChanged.Invoke(IsConnect);
-            //port.DtrEnable = Dtr;
-    }
-
-    public bool Connect()
-    {
-        if (IsConnect)
-        {
-            return IsConnect;
-        }
-        IsConnect = port.Connect();
-        return IsConnect;
-        //TODO раскоментить
-        // throw new SerialException($"SerialInput exception: Порт \"{GetPortNum}\" не отвечает");
-    }
-
-    public bool IsOpen()
-    {
-        if (port == null)
-        {
-            return false;
-        }
-
-        return port.IsConnected;
-    }
-
-    public void Disconnect()
-    {
-        try
-        {
-            port.Disconnect();
-            IsConnect = false;
-        }
-        catch (Exception e)
-        {
-            throw new SerialException(
-                $"SerialInput exception: Порт \"{GetPortNum}\" не отвечает, ошибка - {e.Message}");
-        }
-    }
-
-
+    
     /// <summary>
     /// Адаптер значений для библиотеки 
     /// </summary>

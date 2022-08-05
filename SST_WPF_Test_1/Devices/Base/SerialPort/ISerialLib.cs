@@ -19,8 +19,10 @@ public interface ISerialLib
     /// </summary>
     public int Delay { get; set; }
 
-    public bool IsConnect { get; set; }
-
+    
+    public bool Open();
+    public void Close();
+    
     /// <summary>
     /// Событие конекта к порту 
     /// </summary>
@@ -41,21 +43,7 @@ public interface ISerialLib
     /// <param name="dataBits">Data bits (напрмиер 8)</param>
     /// <param name="dtr">Dtr - по умолчанию false (напрмие true)</param>
     public void SetPort(string pornName, int baud, int stopBits, int parity, int dataBits, bool dtr = false);
-
-    /// <summary>
-    /// Команда подключения к serial port
-    /// </summary>
-    /// <returns>Неудача</returns>
-    public bool Connect();
-
-    public bool IsOpen();
-
-    /// <summary>
-    /// Команда отключения к serial port
-    /// </summary>
-    /// <returns>Неудача</returns>
-    public void Disconnect();
-
+    
     //TODO два вида отправки для разных типаов писем
     /// <summary>
     /// Отправка в устройство и прием команд из устройства
