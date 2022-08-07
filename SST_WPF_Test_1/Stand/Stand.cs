@@ -162,7 +162,7 @@ public class Stand : Notify
             SupplyStand.ConnectDevice += OnCheckDevice;
             SupplyStand.Receive += Receive;
 
-            ThermometerStand = new("THERM-99") { RowIndex = 0, ColumnIndex = 2 };
+            ThermometerStand = new("PSW7-800-2.88") { RowIndex = 0, ColumnIndex = 2 };
             ThermometerStand.SetConfigDevice(TypePort.SerialInput, "COM100", 9600, 1, 0, 8);
             ThermometerStand.ConnectPort += OnCheckConnectPort;
             ThermometerStand.ConnectDevice += OnCheckDevice;
@@ -343,6 +343,7 @@ public class Stand : Notify
 
     private void OnCheckDevice(BaseDevice baseDevice, bool connect)
     {
+        PercentCurrentTest += (1 / (float)Devices.Count) * 80;
         if (connect)
         {
             TempVerifiedDevices.Add(baseDevice);
@@ -443,7 +444,7 @@ public class Stand : Notify
         if (externalDelay == 0)
         {
             //используем самую большую задержку из всех проверяемых приборов
-            delay = Convert.ToDouble(delaysList?.Max());
+            delay = Convert.ToDouble(delaysList.Count > 0 ? delaysList.Max() : 100);
         }
         else
         {
@@ -452,6 +453,7 @@ public class Stand : Notify
 
         await Task.Delay(TimeSpan.FromMilliseconds(1000));
         tempErrorDevices = GetErrorDevices(tempCheckDevices);
+        PercentCurrentTest = 100;
         return tempErrorDevices;
     }
 
@@ -499,8 +501,8 @@ public class Stand : Notify
                 device.StatusTest = StatusDeviceTest.None;
             }
 
-            //принимает сбойные компорты
-            if (tempCheckDevices != null)
+            //принимает все компорты
+            if (tempCheckDevices.Count > 0)
             {
                 List<BaseDevice> errorList = await CheckConnectPorts(tempCheckDevices);
                 //ждем (если по прношесвтии этого времени в errorPortsList чтот появится значит проверка не прошла)
@@ -516,7 +518,7 @@ public class Stand : Notify
 
                     //отбираем прошедшие проверку компорты (сбоыйные порты отброшены)
                     var noErrorPortsList = tempCheckDevices.Except(errorList).ToList();
-
+                    
                     //если такие компорты есть проводим проверку приборов на них на предмет пинга
                     if (noErrorPortsList.Any())
                     {
@@ -541,39 +543,44 @@ public class Stand : Notify
                         {
                             noErrorDevice.StatusTest = StatusDeviceTest.Ok;
                         }
+
                         TestCurrentDevice = new BaseDevice("0");
                         return false;
                     }
-                    //если сбоынйх компортов нет проводим проверку приборов на них на предмет пинга
+                   
+                }
+                //если сбоынйх компортов ВООБЩЕ нет проводим проверку приборов на них на предмет пинга
+                else
+                {
+                    List<BaseDevice> errorDevicesList = await CheckConnectDevices(tempCheckDevices);
+                    //если сбоынйу устройства есть
+                    if (errorDevicesList.Any())
+                    {
+                        //вписываем в них ошибку теста
+                        foreach (var errorDevice in errorDevicesList)
+                        {
+                            errorDevice.StatusTest = StatusDeviceTest.Error;
+                        }
+
+                        TestCurrentDevice = new BaseDevice("0");
+                        return false;
+                    }
                     else
                     {
-                        List<BaseDevice> errorDevicesList = await CheckConnectDevices(tempCheckDevices);
-                        //если сбоынйу устройства есть
-                        if (errorDevicesList.Any())
+                        foreach (var device in tempCheckDevices)
                         {
-                            //вписываем в них ошибку теста
-                            foreach (var errorDevice in errorDevicesList)
-                            {
-                                errorDevice.StatusTest = StatusDeviceTest.Error;
-                            }
-                            TestCurrentDevice = new BaseDevice("0");
-                            return false;
+                            device.StatusTest = StatusDeviceTest.Ok;
                         }
-                        else
-                        {
-                            foreach (var device in tempCheckDevices)
-                            {
-                                device.StatusTest = StatusDeviceTest.Ok;
-                            }
-                            
-                            TestRun = TypeOfTestRun.PrimaryCheckDevicesReady;
-                            TestCurrentDevice = new BaseDevice("0");
-                            return true;
-                        }
+
+                        TestRun = TypeOfTestRun.PrimaryCheckDevicesReady;
+                        TestCurrentDevice = new BaseDevice("0");
+                        return true;
                     }
                 }
             }
         }
+
+        PercentCurrentTest = 100;
         TestCurrentDevice = new BaseDevice("0");
         return false;
     }
