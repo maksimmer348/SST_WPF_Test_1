@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Windows.Media;
+using Newtonsoft.Json;
 
 namespace SST_WPF_Test_1;
 
@@ -17,9 +18,7 @@ public class BaseDevice : Notify
         get => isDeviceType;
         set => Set(ref isDeviceType, value);
     }
-
     private string name;
-
     /// <summary>
     /// Имя прибора
     /// </summary>
@@ -47,18 +46,19 @@ public class BaseDevice : Notify
             StatusDeviceTest.Ok => Brushes.Green,
             _ => Brushes.DarkGray
         };
-
-
+    
     public ConfigDeviceParams Config { get; set; } = new ConfigDeviceParams();
 
     /// <summary>
     /// Компорт прибора
     /// </summary>
+    [field: NonSerialized]
     protected ISerialLib port { get; set; }
 
     /// <summary>
     /// Класс библиотеки
     /// </summary>
+    [NonSerialized]
     public BaseLibCmd LibCmd = BaseLibCmd.getInstance();
 
     /// <summary>
@@ -74,17 +74,20 @@ public class BaseDevice : Notify
     /// <summary>
     /// Событие проверки коннекта к порту
     /// </summary>
+    [field: NonSerialized]
     public Action<BaseDevice, bool> ConnectPort;
 
     /// <summary>
     /// Событие проверки коннекта к устройству
     /// </summary>
+    [field: NonSerialized]
     public Action<BaseDevice, bool> ConnectDevice;
 
 
     /// <summary>
     /// Событие приема данных с устройства
     /// </summary>
+    [field: NonSerialized]
     public Action<BaseDevice, string> Receive;
 
     Stopwatch stopwatch = new();
@@ -124,8 +127,7 @@ public class BaseDevice : Notify
             port.Close();
         }
     }
-
-
+    
     /// <summary>
     /// Конфигурация компортра утройства
     /// </summary>

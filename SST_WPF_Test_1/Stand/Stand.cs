@@ -143,13 +143,17 @@ public class Stand : Notify
 
     public Stand()
     {
-        SetDevices();
+        //SetDevices();
+        
     }
+    
 
     public void SetDevices()
     {
+        
         if (true) //TODO (true) - если сеарилизатор недосутпен выводим исключение и создаем приборы со станрдартными настройками
         {
+            
             MultimeterStand = new("GDM-78255A") { RowIndex = 0, ColumnIndex = 0 };
             MultimeterStand.SetConfigDevice(TypePort.SerialInput, "COM4", 9600, 1, 0, 8);
             MultimeterStand.ConnectPort += OnCheckConnectPort;
@@ -203,7 +207,7 @@ public class Stand : Notify
 
             foreach (var switcherMeter in SwitchersMetersStand)
             {
-                switcherMeter.SetConfigDevice(TypePort.SerialInput, "COM90", 9600, 1, 0, 8);
+                switcherMeter.SetConfigDevice(TypePort.SerialInput, "COM3", 9600, 1, 0, 8);
                 switcherMeter.ConnectPort += OnCheckConnectPort;
                 switcherMeter.ConnectDevice += OnCheckDevice;
                 switcherMeter.Receive += Receive;

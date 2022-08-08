@@ -1,4 +1,6 @@
 ﻿using System;
+using Newtonsoft.Json;
+
 namespace SST_WPF_Test_1;
 
 /// <summary>
@@ -9,48 +11,51 @@ public class DeviceCmd
     /// <summary>
     /// Команда в устройство
     /// </summary>
+    [JsonProperty("transmit")]
     public string Transmit { get; set; }
 
     /// <summary>
     /// Окончание строки
     /// </summary>
+    [JsonProperty("terminator")]
     public string Terminator { get; set; }
 
     /// <summary>
     /// Ответ от устройства
     /// </summary>
-
+    [JsonProperty("receive")]
     public string Receive { get; set; }
 
     /// <summary>
     /// Тип команды  и ответа от устройства (hex/text) 
     /// </summary>
+    [JsonProperty("messageType")]
     public TypeCmd MessageType { get; set; }
 
     /// <summary>
     /// Задержка между передачей команды и приемом ответа 
     /// </summary>
+    [JsonProperty("delay")]
     public int Delay { get; set; }
 
     /// <summary>
     ///  Количество Запросов на прибор (используется в библиотеке SerialGod)
     /// </summary>
+    [JsonProperty("pingCount")]
     public int PingCount { get; set; }
 
     /// <summary>
     ///  Начало строки (используется в библиотеке SerialGod)
     /// </summary>
+    [JsonProperty("startOfString")]
     public string StartOfString { get; set; }
 
     /// <summary>
     ///  Конец строки (используется в библиотеке SerialGod)
     /// </summary>
+    [JsonProperty("endOfString")]
     public string EndOfString { get; set; }
-
-    // public override int GetHashCode()
-    // {
-    //     return HashCode.Combine(Transmit, Terminator, Receive, Delay);
-    // }
+    
     protected bool Equals(DeviceCmd other)
     {
         return Transmit == other.Transmit && Terminator == other.Terminator && Receive == other.Receive &&

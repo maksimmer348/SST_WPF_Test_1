@@ -17,6 +17,8 @@ public class ViewModel : Notify
     /// </summary>
     BaseLibCmd libCmd = BaseLibCmd.getInstance();
 
+    private MySerializer serializer = new MySerializer();
+
     private Stand StandTest = new();
 
     private ObservableCollection<BaseDevice> devices = new();
@@ -38,13 +40,13 @@ public class ViewModel : Notify
 
     public ViewModel()
     {
+        //включаем уведомления из модели
         StandTest.PropertyChanged += StandTestOnPropertyChanged;
+        
         //включаем кладку Подключения Устройств
-
         StandTest.TestRun = TypeOfTestRun.Stop;
 
         ConfigDevices();
-
 
         #region Команды
 
@@ -52,10 +54,10 @@ public class ViewModel : Notify
         OpenSettingsDevicesCmd = new ActionCommand(OnOpenSettingsDevicesCmdExecuted, CanOpenSettingsDevicesCmdExecuted);
         CancelAllTestCmd = new ActionCommand(OnCancelAllTestCmdExecuted, CanCancelAllTestCmdExecuted);
         NextCmd = new ActionCommand(OnNextCmdExecuted, CanNextCmdExecuted);
-
         CreateReportCmd = new ActionCommand(OnCreateReportCmdExecuted, CanCreateReportCmdExecuted);
 
         #region Настройки
+
         SaveSettingsCmd = new ActionCommand(OnSaveSettingsCmdExecuted, CanSaveSettingsCmdExecuted);
         SaveSettingTestCmd = new ActionCommand(OnSaveSettingTestCmdExecuted, CanSaveSettingTestCmdExecuted);
 
@@ -64,31 +66,41 @@ public class ViewModel : Notify
 
         AddCmdFromDeviceCmd = new ActionCommand(OnAddCmdFromDeviceCmdExecuted, CanAddCmdFromDeviceCmdExecuted);
         RemoveCmdFromDeviceCmd = new ActionCommand(OnRemoveCmdFromDeviceCmdExecuted, CanRemoveCmdFromDeviceCmdExecuted);
-        #endregion
 
+        #endregion
 
         #endregion
     }
 
     public void ConfigDevices()
     {
-        devices.Clear();
-        devices.Add(StandTest.MultimeterStand);
-        devices.Add(StandTest.SupplyStand);
-        devices.Add(StandTest.ThermometerStand);
-        devices.Add(StandTest.SmallLoadStand);
-        devices.Add(StandTest.BigLoadStand);
-        devices.Add(StandTest.HeatStand);
+        var deserializeLib = serializer.DeserializeLib();
+        libCmd.DeviceCommands = deserializeLib;
+        var deserializeDevices = serializer.DeserializeDevices();
 
-        foreach (var device in StandTest.SwitchersMetersStand)
+        foreach (var device in deserializeDevices)
         {
             devices.Add(device);
+            StandTest.Devices.Add(device);
         }
+        
+        // devices.Add(StandTest.MultimeterStand);
+        // devices.Add(StandTest.SupplyStand);
+        // devices.Add(StandTest.ThermometerStand);
+        // devices.Add(StandTest.SmallLoadStand);
+        // devices.Add(StandTest.BigLoadStand);
+        // devices.Add(StandTest.HeatStand);
+        //
+        // foreach (var device in StandTest.SwitchersMetersStand)
+        // {
+        //     devices.Add(device);
+        // }
 
         foreach (var vip in StandTest.VipsStand)
         {
             allVips.Add(vip);
         }
+        
     }
 
     private void StandTestOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -181,7 +193,7 @@ public class ViewModel : Notify
     #endregion
 
     #region Команды Подключение устройств
-    
+
     /// <summary>
     /// Команда ЗАПУСТИТЬ исптания
     /// </summary>
@@ -245,7 +257,6 @@ public class ViewModel : Notify
 
     #region Команды подключения Випов
 
-
     public ICommand CreateReportCmd { get; }
 
     Task OnCreateReportCmdExecuted(object p)
@@ -294,8 +305,18 @@ public class ViewModel : Notify
                 DataBits, Dtr);
             return Task.CompletedTask;
         }
+
         Devices[index].SetConfigDevice(TypePort.SerialInput, PortName, Baud, StopBits, Parity,
             DataBits, Dtr);
+        var temp = Devices.ToList();
+        serializer.SerializeDevices(temp);
+        StandTest.Devices = Devices;
+       
+        selectedDeviceCommand.Source =
+            SelectDevice?.LibCmd.DeviceCommands.Where(x =>
+                x.Key.NameDevice.Contains( selectDevice.Name));
+        OnPropertyChanged(nameof(SelectedDeviceCommand));
+        
         return Task.CompletedTask;
     }
 
@@ -361,6 +382,11 @@ public class ViewModel : Notify
             SelectDevice?.LibCmd.DeviceCommands.Where(x =>
                 selectDevice.Name.Contains(x.Key.NameDevice));
         OnPropertyChanged(nameof(SelectedDeviceCommand));
+
+        serializer.LibCmd = libCmd.DeviceCommands;
+        serializer.SerializeLib();
+
+
         return Task.CompletedTask;
     }
 
@@ -377,6 +403,9 @@ public class ViewModel : Notify
         selectedDeviceCommand.Source =
             SelectDevice?.LibCmd.DeviceCommands.Where(x => selectDevice.Name.Contains(x.Key.NameDevice));
         OnPropertyChanged(nameof(SelectedDeviceCommand));
+
+        serializer.LibCmd = libCmd.DeviceCommands;
+        serializer.SerializeLib();
         return Task.CompletedTask;
     }
 
@@ -653,13 +682,11 @@ public class ViewModel : Notify
     #region Поля Настройки
 
     private bool enabledDeviceName;
+
     public bool EnabledDeviceName
     {
         get => enabledDeviceName;
-        set
-        {
-            Set(ref enabledDeviceName, value);
-        }
+        set { Set(ref enabledDeviceName, value); }
     }
 
 
@@ -688,6 +715,7 @@ public class ViewModel : Notify
             {
                 EnabledDeviceName = false;
             }
+
             if (selectDevice is not SwitcherMeter)
             {
                 EnabledDeviceName = true;
@@ -715,7 +743,6 @@ public class ViewModel : Notify
         get => nameDevice;
         set => Set(ref nameDevice, value);
     }
-
 
 
     private string portName;
@@ -809,48 +836,63 @@ public class ViewModel : Notify
     }
 
     private string transmitCmdLib;
+
     public string TransmitCmdLib
     {
         get => transmitCmdLib;
         set => Set(ref transmitCmdLib, value);
     }
+
     private string receiveCmdLib;
+
     public string ReceiveCmdLib
     {
         get => receiveCmdLib;
         set => Set(ref receiveCmdLib, value);
     }
+
     private string terminatorCmdLib;
+
     public string TerminatorCmdLib
     {
         get => terminatorCmdLib;
         set => Set(ref terminatorCmdLib, value);
     }
+
     private TypeCmd typeMessageCmdLib;
+
     public TypeCmd TypeMessageCmdLib
     {
         get => typeMessageCmdLib;
         set => Set(ref typeMessageCmdLib, value);
     }
+
     private int delayCmdLib;
+
     public int DelayCmdLib
     {
         get => delayCmdLib;
         set => Set(ref delayCmdLib, value);
     }
+
     private int pingCountCmdLib;
+
     public int PingCountCmdLib
     {
         get => pingCountCmdLib;
         set => Set(ref pingCountCmdLib, value);
     }
+
     private string startStingCmdLib;
+
     public string StartStingCmdLib
     {
         get => startStingCmdLib;
         set => Set(ref startStingCmdLib, value);
     }
+
     private string endStringCmdLib;
+
     public string EndStringCmdLib
     {
         get => endStringCmdLib;
@@ -868,8 +910,6 @@ public class ViewModel : Notify
             OnPropertyChanged(nameof(SelectedCmdLib));
         }
     }
-
-
 
     #endregion
 

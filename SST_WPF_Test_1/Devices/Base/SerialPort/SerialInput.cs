@@ -137,7 +137,8 @@ public class SerialInput : ISerialLib
 
         if (delay == 0)
         {
-            throw new SerialException($"SerialInput exception: Задержка - не должны быть = 0");
+            delay = 100;
+            //throw new SerialException($"SerialInput exception: Задержка - не должны быть = 0");
         }
 
         if (string.IsNullOrEmpty(terminator))

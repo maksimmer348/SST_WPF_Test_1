@@ -397,7 +397,7 @@ TestAllTime}" DockPanel.Dock="Left" MinWidth="100"/>
 
                         <!-- TODO спросить у темы/разобратся как привязать сюда бибилиотеку команд-->
                         <DataGrid Grid.Row="0" DockPanel.Dock="Top" IsReadOnly="True"
-                                  ItemsSource="{Binding SelectedDeviceCommand}" SelectedItem="{Binding SelectedCmdLib}"
+                                  ItemsSource="{Binding SelectedDeviceCommand, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding SelectedCmdLib}"
                                   AutoGenerateColumns="False"
                                   CanUserDeleteRows="False" CanUserAddRows="False"
                                   GridLinesVisibility="Vertical"
