@@ -494,7 +494,7 @@ public class Stand : Notify
         //установка статуса теста первичноая провека устройств
         TestRun = TypeOfTestRun.PrimaryCheckDevices;
 
-        int checkCount = 3;
+        int checkCount = 1;
         for (int i = 0; i < checkCount; i++)
         {
             //вставка во временный список список приоров для проверки

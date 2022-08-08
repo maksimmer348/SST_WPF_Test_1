@@ -71,7 +71,9 @@ public class ViewModel : Notify
 
         #endregion
     }
-
+    
+    
+    
     public void ConfigDevices()
     {
         var deserializeLib = serializer.DeserializeLib();
@@ -83,7 +85,6 @@ public class ViewModel : Notify
             devices.Add(device);
             StandTest.Devices.Add(device);
         }
-        
         // devices.Add(StandTest.MultimeterStand);
         // devices.Add(StandTest.SupplyStand);
         // devices.Add(StandTest.ThermometerStand);
@@ -102,7 +103,8 @@ public class ViewModel : Notify
         }
         
     }
-
+    
+    
     private void StandTestOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         #region Статусы/проценты - теста/устройств
@@ -314,7 +316,7 @@ public class ViewModel : Notify
        
         selectedDeviceCommand.Source =
             SelectDevice?.LibCmd.DeviceCommands.Where(x =>
-                x.Key.NameDevice.Contains( selectDevice.Name));
+                x.Key.NameDevice == selectDevice.Name);
         OnPropertyChanged(nameof(SelectedDeviceCommand));
         
         return Task.CompletedTask;
@@ -380,7 +382,7 @@ public class ViewModel : Notify
 
         selectedDeviceCommand.Source =
             SelectDevice?.LibCmd.DeviceCommands.Where(x =>
-                selectDevice.Name.Contains(x.Key.NameDevice));
+                x.Key.NameDevice == selectDevice.Name);
         OnPropertyChanged(nameof(SelectedDeviceCommand));
 
         serializer.LibCmd = libCmd.DeviceCommands;
@@ -401,7 +403,8 @@ public class ViewModel : Notify
     {
         libCmd.DeleteCommand(selectedCmdLib.Key.NameCmd, selectedCmdLib.Key.NameDevice);
         selectedDeviceCommand.Source =
-            SelectDevice?.LibCmd.DeviceCommands.Where(x => selectDevice.Name.Contains(x.Key.NameDevice));
+            SelectDevice?.LibCmd.DeviceCommands.Where(x =>
+                x.Key.NameDevice == selectDevice.Name);
         OnPropertyChanged(nameof(SelectedDeviceCommand));
 
         serializer.LibCmd = libCmd.DeviceCommands;
@@ -723,7 +726,7 @@ public class ViewModel : Notify
 
             selectedDeviceCommand.Source =
                 value?.LibCmd.DeviceCommands.Where(x =>
-                    selectDevice.Name.Contains(x.Key.NameDevice));
+                    x.Key.NameDevice == selectDevice.Name);
 
             OnPropertyChanged(nameof(SelectedDeviceCommand));
         }
@@ -741,7 +744,10 @@ public class ViewModel : Notify
     public string NameDevice
     {
         get => nameDevice;
-        set => Set(ref nameDevice, value);
+        set
+        {
+            Set(ref nameDevice, value);
+        }
     }
 
 

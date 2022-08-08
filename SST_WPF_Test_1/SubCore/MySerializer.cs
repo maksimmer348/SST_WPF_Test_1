@@ -43,7 +43,10 @@ public class MySerializer
     
     public void SerializeDevices(List<BaseDevice> devices)
     {
-        var json = JsonConvert.SerializeObject(devices, Formatting.Indented);
+        var json = JsonConvert.SerializeObject(devices, Formatting.Indented, new JsonSerializerSettings
+        {
+            TypeNameHandling = TypeNameHandling.Auto
+        });
         File.WriteAllText(@"Devices.json", json.ToString());
     }
 
@@ -51,7 +54,10 @@ public class MySerializer
     {
         var json =
             JsonConvert.DeserializeObject<List<BaseDevice>>(
-                File.ReadAllText(@"Devices.json"));
+                File.ReadAllText(@"Devices.json"), new JsonSerializerSettings
+                {
+                    TypeNameHandling = TypeNameHandling.Auto
+                });
         return json;
     }
 }
