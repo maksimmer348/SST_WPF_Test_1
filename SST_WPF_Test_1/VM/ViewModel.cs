@@ -12,14 +12,13 @@ namespace SST_WPF_Test_1;
 
 public class ViewModel : Notify
 {
-    /// <summary>
-    /// Класс библиотеки
-    /// </summary>
-    BaseLibCmd libCmd = BaseLibCmd.getInstance();
+    #region Модель
+
+    private BaseLibCmd libCmd = BaseLibCmd.getInstance();
 
     private MySerializer serializer = new MySerializer();
 
-    private Stand StandTest = new();
+    private Stand standTest = new();
 
     private ObservableCollection<BaseDevice> devices = new();
 
@@ -37,14 +36,15 @@ public class ViewModel : Notify
         set => Set(ref allVips, value);
     }
 
+    #endregion
 
     public ViewModel()
     {
         //включаем уведомления из модели
-        StandTest.PropertyChanged += StandTestOnPropertyChanged;
-        
+        standTest.PropertyChanged += StandTestOnPropertyChanged;
+
         //включаем кладку Подключения Устройств
-        StandTest.TestRun = TypeOfTestRun.Stop;
+        standTest.TestRun = TypeOfTestRun.Stop;
 
         ConfigDevices();
 
@@ -71,57 +71,70 @@ public class ViewModel : Notify
 
         #endregion
     }
-    
-    
-    
-    public void ConfigDevices()
+
+    void DeserializeDevicesAndLib()
     {
+        //десериализация библиотеки команд  
         var deserializeLib = serializer.DeserializeLib();
         libCmd.DeviceCommands = deserializeLib;
+        //десериализация устройств
         var deserializeDevices = serializer.DeserializeDevices();
-
         foreach (var device in deserializeDevices)
         {
+            //TODO выяснить нормально ли это работает (взаимосвзяь между вью моделью и моделью - devices и standTest.Devices)
             devices.Add(device);
-            StandTest.Devices.Add(device);
+            standTest.Devices.Add(device);
         }
-        // devices.Add(StandTest.MultimeterStand);
-        // devices.Add(StandTest.SupplyStand);
-        // devices.Add(StandTest.ThermometerStand);
-        // devices.Add(StandTest.SmallLoadStand);
-        // devices.Add(StandTest.BigLoadStand);
-        // devices.Add(StandTest.HeatStand);
-        //
-        // foreach (var device in StandTest.SwitchersMetersStand)
-        // {
-        //     devices.Add(device);
-        // }
+    }
 
-        foreach (var vip in StandTest.VipsStand)
+    void SetDevices()
+    {
+        devices.Add(standTest.MultimeterStand);
+        devices.Add(standTest.SupplyStand);
+        devices.Add(standTest.ThermometerStand);
+        devices.Add(standTest.SmallLoadStand);
+        devices.Add(standTest.BigLoadStand);
+        devices.Add(standTest.HeatStand);
+
+        foreach (var device in standTest.SwitchersMetersStand)
+        {
+            devices.Add(device);
+        }
+    }
+
+    public void ConfigDevices()
+    {
+        DeserializeDevicesAndLib();
+
+        //TODO убрать это в десериализатор?
+        foreach (var vip in standTest.VipsStand)
         {
             allVips.Add(vip);
         }
-        
     }
-    
-    
+
+    /// <summary>
+    /// Обновление статусов событие из модели
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void StandTestOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         #region Статусы/проценты - теста/устройств
 
         if (e.PropertyName == nameof(TestRun))
         {
-            TestRun = StandTest.TestRun;
+            TestRun = standTest.TestRun;
         }
 
         if (e.PropertyName == nameof(PercentCurrentTest))
         {
-            PercentCurrentTest = StandTest.PercentCurrentTest;
+            PercentCurrentTest = standTest.PercentCurrentTest;
         }
 
         if (e.PropertyName == "TestCurrentDevice")
         {
-            TextCurrentTestDevice = StandTest.TestCurrentDevice.IsDeviceType;
+            TextCurrentTestDevice = standTest.TestCurrentDevice.IsDeviceType;
         }
 
         #endregion
@@ -130,22 +143,21 @@ public class ViewModel : Notify
 
         if (e.PropertyName == nameof(TestAllTime))
         {
-            TestAllTime = StandTest.TestAllTime;
+            TestAllTime = standTest.TestAllTime;
         }
 
         if (e.PropertyName == nameof(TestIntervalTime))
         {
-            TestIntervalTime = StandTest.TestIntervalTime;
+            TestIntervalTime = standTest.TestIntervalTime;
         }
 
         if (e.PropertyName == nameof(TestLeftEndTime))
         {
-            TestLeftEndTime = StandTest.TestLeftEndTime;
+            TestLeftEndTime = standTest.TestLeftEndTime;
         }
 
         #endregion
     }
-
 
     #region Команды
 
@@ -182,7 +194,7 @@ public class ViewModel : Notify
     Task OnCancelAllTestCmdExecuted(object p)
     {
         //TODO добавить canellded
-        StandTest.ResetCurrentTest();
+        standTest.ResetCurrentTest();
         SelectTab = 0;
         return Task.CompletedTask;
     }
@@ -193,6 +205,8 @@ public class ViewModel : Notify
     }
 
     #endregion
+
+    //
 
     #region Команды Подключение устройств
 
@@ -205,21 +219,21 @@ public class ViewModel : Notify
     {
         if (SelectTab == 0)
         {
-            await StandTest.PrimaryCheckDevices();
+            await standTest.PrimaryCheckDevices();
         }
 
         else if (SelectTab == 1)
         {
-            await StandTest.PrimaryCheckVips();
+            await standTest.PrimaryCheckVips();
         }
 
         else if (SelectTab == 2)
         {
-            var mesZero = await StandTest.MeasurementZero();
+            var mesZero = await standTest.MeasurementZero();
 
             if (mesZero)
             {
-                await StandTest.CyclicMeasurement();
+                await standTest.CyclicMeasurement();
             }
         }
     }
@@ -238,6 +252,7 @@ public class ViewModel : Notify
     Task OnOpenSettingsDevicesCmdExecuted(object p)
     {
         //обработчик команды
+        //TODO отправить отсюда в настройки
         return Task.CompletedTask;
     }
 
@@ -259,12 +274,15 @@ public class ViewModel : Notify
 
     #region Команды подключения Випов
 
+    /// <summary>
+    /// Команда СОЗДАТЬ отчет о испытаниях
+    /// </summary>
     public ICommand CreateReportCmd { get; }
 
     Task OnCreateReportCmdExecuted(object p)
     {
         //обработчик команды
-        StandTest.SaveReportPlace();
+        standTest.SaveReportPlace();
         return Task.CompletedTask;
     }
 
@@ -275,10 +293,12 @@ public class ViewModel : Notify
 
     #endregion
 
+    //
+
     #region Команды Настроек
 
     /// <summary>
-    /// Команда открыть ФАЙЛ КОНФИГУРАЦИИ/НАСТРОЙКУ внешних устройств
+    /// Команда СОХРАНИТЬ выбранное внешнее устройство
     /// </summary>
     public ICommand SaveSettingsCmd { get; }
 
@@ -303,7 +323,7 @@ public class ViewModel : Notify
 
         if (selectDevice is SwitcherMeter)
         {
-            StandTest.MultiSetConfigSwitcher(TypePort.SerialInput, PortName, Baud, StopBits, Parity,
+            standTest.MultiSetConfigSwitcher(TypePort.SerialInput, PortName, Baud, StopBits, Parity,
                 DataBits, Dtr);
             return Task.CompletedTask;
         }
@@ -312,13 +332,13 @@ public class ViewModel : Notify
             DataBits, Dtr);
         var temp = Devices.ToList();
         serializer.SerializeDevices(temp);
-        StandTest.Devices = Devices;
-       
+        standTest.Devices = Devices;
+
         selectedDeviceCommand.Source =
             SelectDevice?.LibCmd.DeviceCommands.Where(x =>
                 x.Key.NameDevice == selectDevice.Name);
         OnPropertyChanged(nameof(SelectedDeviceCommand));
-        
+
         return Task.CompletedTask;
     }
 
@@ -341,16 +361,15 @@ public class ViewModel : Notify
         return true;
     }
 
-
+    /// <summary>
+    /// Команда КУДА СОХНРИТЬ файл отчета
+    /// </summary>
     public ICommand SaveReportPlaceCmd { get; }
 
     Task OnSaveReportPlaceCmdExecuted(object p)
     {
         //обработчик команды
-
-        StandTest.SaveReportPlace();
-
-
+        standTest.SaveReportPlace();
         return Task.CompletedTask;
     }
 
@@ -359,12 +378,15 @@ public class ViewModel : Notify
         return true;
     }
 
+    /// <summary>
+    /// Комнада СОХНРАНИТЬ время 
+    /// </summary>
     public ICommand SaveTestAllTimeCmd { get; }
 
     Task OnSaveTestAllTimeCmdExecuted(object p)
     {
         //обработчик команды
-        StandTest.SetTimesTest(TestAllTime, TestIntervalTime);
+        standTest.SetTimesTest(TestAllTime, TestIntervalTime);
         return Task.CompletedTask;
     }
 
@@ -373,6 +395,9 @@ public class ViewModel : Notify
         return true;
     }
 
+    /// <summary>
+    /// Команда ДОБАВИТЬ команду к устройству
+    /// </summary>
     public ICommand AddCmdFromDeviceCmd { get; }
 
     Task OnAddCmdFromDeviceCmdExecuted(object p)
@@ -397,6 +422,9 @@ public class ViewModel : Notify
         return true;
     }
 
+    /// <summary>
+    /// Команда Удалить команду устройства
+    /// </summary>
     public ICommand RemoveCmdFromDeviceCmd { get; }
 
     Task OnRemoveCmdFromDeviceCmdExecuted(object p)
@@ -421,11 +449,15 @@ public class ViewModel : Notify
 
     #endregion
 
+    //
 
     #region Поля
 
     #region Общие
 
+    /// <summary>
+    /// Выключить все вкладки
+    /// </summary>
     void TabsDisable()
     {
         PrimaryCheckDevicesTab = false;
@@ -434,6 +466,9 @@ public class ViewModel : Notify
         SettingsTab = false;
     }
 
+    /// <summary>
+    /// Выключить все вкладки
+    /// </summary>
     void TabsEnable()
     {
         PrimaryCheckDevicesTab = true;
@@ -442,10 +477,12 @@ public class ViewModel : Notify
         SettingsTab = true;
     }
 
+
     private TypeOfTestRun testRun;
 
     /// <summary>
-    /// Уведомляет чей сейчас тест идет
+    /// Уведомляет чей сейчас тест идет и управляет поведением формы (текст текущего теста,
+    /// процент теущего теста, вкладки тестов
     /// </summary>
     public TypeOfTestRun TestRun
     {
@@ -462,8 +499,7 @@ public class ViewModel : Notify
                 TabsDisable();
                 PrimaryCheckDevicesTab = true;
             }
-
-
+            
             if (testRun == TypeOfTestRun.None)
             {
                 TextCurrentTest = "";
@@ -476,6 +512,7 @@ public class ViewModel : Notify
             }
 
             //
+
             if (testRun == TypeOfTestRun.PrimaryCheckDevices)
             {
                 TextCurrentTest = " Предпроверка устройств";
@@ -491,6 +528,7 @@ public class ViewModel : Notify
             }
 
             //
+            
             if (testRun == TypeOfTestRun.PrimaryCheckVips)
             {
                 TextCurrentTest = " Предпроверка Випов";
@@ -507,6 +545,7 @@ public class ViewModel : Notify
             }
 
             //
+
             if (testRun == TypeOfTestRun.DeviceOperation)
             {
                 TextCurrentTest = $" Включение устройства";
@@ -519,6 +558,7 @@ public class ViewModel : Notify
                 TextCurrentTest = " Включение устройства Ок";
                 TabsEnable();
             }
+
             //
 
             if (testRun == TypeOfTestRun.MeasurementZero)
@@ -534,6 +574,8 @@ public class ViewModel : Notify
                 TabsEnable();
             }
 
+            //
+
             if (testRun == TypeOfTestRun.WaitSettingToOperatingMode)
             {
                 TextCurrentTest = " Нагрев основания";
@@ -546,6 +588,8 @@ public class ViewModel : Notify
                 TextCurrentTest = " Нагрев основания ОК";
                 TabsEnable();
             }
+
+            //
 
             if (testRun == TypeOfTestRun.CyclicMeasurement)
             {
@@ -568,6 +612,8 @@ public class ViewModel : Notify
                 CheckVipsTab = true;
             }
 
+            //
+
             if (testRun == TypeOfTestRun.Error)
             {
                 TextCurrentTest = " Ошибка!";
@@ -589,7 +635,7 @@ public class ViewModel : Notify
     private string textCurrentTestDevice;
 
     /// <summary>
-    /// Уведомляет текстом этап тестов
+    /// Уведомляет текстом какое устройство проходит тест
     /// </summary>
     public string TextCurrentTestDevice
     {
@@ -613,7 +659,7 @@ public class ViewModel : Notify
     private double selectTab;
 
     /// <summary>
-    /// Уведомляет сколько процентов текущего теста прошло
+    /// Какая сейчас выбрана вкладка
     /// </summary>
     public double SelectTab
     {
@@ -624,33 +670,31 @@ public class ViewModel : Notify
 
     #endregion
 
+    //
+
     #region Поля Подключение устройств
 
     private bool primaryCheckDevicesTab;
 
     /// <summary>
-    /// Включатель влкадки подключения устройств 0
+    /// Включатель вкладки подключения устройств 0
     /// </summary>
     public bool PrimaryCheckDevicesTab
     {
-        //TODO уточнооить кк работает
         get => primaryCheckDevicesTab;
         set => Set(ref primaryCheckDevicesTab, value);
     }
 
-
     private bool primaryCheckVipsTab;
 
     /// <summary>
-    /// Включатель влкадки предварительной проверки випов 1
+    /// Включатель вкладки предварительной проверки випов 1
     /// </summary>
     public bool PrimaryCheckVipsTab
     {
-        //TODO уточнооить кк работает
         get => primaryCheckVipsTab;
         set => Set(ref primaryCheckVipsTab, value);
     }
-
 
     private bool checkVipsTab;
 
@@ -659,7 +703,6 @@ public class ViewModel : Notify
     /// </summary>
     public bool CheckVipsTab
     {
-        //TODO уточнооить кк работает
         get => checkVipsTab;
         set => Set(ref checkVipsTab, value);
     }
@@ -671,32 +714,39 @@ public class ViewModel : Notify
     /// </summary>
     public bool SettingsTab
     {
-        //TODO уточнооить кк работает
         get => settingsTab;
         set => Set(ref settingsTab, value);
     }
 
     #endregion
 
+    //
+
     #region Поля подключение ВИПов
 
     #endregion
 
+    //
+
     #region Поля Настройки
+
+    #region Настройки выбранного устройства
 
     private bool enabledDeviceName;
 
+    /// <summary>
+    /// Для отключения имени в случае с релейными модулями тк их имена неизменны
+    /// </summary>
     public bool EnabledDeviceName
     {
         get => enabledDeviceName;
         set { Set(ref enabledDeviceName, value); }
     }
 
-
     private BaseDevice selectDevice;
 
     /// <summary>
-    /// Выбор устройства в насьтройках
+    /// Выбор устройства в в выпадающем списке
     /// </summary>
     public BaseDevice SelectDevice
     {
@@ -712,49 +762,51 @@ public class ViewModel : Notify
             Parity = selectDevice.GetConfigDevice().Parity;
             DataBits = selectDevice.GetConfigDevice().DataBits;
             Dtr = selectDevice.GetConfigDevice().Dtr;
-            //
 
+            //если устройство типа релейного модуля ОТКЛЮЧАЕМ возмонжность изменить его имя
             if (selectDevice is SwitcherMeter)
             {
                 EnabledDeviceName = false;
             }
 
+            //если устройство НЕ типа релейного модуля ВКЛЮЧАЕМ возмонжность изменить его имя
             if (selectDevice is not SwitcherMeter)
             {
                 EnabledDeviceName = true;
             }
 
+            //обновление команд выбранного устройства
             selectedDeviceCommand.Source =
                 value?.LibCmd.DeviceCommands.Where(x =>
                     x.Key.NameDevice == selectDevice.Name);
-
             OnPropertyChanged(nameof(SelectedDeviceCommand));
         }
     }
 
     private readonly CollectionViewSource selectedDeviceCommand = new();
+
+    /// <summary>
+    /// Для показа/обновление команд выбранного устройства
+    /// </summary>
     public ICollectionView? SelectedDeviceCommand => selectedDeviceCommand?.View;
 
 
     private string nameDevice;
 
     /// <summary>
-    ///
+    /// Имя устройства в текстбоксе
     /// </summary>
     public string NameDevice
     {
         get => nameDevice;
-        set
-        {
-            Set(ref nameDevice, value);
-        }
+        set { Set(ref nameDevice, value); }
     }
 
 
     private string portName;
 
     /// <summary>
-    ///
+    /// Имя порта в текстбоксе
     /// </summary>
     public string PortName
     {
@@ -765,7 +817,7 @@ public class ViewModel : Notify
     private int baud;
 
     /// <summary>
-    /// 
+    /// Baud rate порта в текстбоксе 
     /// </summary>
     public int Baud
     {
@@ -775,6 +827,9 @@ public class ViewModel : Notify
 
     private int stopBits;
 
+    /// <summary>
+    /// Стоповые биты порта в текстбоксе
+    /// </summary>
     public int StopBits
     {
         get => stopBits;
@@ -783,6 +838,9 @@ public class ViewModel : Notify
 
     private int parity;
 
+    /// <summary>
+    /// Parity bits порта в тектсбоксе
+    /// </summary>
     public int Parity
     {
         get => parity;
@@ -791,6 +849,9 @@ public class ViewModel : Notify
 
     private int dataBits;
 
+    /// <summary>
+    /// Бит данных в команде в текстбоксе
+    /// </summary>
     public int DataBits
     {
         get => dataBits;
@@ -799,14 +860,26 @@ public class ViewModel : Notify
 
     private bool dtr;
 
+    /// <summary>
+    /// DTR порта в чекбоксе
+    /// </summary>
     public bool Dtr
     {
         get => dtr;
         set => Set(ref dtr, value);
     }
 
+    #endregion
+
+    //
+
+    #region Настройки времени
+
     private TimeSpan testAllTime;
 
+    /// <summary>
+    /// Установка общего времени замеров
+    /// </summary>
     public TimeSpan TestAllTime
     {
         get => testAllTime;
@@ -815,6 +888,9 @@ public class ViewModel : Notify
 
     private TimeSpan testIntervalTime;
 
+    /// <summary>
+    /// Установка времени интервалов замеров
+    /// </summary>
     public TimeSpan TestIntervalTime
     {
         get => testIntervalTime;
@@ -824,17 +900,26 @@ public class ViewModel : Notify
 
     private TimeSpan testLeftEndTime;
 
+    /// <summary>
+    /// Вроемя конца замеров (последнй замер)
+    /// </summary>
     public TimeSpan TestLeftEndTime
     {
         get => testLeftEndTime;
         set => Set(ref testLeftEndTime, value);
     }
 
+    #endregion
+
+    //
 
     #region Добавление команды
 
     private string nameCmdLib;
 
+    /// <summary>
+    /// Имя команды из библиотеки
+    /// </summary>
     public string NameCmdLib
     {
         get => nameCmdLib;
@@ -843,6 +928,9 @@ public class ViewModel : Notify
 
     private string transmitCmdLib;
 
+    /// <summary>
+    /// Отправляемое сообщение для устройства из библиотеки
+    /// </summary>
     public string TransmitCmdLib
     {
         get => transmitCmdLib;
@@ -851,6 +939,9 @@ public class ViewModel : Notify
 
     private string receiveCmdLib;
 
+    /// <summary>
+    /// Принимаемое сообщение из устройства из библиотеки 
+    /// </summary>
     public string ReceiveCmdLib
     {
         get => receiveCmdLib;
@@ -859,6 +950,9 @@ public class ViewModel : Notify
 
     private string terminatorCmdLib;
 
+    /// <summary>
+    /// Разделитель команды из библиотеки
+    /// </summary>
     public string TerminatorCmdLib
     {
         get => terminatorCmdLib;
@@ -867,6 +961,7 @@ public class ViewModel : Notify
 
     private TypeCmd typeMessageCmdLib;
 
+    //Тип отправялемемой и принимаемой команды из библиотеки
     public TypeCmd TypeMessageCmdLib
     {
         get => typeMessageCmdLib;
@@ -875,6 +970,7 @@ public class ViewModel : Notify
 
     private int delayCmdLib;
 
+    //ЗАдержка на после отправки команды до ее приема из библиотеки
     public int DelayCmdLib
     {
         get => delayCmdLib;
@@ -883,6 +979,9 @@ public class ViewModel : Notify
 
     private int pingCountCmdLib;
 
+    /// <summary>
+    /// Количество пингов устройству (используется в GodSerialPort) из библиотеки
+    /// </summary>
     public int PingCountCmdLib
     {
         get => pingCountCmdLib;
@@ -891,6 +990,9 @@ public class ViewModel : Notify
 
     private string startStingCmdLib;
 
+    /// <summary>
+    /// С чего начниается команда устройству (используется в GodSerialPort) из библиотеки
+    /// </summary>
     public string StartStingCmdLib
     {
         get => startStingCmdLib;
@@ -899,6 +1001,9 @@ public class ViewModel : Notify
 
     private string endStringCmdLib;
 
+    /// <summary>
+    /// Чем заканчаиваетя команда устройству (используется в GodSerialPort) из библиотеки
+    /// </summary>
     public string EndStringCmdLib
     {
         get => endStringCmdLib;
@@ -907,6 +1012,9 @@ public class ViewModel : Notify
 
     private KeyValuePair<DeviceIdentCmd, DeviceCmd> selectedCmdLib;
 
+    /// <summary>
+    /// Выбранный итем из библиотеки
+    /// </summary>
     public KeyValuePair<DeviceIdentCmd, DeviceCmd> SelectedCmdLib
     {
         get => selectedCmdLib;
