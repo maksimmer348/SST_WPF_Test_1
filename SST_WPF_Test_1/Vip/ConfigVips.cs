@@ -10,7 +10,7 @@ public class ConfigVips
     public ConfigVips()
     {
         Vips = new ObservableCollection<Vip>();
-        PrepareAddTypeVips();
+        //PrepareAddTypeVips();
     }
 
     public ObservableCollection<Vip> Vips { get; set; }
@@ -68,7 +68,7 @@ public class ConfigVips
         }
     }
 
-    void PrepareAddTypeVips()
+    public void PrepareAddTypeVips()
     {
         AddTypeVips(new TypeVip
         {

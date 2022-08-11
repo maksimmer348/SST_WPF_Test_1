@@ -14,25 +14,25 @@ public class Vip : Notify
         set => Set(ref name, value);
     }
 
-    public bool NeedTesting { get; set; }
-    public string number;
+    public bool IsTested { get; set; }
 
+    public string number;
     public string Number
     {
         get => number;
         set
         {
-            if (!Set(ref number, value, nameof(Name), nameof(NeedTesting))) return;
+            if (!Set(ref number, value, nameof(Name)))return;//, nameof(IsTested))) return;
 
             if (!string.IsNullOrWhiteSpace(number))
             {
                 Name = $"Вип-{ID}, Номер-{number}";
-                NeedTesting = true;
+                //IsTested = true;
             }
             else
             {
                 Name = $"Вип-{ID}";
-                NeedTesting = false;
+                //IsTested = false;
             }
         }
     }
@@ -71,5 +71,7 @@ public class Vip : Notify
 
     public int ColumnIndex { get; set; }
     //
-    
+
+  
+
 }

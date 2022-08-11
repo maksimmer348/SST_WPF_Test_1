@@ -23,6 +23,7 @@ namespace SST_WPF_Test_1
     /// </summary>
     public partial class MainWindow : Window
     {
+
         public MainWindow()
         {
             InitializeComponent();

@@ -37,8 +37,9 @@ public class Stand : Notify
     /// <summary>
     /// Список Випов
     /// </summary>
-    public ObservableCollection<Vip> VipsStand { get; set; } = new();
-
+    public ObservableCollection<Vip> VipsPrepareStand { get; set; } = new();
+    public ConfigVips ConfigVips { get; set; } = new ConfigVips();
+    public ObservableCollection<TypeVip> TypeVips { get; set; } = new();
     #endregion
 
     //
@@ -48,6 +49,7 @@ public class Stand : Notify
     public Stand()
     {
         //SetDevices();
+        SetPrepareVips();
     }
 
     #endregion
@@ -263,6 +265,8 @@ public class Stand : Notify
             // SmallLoadStand.ConnectDevice += OnCheckDevice;
             // SmallLoadStand.Receive += Receive;
 
+
+
             BigLoadStand = new("AFG-72112") { RowIndex = 0, ColumnIndex = 4 };
             BigLoadStand.SetConfigDevice(TypePort.SerialInput, "COM6", 115200, 1, 0, 8);
             BigLoadStand.ConnectPort += OnCheckConnectPort;
@@ -299,116 +303,6 @@ public class Stand : Notify
             //     switcherMeter.ConnectDevice += OnCheckDevice;
             //     switcherMeter.Receive += Receive;
             // }
-
-            VipsStand = new();
-            VipsStand.Add(new Vip
-            {
-                Name = "Вип-1",
-                VoltageOut1 = 1,
-                ID = 1,
-                Relay = new RelayVip("1"),
-                RowIndex = 0,
-                ColumnIndex = 0
-            });
-            VipsStand.Add(new Vip
-            {
-                Name = "Вип-2",
-                VoltageOut1 = 1,
-                ID = 2,
-                Relay = new RelayVip("2"),
-                RowIndex = 0,
-                ColumnIndex = 1
-            });
-            VipsStand.Add(new Vip
-            {
-                Name = "Вип-3",
-                VoltageOut1 = 1,
-                ID = 3,
-                Relay = new RelayVip("3"),
-                RowIndex = 0,
-                ColumnIndex = 2
-            });
-            VipsStand.Add(new Vip
-            {
-                Name = "Вип-4",
-                VoltageOut1 = 1,
-                ID = 4,
-                Relay = new RelayVip("4"),
-                RowIndex = 0,
-                ColumnIndex = 3
-            });
-            VipsStand.Add(new Vip
-            {
-                Name = "Вип-5",
-                VoltageOut1 = 1,
-                ID = 5,
-                Relay = new RelayVip("5"),
-                RowIndex = 1,
-                ColumnIndex = 0
-            });
-            VipsStand.Add(new Vip
-            {
-                Name = "Вип-6",
-                VoltageOut1 = 1,
-                ID = 6,
-                Relay = new RelayVip("6"),
-                RowIndex = 1,
-                ColumnIndex = 1
-            });
-            VipsStand.Add(new Vip
-            {
-                Name = "Вип-7",
-                VoltageOut1 = 1,
-                ID = 7,
-                Relay = new RelayVip("7"),
-                RowIndex = 1,
-                ColumnIndex = 2
-            });
-            VipsStand.Add(new Vip
-            {
-                Name = "Вип-8",
-                VoltageOut1 = 10,
-                ID = 8,
-                Relay = new RelayVip("8"),
-                RowIndex = 1,
-                ColumnIndex = 3
-            });
-            VipsStand.Add(new Vip
-            {
-                Name = "Вип-9",
-                VoltageOut1 = 22,
-                ID = 9,
-                Relay = new RelayVip("9"),
-                RowIndex = 2,
-                ColumnIndex = 0
-            });
-            VipsStand.Add(new Vip
-            {
-                Name = "Вип-10",
-                VoltageOut1 = 12,
-                ID = 10,
-                Relay = new RelayVip("10"),
-                RowIndex = 2,
-                ColumnIndex = 1
-            });
-            VipsStand.Add(new Vip
-            {
-                Name = "Вип-11",
-                VoltageOut1 = 44,
-                ID = 11,
-                Relay = new RelayVip("11"),
-                RowIndex = 2,
-                ColumnIndex = 2
-            });
-            VipsStand.Add(new Vip
-            {
-                Name = "Вип-12",
-                VoltageOut1 = 44,
-                ID = 12,
-                Relay = new RelayVip("12"),
-                RowIndex = 2,
-                ColumnIndex = 3
-            });
         }
 
 
@@ -425,6 +319,147 @@ public class Stand : Notify
         }
     }
 
+    void SetPrepareVips()
+    {
+        VipsPrepareStand = new();
+        VipsPrepareStand.Add(new Vip
+        {
+            Name = "Вип-1",
+
+            ID = 1,
+            Relay = new RelayVip("1"),
+            RowIndex = 0,
+            ColumnIndex = 0
+        });
+        VipsPrepareStand.Add(new Vip
+        {
+            Name = "Вип-2",
+
+            ID = 2,
+            Relay = new RelayVip("2"),
+            RowIndex = 0,
+            ColumnIndex = 1
+        });
+        VipsPrepareStand.Add(new Vip
+        {
+            Name = "Вип-3",
+
+            ID = 3,
+            Relay = new RelayVip("3"),
+            RowIndex = 0,
+            ColumnIndex = 2
+        });
+        VipsPrepareStand.Add(new Vip
+        {
+            Name = "Вип-4",
+
+            ID = 4,
+            Relay = new RelayVip("4"),
+            RowIndex = 0,
+            ColumnIndex = 3
+        });
+        VipsPrepareStand.Add(new Vip
+        {
+            Name = "Вип-5",
+
+            ID = 5,
+            Relay = new RelayVip("5"),
+            RowIndex = 1,
+            ColumnIndex = 0
+        });
+        VipsPrepareStand.Add(new Vip
+        {
+            Name = "Вип-6",
+
+            ID = 6,
+            Relay = new RelayVip("6"),
+            RowIndex = 1,
+            ColumnIndex = 1
+        });
+        VipsPrepareStand.Add(new Vip
+        {
+            Name = "Вип-7",
+
+            ID = 7,
+            Relay = new RelayVip("7"),
+            RowIndex = 1,
+            ColumnIndex = 2
+        });
+        VipsPrepareStand.Add(new Vip
+        {
+            Name = "Вип-8",
+
+            ID = 8,
+            Relay = new RelayVip("8"),
+            RowIndex = 1,
+            ColumnIndex = 3
+        });
+        VipsPrepareStand.Add(new Vip
+        {
+            Name = "Вип-9",
+
+            ID = 9,
+            Relay = new RelayVip("9"),
+            RowIndex = 2,
+            ColumnIndex = 0
+        });
+        VipsPrepareStand.Add(new Vip
+        {
+            Name = "Вип-10",
+
+            ID = 10,
+            Relay = new RelayVip("10"),
+            RowIndex = 2,
+            ColumnIndex = 1
+        });
+        VipsPrepareStand.Add(new Vip
+        {
+            Name = "Вип-11",
+
+            ID = 11,
+            Relay = new RelayVip("11"),
+            RowIndex = 2,
+            ColumnIndex = 2
+        });
+        VipsPrepareStand.Add(new Vip
+        {
+            Name = "Вип-12",
+
+            ID = 12,
+            Relay = new RelayVip("12"),
+            RowIndex = 2,
+            ColumnIndex = 3
+        });
+        //предустановленные типы випов
+
+        ConfigVips.PrepareAddTypeVips();
+        TypeVips = ConfigVips.TypeVips;
+    }
+
+    public void SetTypeVips(TypeVip selectTypeVip)
+    {
+        foreach (var vip in VipsPrepareStand)
+        {
+            vip.Type = selectTypeVip;
+        }
+    }
+
+    public void SetVips()
+    {
+        foreach (var vip in VipsPrepareStand)
+        {
+            if (!string.IsNullOrWhiteSpace(vip.Number))
+            {
+                vip.IsTested = true;
+              
+            }
+            else
+            {
+                vip.IsTested = false;
+            }
+        }
+    }
+
     /// <summary>
     ///Для настройки одинаковых плат => 1 настройка на 12 плат
     /// </summary>
@@ -436,8 +471,8 @@ public class Stand : Notify
     /// <param name="dataBits"></param>
     /// <param name="dtr"></param>
     public void MultiSetConfigSwitcher(TypePort typePort, string portName, int baud, int stopBits, int parity,
-        int dataBits,
-        bool dtr = true)
+            int dataBits,
+            bool dtr = true)
     {
         foreach (var switcherMeter in SwitchersMetersStand)
         {
@@ -445,6 +480,15 @@ public class Stand : Notify
         }
     }
 
+    public void MultiSetConfigRelayVip(TypePort typePort, string portName, int baud, int stopBits, int parity,
+        int dataBits,
+        bool dtr = true)
+    {
+        foreach (var vip in VipsPrepareStand)
+        {
+            vip.Relay.SetConfigDevice(typePort, portName, baud, stopBits, parity, dataBits);
+        }
+    }
     #endregion
 
     //
@@ -618,6 +662,7 @@ public class Stand : Notify
     /// <returns>Результат предаварительной проверки</returns>
     public async Task<bool> PrimaryCheckDevices()
     {
+        //TODO  для канселивентов
         bool isPrimaryCheckDevices = false;
         //сброс статуса теста
         TestRun = TypeOfTestRun.None;
@@ -731,35 +776,29 @@ public class Stand : Notify
         //установка тест первичный платок випов 
         TestRun = TypeOfTestRun.PrimaryCheckVips;
 
-        if (true)
+        //предварительная настройка випов
+        SetVips();
+
+        PercentCurrentTest = 0;
+
+        //вставка во временный список список приоров для проверки
+        var tempCheckVips = VipsPrepareStand;
+
+        foreach (var vip in tempCheckVips)
         {
-            PercentCurrentTest = 0;
-            await Task.Delay(TimeSpan.FromMilliseconds(100));
-            //для отладки
-            TestCurrentDevice = VipsStand[0].Relay;
-            VipsStand[0].Relay.StatusTest = StatusDeviceTest.Ok;
-            //
-            PercentCurrentTest = 20;
-            await Task.Delay(TimeSpan.FromMilliseconds(100));
-            PercentCurrentTest = 40;
-            await Task.Delay(TimeSpan.FromMilliseconds(100));
-            PercentCurrentTest = 60;
-            await Task.Delay(TimeSpan.FromMilliseconds(100));
-            //для отладки
-            TestCurrentDevice = VipsStand[3].Relay;
-            VipsStand[3].Relay.StatusTest = StatusDeviceTest.Ok;
-            //
-            PercentCurrentTest = 80;
-            await Task.Delay(TimeSpan.FromMilliseconds(100));
-            PercentCurrentTest = 100;
-
-            TestRun = TypeOfTestRun.PrimaryCheckVipsReady;
-
-            //сброс текущего проверямего устройства
-            TestCurrentDevice = new BaseDevice("0");
-
-            return true;
+            vip.StatusTest = StatusDeviceTest.None;
         }
+
+
+        PercentCurrentTest = 100;
+
+        TestRun = TypeOfTestRun.PrimaryCheckVipsReady;
+
+        //сброс текущего проверямего устройства
+        TestCurrentDevice = new BaseDevice("0");
+
+        return true;
+
 
         return false;
     }
@@ -910,4 +949,6 @@ public class Stand : Notify
     }
 
     #endregion
+
+
 }

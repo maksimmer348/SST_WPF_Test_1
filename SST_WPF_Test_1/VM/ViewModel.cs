@@ -29,12 +29,30 @@ public class ViewModel : Notify
         set => Set(ref devices, value);
     }
 
-    private ObservableCollection<Vip> allVips = new();
+    private ObservableCollection<BaseDevice> allDevices = new();
+    
+    public ObservableCollection<BaseDevice> AllDevices
 
-    public ObservableCollection<Vip> AllVips
     {
-        get => allVips;
-        set => Set(ref allVips, value);
+        get => allDevices;
+        set => Set(ref allDevices, value);
+    }
+
+
+    private ObservableCollection<Vip> allPrepareVips = new();
+
+    public ObservableCollection<Vip> AllPrepareVips
+    {
+        get => allPrepareVips;
+        set => Set(ref allPrepareVips, value);
+    }
+
+    private ObservableCollection<TypeVip> typeVip = new();
+
+    public ObservableCollection<TypeVip> TypeVip
+    {
+        get => typeVip;
+        set => Set(ref typeVip, value);
     }
 
     #endregion
@@ -108,6 +126,11 @@ public class ViewModel : Notify
         }
     }
 
+    void SetVips()
+    {
+
+    }
+
     public void ConfigDevices()
     {
         DeserializeDevicesAndLib();
@@ -115,10 +138,12 @@ public class ViewModel : Notify
         //SetDevices();
         
         //TODO убрать это в десериализатор?
-        foreach (var vip in standTest.VipsStand)
+        foreach (var vip in standTest.VipsPrepareStand)
         {
-            allVips.Add(vip);
+            AllPrepareVips.Add(vip);
         }
+
+        TypeVip = standTest.TypeVips;
     }
 
     /// <summary>
@@ -359,6 +384,13 @@ public class ViewModel : Notify
                 DataBits, Dtr);
             return Task.CompletedTask;
         }
+        if (selectDevice is RelayVip)
+        {
+            standTest.MultiSetConfigRelayVip(TypePort.SerialInput, PortName, Baud, StopBits, Parity,
+                DataBits, Dtr);
+            return Task.CompletedTask;
+        }
+        
 
         Devices[index].SetConfigDevice(TypePort.SerialInput, PortName, Baud, StopBits, Parity,
             DataBits, Dtr);
@@ -756,6 +788,30 @@ public class ViewModel : Notify
 
     #region Поля подключение ВИПов
 
+    public TypeVip selectTypeVip;
+
+    public TypeVip SelectTypeVip
+    {
+        get
+        {
+            return selectTypeVip;
+        }
+        set
+        {
+            if (!Set(ref selectTypeVip, value)) return;
+
+            try
+            {
+                standTest.SetTypeVips(SelectTypeVip);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+        }
+    }
+
     #endregion
 
     //
@@ -787,9 +843,42 @@ public class ViewModel : Notify
         {
             if (!Set(ref selectDevice, value)) return;
 
-            NameDevice = selectDevice.Name;
+            if (!IsVipsSettings)
+            {
+                NameDevice = selectDevice.Name;
 
-            try
+                try
+                {
+                    PortName = selectDevice.GetConfigDevice().PortName;
+                    Baud = selectDevice.GetConfigDevice().Baud;
+                    StopBits = selectDevice.GetConfigDevice().StopBits;
+                    Parity = selectDevice.GetConfigDevice().Parity;
+                    DataBits = selectDevice.GetConfigDevice().DataBits;
+                    Dtr = selectDevice.GetConfigDevice().Dtr;
+              
+
+                //если устройство типа релейного модуля ОТКЛЮЧАЕМ возмонжность изменить его имя
+                if (selectDevice is SwitcherMeter)
+                {
+                    EnabledDeviceName = false;
+                }
+                //если устройство НЕ типа релейного модуля ВКЛЮЧАЕМ возмонжность изменить его имя
+                if (selectDevice is not SwitcherMeter)
+                {
+                    EnabledDeviceName = true;
+                }
+                //обновление команд выбранного устройства
+                selectedDeviceCommand.Source =
+                    value?.LibCmd.DeviceCommands.Where(x =>
+                        x.Key.NameDevice == selectDevice.Name);
+                OnPropertyChanged(nameof(SelectedDeviceCommand));
+                }
+                catch (Exception e)
+                {
+                    MessageBox.Show(e.Message);
+                }
+            }
+            else
             {
                 PortName = selectDevice.GetConfigDevice().PortName;
                 Baud = selectDevice.GetConfigDevice().Baud;
@@ -798,29 +887,8 @@ public class ViewModel : Notify
                 DataBits = selectDevice.GetConfigDevice().DataBits;
                 Dtr = selectDevice.GetConfigDevice().Dtr;
             }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.Message);
-            }
 
-
-            //если устройство типа релейного модуля ОТКЛЮЧАЕМ возмонжность изменить его имя
-            if (selectDevice is SwitcherMeter)
-            {
-                EnabledDeviceName = false;
-            }
-
-            //если устройство НЕ типа релейного модуля ВКЛЮЧАЕМ возмонжность изменить его имя
-            if (selectDevice is not SwitcherMeter)
-            {
-                EnabledDeviceName = true;
-            }
-
-            //обновление команд выбранного устройства
-            selectedDeviceCommand.Source =
-                value?.LibCmd.DeviceCommands.Where(x =>
-                    x.Key.NameDevice == selectDevice.Name);
-            OnPropertyChanged(nameof(SelectedDeviceCommand));
+           
         }
     }
 
@@ -831,6 +899,18 @@ public class ViewModel : Notify
     /// </summary>
     public ICollectionView? SelectedDeviceCommand => selectedDeviceCommand?.View;
 
+    private bool isVipsSettings;
+
+    /// <summary>
+    /// Имя устройства в текстбоксе
+    /// </summary>
+    public bool IsVipsSettings
+    {
+        get => isVipsSettings;
+        set { Set(ref isVipsSettings, value); }
+    }
+
+   
 
     private string nameDevice;
 
@@ -1002,7 +1082,9 @@ public class ViewModel : Notify
 
     private TypeCmd typeMessageCmdLib;
 
-    //Тип отправялемемой и принимаемой команды из библиотеки
+    /// <summary>
+    /// Тип отправялемемой и принимаемой команды из библиотеки
+    /// </summary>
     public TypeCmd TypeMessageCmdLib
     {
         get => typeMessageCmdLib;
@@ -1011,7 +1093,9 @@ public class ViewModel : Notify
 
     private int delayCmdLib;
 
-    //ЗАдержка на после отправки команды до ее приема из библиотеки
+    /// <summary>
+    /// ЗАдержка на после отправки команды до ее приема из библиотеки
+    /// </summary>
     public int DelayCmdLib
     {
         get => delayCmdLib;

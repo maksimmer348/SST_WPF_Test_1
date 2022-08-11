@@ -131,12 +131,20 @@ TestAllTime}" DockPanel.Dock="Left" MinWidth="100"/>
                     <DockPanel Grid.Row="0" Grid.ColumnSpan="3" MinWidth="300" VerticalAlignment="Center"
                                HorizontalAlignment="Stretch">
                         <ComboBox Margin="7" DockPanel.Dock="Left" MinHeight="10" MinWidth="200"
-                                  HorizontalAlignment="Stretch" ItemsSource="{Binding Vip}">
+                                  HorizontalAlignment="Stretch" ItemsSource="{Binding TypeVip}"    
+                                  SelectedItem="{Binding SelectTypeVip, UpdateSourceTrigger=PropertyChanged}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <TextBlock Grid.ColumnSpan="2" Text="{Binding Type}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
                         </ComboBox>
                         <TextBlock Margin="10" DockPanel.Dock="Left">Выбор типа ВИПа</TextBlock>
                     </DockPanel>
 
-                    <ItemsControl Grid.Row="1" ItemsSource="{Binding AllVips}" Grid.IsSharedSizeScope="True">
+                    <ItemsControl Grid.Row="1" ItemsSource="{Binding AllPrepareVips}" Grid.IsSharedSizeScope="True">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <Grid ShowGridLines="True">
@@ -231,7 +239,7 @@ TestAllTime}" DockPanel.Dock="Left" MinWidth="100"/>
                     </Grid>
 
                     <ItemsControl Grid.Row="1"
-                                  ItemsSource="{Binding AllVips}" Grid.IsSharedSizeScope="True">
+                                  ItemsSource="{Binding AllPrepareVips}" Grid.IsSharedSizeScope="True">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <Grid ShowGridLines="True">
@@ -296,7 +304,7 @@ TestAllTime}" DockPanel.Dock="Left" MinWidth="100"/>
                 <!--Настройки-->
                 <TabItem.Header>
                     <DockPanel>
-                        <TextBlock VerticalAlignment="Center">Настройки</TextBlock>
+                        <TextBlock VerticalAlignment="Center">Настройки Внешних устройств</TextBlock>
                     </DockPanel>
                 </TabItem.Header>
 
@@ -317,20 +325,24 @@ TestAllTime}" DockPanel.Dock="Left" MinWidth="100"/>
 
                         <TextBlock Margin="10, 5,0,0" DockPanel.Dock="Left">Выбор внешнего устройства</TextBlock>
 
-                        <ComboBox SelectedIndex="0"
-                                  ItemsSource="{Binding Devices, UpdateSourceTrigger=PropertyChanged}"
-                                  Margin="10, 5,0,0" DockPanel.Dock="Left"
-                                  MinHeight="10" MinWidth="200"
-                                  HorizontalAlignment="Left"
-                                  SelectedItem="{Binding SelectDevice, UpdateSourceTrigger=PropertyChanged}">
-                            <ComboBox.ItemTemplate>
-                                <DataTemplate>
-                                    <Grid>
-                                        <TextBlock Grid.ColumnSpan="2" Text="{Binding IsDeviceType}" />
-                                    </Grid>
-                                </DataTemplate>
-                            </ComboBox.ItemTemplate>
-                        </ComboBox>
+                        <StackPanel  Margin="10, 5,0,0" DockPanel.Dock="Left"
+                                     MinHeight="10" 
+                                     HorizontalAlignment="Left" Orientation="Horizontal">
+                            <ComboBox MinWidth="150"
+                                      ItemsSource="{Binding Devices, UpdateSourceTrigger=PropertyChanged}"
+                                      SelectedIndex="0"
+                                      SelectedItem="{Binding SelectDevice, UpdateSourceTrigger=PropertyChanged}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid>
+                                            <TextBlock Grid.ColumnSpan="2" Text="{Binding IsDeviceType}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                            <CheckBox Content="Випы" Margin="10, 5,0,0" IsChecked="{Binding IsVipsSettings}" DockPanel.Dock="Right"/>
+                        </StackPanel>
+
 
                         <TextBlock Margin="10, 5,0,0" DockPanel.Dock="Left" Text="Имя Устройства" />
 
@@ -491,11 +503,11 @@ TestAllTime}" DockPanel.Dock="Left" MinWidth="100"/>
                     </Grid>
 
 
+
                     <!--Настройки Grid-->
                 </Grid>
                 <!--Настройки-->
             </TabItem>
-
         </TabControl>
         <Grid Grid.Row="1" Grid.Column="0">
             <Grid ShowGridLines="True">

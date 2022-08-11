@@ -4,7 +4,6 @@ public class TypeVip
 {
     public string Type { get; set; }
 
-
     //максимальные значения во время цикла испытаниий 1...n, они означают ошибку
     
     public double MaxTemperature { get; set; }
