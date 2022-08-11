@@ -122,6 +122,7 @@ public class BaseDevice : Notify
 
     public void Close()
     {
+        
         if (port != null)
         {
             port.Close();
@@ -179,14 +180,6 @@ public class BaseDevice : Notify
     /// <exception cref="DeviceException">Такого устройства, нет в библиотеке команд</exception>
     public void CheckedConnectDevice(string checkCmd = "", int delay = 0, string terminator = "")
     {
-        //для отладки
-        // Время начала 
-        if (!stopwatch.IsRunning)
-        {
-            stopwatch.Start();
-        }
-
-        //
 
         //если строка команды пустая
         if (string.IsNullOrWhiteSpace(checkCmd))
@@ -244,7 +237,7 @@ public class BaseDevice : Notify
     protected DeviceCmd GetLibItem(string cmd, string deviceName)
     {
         return LibCmd.DeviceCommands
-            .FirstOrDefault(x => x.Key.NameCmd == cmd && x.Key.NameDevice == deviceName).Value;
+            .FirstOrDefault(x => x.Key.NameDevice == deviceName && x.Key.NameCmd == cmd ).Value;
     }
 
     /// <summary>

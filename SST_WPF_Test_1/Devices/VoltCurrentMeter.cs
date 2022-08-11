@@ -5,7 +5,6 @@ public class  VoltageCurrentMeter : BaseDevice
     
     public double VoltageOut1 { get; set; }
     public double VoltageOut2 { get; set; }
-    public double CurrentIn { get; set; }
 
     MeterMode Mode { get; set; }
 
@@ -17,6 +16,6 @@ public class  VoltageCurrentMeter : BaseDevice
 
 internal enum MeterMode
 {
-    VoltageOut1CurrentInMeter,
+    VoltageOut1,
     VoltageOut2
 }

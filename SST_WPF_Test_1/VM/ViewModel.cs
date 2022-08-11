@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
 
@@ -84,18 +85,23 @@ public class ViewModel : Notify
             //TODO выяснить нормально ли это работает (взаимосвзяь между вью моделью и моделью - devices и standTest.Devices)
             devices.Add(device);
             standTest.Devices.Add(device);
+            standTest.InvokeDevices();
         }
     }
 
     void SetDevices()
     {
-        devices.Add(standTest.MultimeterStand);
-        devices.Add(standTest.SupplyStand);
+        devices.Add(standTest.VoltmeterStand);
         devices.Add(standTest.ThermometerStand);
-        devices.Add(standTest.SmallLoadStand);
+        
+        devices.Add(standTest.SupplyStand);
+        
+        //TODO вернуть 
+        //devices.Add(standTest.SmallLoadStand);
         devices.Add(standTest.BigLoadStand);
-        devices.Add(standTest.HeatStand);
-
+        //TODO вернуть 
+        //devices.Add(standTest.HeatStand);
+       
         foreach (var device in standTest.SwitchersMetersStand)
         {
             devices.Add(device);
@@ -105,7 +111,9 @@ public class ViewModel : Notify
     public void ConfigDevices()
     {
         DeserializeDevicesAndLib();
-
+        
+        //SetDevices();
+        
         //TODO убрать это в десериализатор?
         foreach (var vip in standTest.VipsStand)
         {
@@ -143,12 +151,12 @@ public class ViewModel : Notify
 
         if (e.PropertyName == nameof(TestAllTime))
         {
-            TestAllTime = standTest.TestAllTime;
+            TestAllTime = standTest.SetTestAllTime;
         }
 
         if (e.PropertyName == nameof(TestIntervalTime))
         {
-            TestIntervalTime = standTest.TestIntervalTime;
+            TestIntervalTime = standTest.SetTestIntervalTime;
         }
 
         if (e.PropertyName == nameof(TestLeftEndTime))
@@ -219,7 +227,20 @@ public class ViewModel : Notify
     {
         if (SelectTab == 0)
         {
-            await standTest.PrimaryCheckDevices();
+            try
+            {
+                await standTest.PrimaryCheckDevices();
+            }
+            catch (DeviceException e)
+            {
+                const string caption = "Ошибка команды";
+                var result = MessageBox.Show(e.Message, caption, MessageBoxButton.OKCancel);
+
+                if (result == MessageBoxResult.OK)
+                {
+                    //Переходим в настройки
+                }
+            }
         }
 
         else if (SelectTab == 1)
@@ -314,12 +335,23 @@ public class ViewModel : Notify
         Devices[index].Config.Dtr = Dtr;
 
         NameDevice = selectDevice.Name;
-        PortName = selectDevice.GetConfigDevice().PortName;
-        Parity = selectDevice.GetConfigDevice().Baud;
-        StopBits = selectDevice.GetConfigDevice().StopBits;
-        Parity = selectDevice.GetConfigDevice().Parity;
-        DataBits = selectDevice.GetConfigDevice().DataBits;
-        Dtr = selectDevice.GetConfigDevice().Dtr;
+
+        try
+        {
+            PortName = selectDevice.GetConfigDevice().PortName;
+            Parity = selectDevice.GetConfigDevice().Baud;
+            StopBits = selectDevice.GetConfigDevice().StopBits;
+            Parity = selectDevice.GetConfigDevice().Parity;
+            DataBits = selectDevice.GetConfigDevice().DataBits;
+            Dtr = selectDevice.GetConfigDevice().Dtr;
+        }
+        catch (Exception e)
+        {
+            MessageBox.Show(e.Message);
+
+            return Task.CompletedTask;
+        }
+
 
         if (selectDevice is SwitcherMeter)
         {
@@ -499,7 +531,7 @@ public class ViewModel : Notify
                 TabsDisable();
                 PrimaryCheckDevicesTab = true;
             }
-            
+
             if (testRun == TypeOfTestRun.None)
             {
                 TextCurrentTest = "";
@@ -528,7 +560,7 @@ public class ViewModel : Notify
             }
 
             //
-            
+
             if (testRun == TypeOfTestRun.PrimaryCheckVips)
             {
                 TextCurrentTest = " Предпроверка Випов";
@@ -756,12 +788,21 @@ public class ViewModel : Notify
             if (!Set(ref selectDevice, value)) return;
 
             NameDevice = selectDevice.Name;
-            PortName = selectDevice.GetConfigDevice().PortName;
-            Baud = selectDevice.GetConfigDevice().Baud;
-            StopBits = selectDevice.GetConfigDevice().StopBits;
-            Parity = selectDevice.GetConfigDevice().Parity;
-            DataBits = selectDevice.GetConfigDevice().DataBits;
-            Dtr = selectDevice.GetConfigDevice().Dtr;
+
+            try
+            {
+                PortName = selectDevice.GetConfigDevice().PortName;
+                Baud = selectDevice.GetConfigDevice().Baud;
+                StopBits = selectDevice.GetConfigDevice().StopBits;
+                Parity = selectDevice.GetConfigDevice().Parity;
+                DataBits = selectDevice.GetConfigDevice().DataBits;
+                Dtr = selectDevice.GetConfigDevice().Dtr;
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+
 
             //если устройство типа релейного модуля ОТКЛЮЧАЕМ возмонжность изменить его имя
             if (selectDevice is SwitcherMeter)

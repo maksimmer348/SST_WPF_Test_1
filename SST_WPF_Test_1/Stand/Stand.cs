@@ -17,23 +17,42 @@ public class Stand : Notify
 
     private ObservableCollection<BaseDevice> devices = new();
 
+    /// <summary>
+    /// Список внещних устройств
+    /// </summary>
     public ObservableCollection<BaseDevice> Devices
     {
         get => devices;
         set => Set(ref devices, value);
     }
 
-    public VoltageCurrentMeter MultimeterStand { get; set; }
+    public VoltageCurrentMeter VoltmeterStand { get; set; }
     public ObservableCollection<SwitcherMeter> SwitchersMetersStand { get; set; } = new();
     public Thermometer ThermometerStand { get; set; }
     public Supply SupplyStand { get; set; }
     public SmallLoad SmallLoadStand { get; set; }
     public BigLoad BigLoadStand { get; set; }
-
     public Heat HeatStand { get; set; }
+
+    /// <summary>
+    /// Список Випов
+    /// </summary>
     public ObservableCollection<Vip> VipsStand { get; set; } = new();
 
     #endregion
+
+    //
+
+    #region Констркутор
+
+    public Stand()
+    {
+        //SetDevices();
+    }
+
+    #endregion
+
+    //
 
     #region Статусы стенда
 
@@ -59,8 +78,6 @@ public class Stand : Notify
         set => Set(ref testCurrentDevice, value);
     }
 
-
-    private const double MAX_PERCENT = 100;
     private double percentCurrentTest;
 
     /// <summary>
@@ -72,9 +89,23 @@ public class Stand : Notify
         set => Set(ref percentCurrentTest, value);
     }
 
-    //Временные статусы
+    #endregion
+
+    //
+
+    #region Время испытаний
+
+    public void SetTimesTest(TimeSpan all, TimeSpan interval)
+    {
+        SetTestAllTime = all;
+        SetTestIntervalTime = interval;
+    }
+
     private DateTime testStartTime;
 
+    /// <summary>
+    /// Время начала теста
+    /// </summary>
     public DateTime TestStartTime
     {
         get => testStartTime;
@@ -83,6 +114,9 @@ public class Stand : Notify
 
     private DateTime testEndTime;
 
+    /// <summary>
+    /// Время окончания теста
+    /// </summary>
     public DateTime TestEndTime
     {
         get => testEndTime;
@@ -91,36 +125,42 @@ public class Stand : Notify
 
     private DateTime nextMeasurementIn;
 
+    /// <summary>
+    /// Время следующего замера
+    /// </summary>
     public DateTime NextMeasurementIn
     {
         get => nextMeasurementIn;
         set => Set(ref nextMeasurementIn, value);
     }
 
-    //
+    private TimeSpan setTestAllTime;
 
-    #endregion
-
-    #region Время испытаний
-
-    private TimeSpan testAllTime;
-
-    public TimeSpan TestAllTime
+    /// <summary>
+    /// Устанлвка сколько будет длится тест
+    /// </summary>
+    public TimeSpan SetTestAllTime
     {
-        get => testAllTime;
-        set => Set(ref testAllTime, value);
+        get => setTestAllTime;
+        set => Set(ref setTestAllTime, value);
     }
 
-    private TimeSpan testIntervalTime;
+    private TimeSpan setTestIntervalTime;
 
-    public TimeSpan TestIntervalTime
+    /// <summary>
+    /// Установка через какой интервал времени будет производится замер 
+    /// </summary>
+    public TimeSpan SetTestIntervalTime
     {
-        get => testIntervalTime;
-        set => Set(ref testIntervalTime, value);
+        get => setTestIntervalTime;
+        set => Set(ref setTestIntervalTime, value);
     }
 
     private TimeSpan testLeftEndTime;
 
+    /// <summary>
+    /// Время коца теста = DateTime.Now + SetTestAllTime
+    /// </summary>
     public TimeSpan TestLeftEndTime
     {
         get => testLeftEndTime;
@@ -129,36 +169,86 @@ public class Stand : Notify
 
     #endregion
 
+    //
+
     #region Отчет
 
     private string fileName;
 
+    /// <summary>
+    /// Создание отчета
+    /// </summary>
+    public void ReportCreate()
+    {
+    }
+
+    /// <summary>
+    /// Путь к файлу где будет хранится отчет
+    /// </summary>
     public string FileName
     {
         get => fileName;
         set => Set(ref fileName, value);
     }
 
+    /// <summary>
+    /// Сохранение отчета по пути
+    /// </summary>
+    public void SaveReportPlace()
+    {
+        var txtEditor = "Test";
+        var nameFile = "Report ";
+        if (FileName != null)
+        {
+            FileName = string.Empty;
+        }
+
+        SaveFileDialog saveFileDialog = new SaveFileDialog();
+        saveFileDialog.RestoreDirectory = true;
+        saveFileDialog.InitialDirectory = @"Saved Reports";
+        saveFileDialog.Filter = "Excel files (*.xmls)|*.xmls";
+        var fileNameReplace = nameFile + $"{DateTime.Now}".Replace("/", "-").Replace(":", "-");
+        saveFileDialog.FileName = fileNameReplace;
+
+        if (saveFileDialog.ShowDialog() == true)
+            File.WriteAllText(saveFileDialog.FileName, txtEditor);
+    }
+
     #endregion
 
-    public Stand()
-    {
-        //SetDevices();
-        
-    }
-    
+    #region Вспомогательные методы
 
+    /// <summary>
+    /// Подпись на события из устройств
+    /// </summary>
+    public void InvokeDevices()
+    {
+        foreach (var device in Devices)
+        {
+            device.ConnectPort += OnCheckConnectPort;
+            device.ConnectDevice += OnCheckDevice;
+            device.Receive += Receive;
+        }
+    }
+
+    /// <summary>
+    /// Установка приборов по умолчанию (для тестов)
+    /// </summary>
     public void SetDevices()
     {
-        
         if (true) //TODO (true) - если сеарилизатор недосутпен выводим исключение и создаем приборы со станрдартными настройками
         {
-            
-            MultimeterStand = new("GDM-78255A") { RowIndex = 0, ColumnIndex = 0 };
-            MultimeterStand.SetConfigDevice(TypePort.SerialInput, "COM4", 9600, 1, 0, 8);
-            MultimeterStand.ConnectPort += OnCheckConnectPort;
-            MultimeterStand.ConnectDevice += OnCheckDevice;
-            MultimeterStand.Receive += Receive;
+            VoltmeterStand = new("GDM-78255A") { RowIndex = 0, ColumnIndex = 0 };
+            VoltmeterStand.SetConfigDevice(TypePort.SerialInput, "COM8", 115200, 1, 0, 8);
+            VoltmeterStand.ConnectPort += OnCheckConnectPort;
+            VoltmeterStand.ConnectDevice += OnCheckDevice;
+            VoltmeterStand.Receive += Receive;
+
+            ThermometerStand = new("GDM-78255A") { RowIndex = 0, ColumnIndex = 2 };
+            ThermometerStand.SetConfigDevice(TypePort.SerialInput, "COM7", 115200, 1, 0, 8);
+            ThermometerStand.ConnectPort += OnCheckConnectPort;
+            ThermometerStand.ConnectDevice += OnCheckDevice;
+            ThermometerStand.Receive += Receive;
 
             SupplyStand = new("PSW7-800-2.88") { RowIndex = 0, ColumnIndex = 1 };
             SupplyStand.SetConfigDevice(TypePort.SerialInput, "COM5", 115200, 1, 0, 8);
@@ -166,52 +256,49 @@ public class Stand : Notify
             SupplyStand.ConnectDevice += OnCheckDevice;
             SupplyStand.Receive += Receive;
 
-            ThermometerStand = new("PSW7-800-2.88") { RowIndex = 0, ColumnIndex = 2 };
-            ThermometerStand.SetConfigDevice(TypePort.SerialInput, "COM100", 9600, 1, 0, 8);
-            ThermometerStand.ConnectPort += OnCheckConnectPort;
-            ThermometerStand.ConnectDevice += OnCheckDevice;
-            ThermometerStand.Receive += Receive;
+            //TODO вернуть 
+            // SmallLoadStand = new("SMLL LOAD-87") { RowIndex = 0, ColumnIndex = 3 };
+            // SmallLoadStand.SetConfigDevice(TypePort.SerialInput, "COM60", 2400, 1, 0, 8);
+            // SmallLoadStand.ConnectPort += OnCheckConnectPort;
+            // SmallLoadStand.ConnectDevice += OnCheckDevice;
+            // SmallLoadStand.Receive += Receive;
 
-            SmallLoadStand = new("SMLL LOAD-87") { RowIndex = 0, ColumnIndex = 3 };
-            SmallLoadStand.SetConfigDevice(TypePort.SerialInput, "COM60", 2400, 1, 0, 8);
-            SmallLoadStand.ConnectPort += OnCheckConnectPort;
-            SmallLoadStand.ConnectDevice += OnCheckDevice;
-            SmallLoadStand.Receive += Receive;
-
-            BigLoadStand = new("BIG LOAD-90") { RowIndex = 0, ColumnIndex = 4 };
-            BigLoadStand.SetConfigDevice(TypePort.SerialInput, "COM70", 9600, 1, 0, 8);
+            BigLoadStand = new("AFG-72112") { RowIndex = 0, ColumnIndex = 4 };
+            BigLoadStand.SetConfigDevice(TypePort.SerialInput, "COM6", 115200, 1, 0, 8);
             BigLoadStand.ConnectPort += OnCheckConnectPort;
             BigLoadStand.ConnectDevice += OnCheckDevice;
             BigLoadStand.Receive += Receive;
 
-            HeatStand = new("Heat") { RowIndex = 0, ColumnIndex = 5 };
-            HeatStand.SetConfigDevice(TypePort.SerialInput, "COM80", 9600, 1, 0, 8);
-            HeatStand.ConnectPort += OnCheckConnectPort;
-            HeatStand.ConnectDevice += OnCheckDevice;
-            HeatStand.Receive += Receive;
+            //TODO вернуть 
+            // HeatStand = new("Heat") { RowIndex = 0, ColumnIndex = 5 };
+            // HeatStand.SetConfigDevice(TypePort.SerialInput, "COM80", 9600, 1, 0, 8);
+            // HeatStand.ConnectPort += OnCheckConnectPort;
+            // HeatStand.ConnectDevice += OnCheckDevice;
+            // HeatStand.Receive += Receive;
 
-            SwitchersMetersStand = new();
-            SwitchersMetersStand.Add(new SwitcherMeter("1") { RowIndex = 1, ColumnIndex = 0 });
-            SwitchersMetersStand.Add(new SwitcherMeter("2") { RowIndex = 1, ColumnIndex = 1 });
-            SwitchersMetersStand.Add(new SwitcherMeter("3") { RowIndex = 1, ColumnIndex = 2 });
-            SwitchersMetersStand.Add(new SwitcherMeter("4") { RowIndex = 1, ColumnIndex = 3 });
-            SwitchersMetersStand.Add(new SwitcherMeter("5") { RowIndex = 1, ColumnIndex = 4 });
-            SwitchersMetersStand.Add(new SwitcherMeter("6") { RowIndex = 1, ColumnIndex = 5 });
-            SwitchersMetersStand.Add(new SwitcherMeter("7") { RowIndex = 2, ColumnIndex = 0 });
-            SwitchersMetersStand.Add(new SwitcherMeter("8") { RowIndex = 2, ColumnIndex = 1 });
-            SwitchersMetersStand.Add(new SwitcherMeter("9") { RowIndex = 2, ColumnIndex = 2 });
-            SwitchersMetersStand.Add(new SwitcherMeter("10") { RowIndex = 2, ColumnIndex = 3 });
-            SwitchersMetersStand.Add(new SwitcherMeter("11") { RowIndex = 2, ColumnIndex = 4 });
-            SwitchersMetersStand.Add(new SwitcherMeter("12") { RowIndex = 2, ColumnIndex = 5 });
+            //TODO вернуть 
+            // SwitchersMetersStand = new();
+            // SwitchersMetersStand.Add(new SwitcherMeter("1") { RowIndex = 1, ColumnIndex = 0 });
+            // SwitchersMetersStand.Add(new SwitcherMeter("2") { RowIndex = 1, ColumnIndex = 1 });
+            // SwitchersMetersStand.Add(new SwitcherMeter("3") { RowIndex = 1, ColumnIndex = 2 });
+            // SwitchersMetersStand.Add(new SwitcherMeter("4") { RowIndex = 1, ColumnIndex = 3 });
+            // SwitchersMetersStand.Add(new SwitcherMeter("5") { RowIndex = 1, ColumnIndex = 4 });
+            // SwitchersMetersStand.Add(new SwitcherMeter("6") { RowIndex = 1, ColumnIndex = 5 });
+            // SwitchersMetersStand.Add(new SwitcherMeter("7") { RowIndex = 2, ColumnIndex = 0 });
+            // SwitchersMetersStand.Add(new SwitcherMeter("8") { RowIndex = 2, ColumnIndex = 1 });
+            // SwitchersMetersStand.Add(new SwitcherMeter("9") { RowIndex = 2, ColumnIndex = 2 });
+            // SwitchersMetersStand.Add(new SwitcherMeter("10") { RowIndex = 2, ColumnIndex = 3 });
+            // SwitchersMetersStand.Add(new SwitcherMeter("11") { RowIndex = 2, ColumnIndex = 4 });
+            // SwitchersMetersStand.Add(new SwitcherMeter("12") { RowIndex = 2, ColumnIndex = 5 });
 
-
-            foreach (var switcherMeter in SwitchersMetersStand)
-            {
-                switcherMeter.SetConfigDevice(TypePort.SerialInput, "COM3", 9600, 1, 0, 8);
-                switcherMeter.ConnectPort += OnCheckConnectPort;
-                switcherMeter.ConnectDevice += OnCheckDevice;
-                switcherMeter.Receive += Receive;
-            }
+            //TODO вернуть 
+            // foreach (var switcherMeter in SwitchersMetersStand)
+            // {
+            //     switcherMeter.SetConfigDevice(TypePort.SerialInput, "COM3", 9600, 1, 0, 8);
+            //     switcherMeter.ConnectPort += OnCheckConnectPort;
+            //     switcherMeter.ConnectDevice += OnCheckDevice;
+            //     switcherMeter.Receive += Receive;
+            // }
 
             VipsStand = new();
             VipsStand.Add(new Vip
@@ -325,7 +412,7 @@ public class Stand : Notify
         }
 
 
-        devices.Add(MultimeterStand);
+        devices.Add(VoltmeterStand);
         devices.Add(SupplyStand);
         devices.Add(ThermometerStand);
         devices.Add(SmallLoadStand);
@@ -337,33 +424,6 @@ public class Stand : Notify
             devices.Add(device);
         }
     }
-
-
-    #region Прием данных с приборов
-
-    private void Receive(BaseDevice device, string receive)
-    {
-    }
-
-    private void OnCheckDevice(BaseDevice baseDevice, bool connect)
-    {
-        PercentCurrentTest += (1 / (float)Devices.Count) * 80;
-        if (connect)
-        {
-            TempVerifiedDevices.Add(baseDevice);
-        }
-    }
-
-    public void OnCheckConnectPort(BaseDevice baseDevice, bool connect)
-    {
-        if (connect)
-        {
-            TempVerifiedDevices.Add(baseDevice);
-        }
-    }
-
-    #endregion
-
 
     /// <summary>
     ///Для настройки одинаковых плат => 1 настройка на 12 плат
@@ -385,6 +445,53 @@ public class Stand : Notify
         }
     }
 
+    #endregion
+
+    //
+
+    #region Прием данных с приборов
+
+    /// <summary>
+    /// Событие поверки порта на коннект 
+    /// </summary>
+    /// <param name="baseDevice"></param>
+    /// <param name="connect"></param>
+    public void OnCheckConnectPort(BaseDevice baseDevice, bool connect)
+    {
+        if (connect)
+        {
+            TempVerifiedDevices.Add(baseDevice);
+        }
+    }
+
+    /// <summary>
+    /// Событие проверки устройства на коннект
+    /// </summary>
+    /// <param name="baseDevice"></param>
+    /// <param name="connect"></param>
+    private void OnCheckDevice(BaseDevice baseDevice, bool connect)
+    {
+        PercentCurrentTest += (1 / (float)Devices.Count) * 80;
+        if (connect)
+        {
+            TempVerifiedDevices.Add(baseDevice);
+        }
+    }
+
+    /// <summary>
+    /// Событие приема данных из прибора
+    /// </summary>
+    /// <param name="device">Прибор посылающий данные</param>
+    /// <param name="receive">Данные</param>
+    private void Receive(BaseDevice device, string receive)
+    {
+        //Обработка события примеа сообщения
+    }
+
+    #endregion
+
+    //
+
     #region Инструменты проверки
 
     public ObservableCollection<BaseDevice> TempVerifiedDevices { get; set; } = new();
@@ -392,8 +499,8 @@ public class Stand : Notify
     /// <summary>
     /// Проверка на физическое существование порта  
     /// </summary>
-    /// <param name="tempCheckDevices"></param>
-    /// <param name="delay">Общая задержка проверки (по умолчанию 10)</param>
+    /// <param name="tempCheckDevices">Временный списко устройств</param>
+    /// <param name="delay">Общая задержка проверки (по умолчанию 100)</param>
     /// <returns></returns>
     public async Task<List<BaseDevice>> CheckConnectPorts(List<BaseDevice> tempCheckDevices, int delay = 100)
     {
@@ -421,12 +528,11 @@ public class Stand : Notify
         return tempErrorDevices;
     }
 
-
     /// <summary>
     /// Проверка устройств пингуются ли они
     /// </summary>
-    /// <param name="tempCheckDevices"></param>
-    /// <param name="externalDelay"></param>
+    /// <param name="tempCheckDevices">Временный списко устройств</param>
+    /// <param name="externalDelay">Общая задержка проверки (по умолчанию 0)</param>
     /// <returns></returns>
     public async Task<List<BaseDevice>> CheckConnectDevices(List<BaseDevice> tempCheckDevices,
         int externalDelay = 0)
@@ -461,6 +567,11 @@ public class Stand : Notify
         return tempErrorDevices;
     }
 
+    /// <summary>
+    /// Получение списка сбоынх приборов
+    /// </summary>
+    /// <param name="checkedDevices">Временный списко устройств</param>
+    /// <returns></returns>
     private List<BaseDevice> GetErrorDevices(List<BaseDevice> checkedDevices)
     {
         if (!TempVerifiedDevices.Any())
@@ -472,20 +583,39 @@ public class Stand : Notify
         var tempErrorDevices = checkedDevices.Except(TempVerifiedDevices).ToList();
         TempVerifiedDevices.Clear();
 
-
         //возвращаем список приборов не прошедших проверку
         return tempErrorDevices;
     }
 
     #endregion
 
+    //
 
-    #region ПРОВЕРКИ устройств
+    #region Предварительные проверки устройств
+
+    /// <summary>
+    /// Сброс проверки устройств
+    /// </summary>
+    /// <returns></returns>
+    public bool ResetCurrentTest()
+    {
+        //сброс статуса теста
+        TestRun = TypeOfTestRun.Stop;
+        PercentCurrentTest = 0;
+
+        //TODO если сброс подтвержден вернем тру
+        if (true)
+        {
+            return true;
+        }
+
+        return false;
+    }
 
     /// <summary>
     /// ПРЕДВАРИТЕЛЬНАЯ ПРОВЕРКА устройств
     /// </summary>
-    /// <returns></returns>
+    /// <returns>Результат предаварительной проверки</returns>
     public async Task<bool> PrimaryCheckDevices()
     {
         bool isPrimaryCheckDevices = false;
@@ -522,7 +652,7 @@ public class Stand : Notify
 
                     //отбираем прошедшие проверку компорты (сбоыйные порты отброшены)
                     var noErrorPortsList = tempCheckDevices.Except(errorList).ToList();
-                    
+
                     //если такие компорты есть проводим проверку приборов на них на предмет пинга
                     if (noErrorPortsList.Any())
                     {
@@ -551,7 +681,6 @@ public class Stand : Notify
                         TestCurrentDevice = new BaseDevice("0");
                         return false;
                     }
-                   
                 }
                 //если сбоынйх компортов ВООБЩЕ нет проводим проверку приборов на них на предмет пинга
                 else
@@ -586,23 +715,14 @@ public class Stand : Notify
 
         PercentCurrentTest = 100;
         TestCurrentDevice = new BaseDevice("0");
-        return false;
-    }
-
-    public bool ResetCurrentTest()
-    {
-        //сброс статуса теста
-        TestRun = TypeOfTestRun.Stop;
-        PercentCurrentTest = 0;
-
-        if (true)
-        {
-            return true;
-        }
 
         return false;
     }
 
+    /// <summary>
+    /// Предварительная проверка випов
+    /// </summary>
+    /// <returns></returns>
     public async Task<bool> PrimaryCheckVips()
     {
         //сброс статуса теста
@@ -610,7 +730,6 @@ public class Stand : Notify
 
         //установка тест первичный платок випов 
         TestRun = TypeOfTestRun.PrimaryCheckVips;
-
 
         if (true)
         {
@@ -647,6 +766,14 @@ public class Stand : Notify
 
     #endregion
 
+    //
+
+    #region Замеры
+
+    /// <summary>
+    /// 0 замер
+    /// </summary>
+    /// <returns>Результат 0 замера</returns>
     public async Task<bool> MeasurementZero()
     {
         TestRun = TypeOfTestRun.None;
@@ -691,6 +818,10 @@ public class Stand : Notify
         return false;
     }
 
+    /// <summary>
+    /// Ожидание нагрева плиты
+    /// </summary>
+    /// <returns>Результат нагрева плиты в заданное время/или нет</returns>
     public async Task<bool> WaitSettingToOperatingMode()
     {
         TestRun = TypeOfTestRun.None;
@@ -729,6 +860,10 @@ public class Stand : Notify
         return false;
     }
 
+    /// <summary>
+    /// Цикл замеров
+    /// </summary>
+    /// <returns>Успешен ли цикл/не сбойнул ли какойто прибор</returns>
     public async Task<bool> CyclicMeasurement()
     {
         TestRun = TypeOfTestRun.None;
@@ -774,54 +909,5 @@ public class Stand : Notify
         return false;
     }
 
-    public void SetTimesTest(TimeSpan all, TimeSpan interval)
-    {
-        TestAllTime = all;
-        TestIntervalTime = interval;
-    }
-
-    public void ReportCreate()
-    {
-    }
-
-
-    public void SaveReportPlace()
-    {
-        var txtEditor = "Test";
-        var nameFile = "Report ";
-        if (FileName != null)
-        {
-            FileName = string.Empty;
-        }
-
-        SaveFileDialog saveFileDialog = new SaveFileDialog();
-        saveFileDialog.RestoreDirectory = true;
-        saveFileDialog.InitialDirectory = @"Saved Reports";
-        saveFileDialog.Filter = "Excel files (*.xmls)|*.xmls";
-        var fileNameReplace = nameFile + $"{DateTime.Now}".Replace("/", "-").Replace(":", "-");
-        saveFileDialog.FileName = fileNameReplace;
-
-        if (saveFileDialog.ShowDialog() == true)
-            File.WriteAllText(saveFileDialog.FileName, txtEditor);
-    }
-}
-
-public enum TypeOfTestRun
-{
-    None,
-    Stop,
-    PrimaryCheckDevices,
-    PrimaryCheckDevicesReady,
-    PrimaryCheckVips,
-    PrimaryCheckVipsReady,
-    DeviceOperation,
-    DeviceOperationReady,
-    MeasurementZero,
-    MeasurementZeroReady,
-    WaitSettingToOperatingMode,
-    WaitSettingToOperatingModeReady,
-    CyclicMeasurement,
-    CyclicMeasurementReady,
-    CycleWait,
-    Error
+    #endregion
 }
