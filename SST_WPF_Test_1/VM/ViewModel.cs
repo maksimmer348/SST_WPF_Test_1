@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
@@ -21,16 +20,13 @@ public class ViewModel : Notify
 
     private Stand standTest = new();
 
-    private ObservableCollection<BaseDevice> devices = new();
+    #region Devices Устройства
 
-    public ObservableCollection<BaseDevice> Devices
-    {
-        get => devices;
-        set => Set(ref devices, value);
-    }
-
+    /// <summary>
+    /// Все утсройтсва
+    /// </summary>
     private ObservableCollection<BaseDevice> allDevices = new();
-    
+
     public ObservableCollection<BaseDevice> AllDevices
 
     {
@@ -38,6 +34,29 @@ public class ViewModel : Notify
         set => Set(ref allDevices, value);
     }
 
+    private ObservableCollection<BaseDevice> devices = new();
+    /// <summary>
+    /// Внешние устройства
+    /// </summary>
+    public ObservableCollection<BaseDevice> Devices
+    {
+        get => devices;
+        set => Set(ref devices, value);
+    }
+
+    private ObservableCollection<BaseDevice> relaysVips = new();
+    /// <summary>
+    /// Реле Випов
+    /// </summary>
+    public ObservableCollection<BaseDevice> RelaysVips
+    {
+        get => relaysVips;
+        set => Set(ref relaysVips, value);
+    }
+
+    #endregion
+
+    #region Випы
 
     private ObservableCollection<Vip> allPrepareVips = new();
 
@@ -56,6 +75,11 @@ public class ViewModel : Notify
     }
 
     #endregion
+
+
+    #endregion
+
+    #region Конструктор ctor
 
     public ViewModel()
     {
@@ -91,59 +115,85 @@ public class ViewModel : Notify
         #endregion
     }
 
+    #endregion
+
+    public void ConfigDevices()
+    {
+        DeserializeDevicesAndLib();
+
+        //SetDevices();
+        AddPrepareVips();
+
+        //TODO убрать это в десериализатор?
+        TypeVip = standTest.TypeVips;
+    }
+
+    /// <summary>
+    /// Добавление всех випов (даже неиспользуемых) в визуальный список 
+    /// </summary>
+    private void AddPrepareVips()
+    {
+        foreach (var vip in standTest.VipsPrepareStand)
+        {
+            AllPrepareVips.Add(vip);
+        }
+    }
+
     void DeserializeDevicesAndLib()
     {
         //десериализация библиотеки команд  
         var deserializeLib = serializer.DeserializeLib();
         libCmd.DeviceCommands = deserializeLib;
+
         //десериализация устройств
         var deserializeDevices = serializer.DeserializeDevices();
-        foreach (var device in deserializeDevices)
-        {
-            //TODO выяснить нормально ли это работает (взаимосвзяь между вью моделью и моделью - devices и standTest.Devices)
-            devices.Add(device);
-            standTest.Devices.Add(device);
-            standTest.InvokeDevices();
-        }
+
+        //добавление в списко всех утсройств
+        AllDevices = new ObservableCollection<BaseDevice>(deserializeDevices);
+        DevicesInAllToSort();
     }
 
+    private void DevicesInAllToSort()
+    {
+        var devices = AllDevices.Where(x => x is not RelayVip);
+        Devices = new ObservableCollection<BaseDevice>(devices);
+        standTest.Devices = Devices;
+
+        var relays = AllDevices.Where(x => x is RelayVip);
+        RelaysVips = new ObservableCollection<BaseDevice>(relays);
+        standTest.RelaysVips = RelaysVips;
+        standTest.AddRelayToVip(relays);
+
+        standTest.InvokeDevices();
+    }
+
+    /// <summary>
+    /// Добавление Устройств в списко всех устройств для настроек
+    /// </summary>
     void SetDevices()
     {
-        devices.Add(standTest.VoltmeterStand);
-        devices.Add(standTest.ThermometerStand);
-        
-        devices.Add(standTest.SupplyStand);
-        
-        //TODO вернуть 
-        //devices.Add(standTest.SmallLoadStand);
-        devices.Add(standTest.BigLoadStand);
-        //TODO вернуть 
-        //devices.Add(standTest.HeatStand);
-       
-        foreach (var device in standTest.SwitchersMetersStand)
+        // AllDevices.Add(standTest.VoltmeterStand);
+        // AllDevices.Add(standTest.ThermometerStand);
+        // AllDevices.Add(standTest.SupplyStand);
+        // //TODO вернуть 
+        // //devices.Add(standTest.SmallLoadStand);
+        // AllDevices.Add(standTest.BigLoadStand);
+        // //TODO вернуть 
+        // //devices.Add(standTest.HeatStand);
+        //
+        // foreach (var device in )
+        // {
+        //     AllDevices.Add(device);
+        // }
+
+        foreach (var device in standTest.Devices)
         {
-            devices.Add(device);
+            AllDevices.Add(device);
         }
-    }
-
-    void SetVips()
-    {
-
-    }
-
-    public void ConfigDevices()
-    {
-        DeserializeDevicesAndLib();
-        
-        //SetDevices();
-        
-        //TODO убрать это в десериализатор?
-        foreach (var vip in standTest.VipsPrepareStand)
+        foreach (var relay in standTest.RelaysVips)
         {
-            AllPrepareVips.Add(vip);
+            AllDevices.Add(relay);
         }
-
-        TypeVip = standTest.TypeVips;
     }
 
     /// <summary>
@@ -259,11 +309,11 @@ public class ViewModel : Notify
             catch (DeviceException e)
             {
                 const string caption = "Ошибка команды";
-                var result = MessageBox.Show(e.Message, caption, MessageBoxButton.OKCancel);
+                var result = MessageBox.Show(e.Message + " Перейти в настройки?", caption, MessageBoxButton.YesNo);
 
-                if (result == MessageBoxResult.OK)
+                if (result == MessageBoxResult.Yes)
                 {
-                    //Переходим в настройки
+                    //TODO Переходим в настройки
                 }
             }
         }
@@ -350,14 +400,14 @@ public class ViewModel : Notify
 
     Task OnSaveSettingsCmdExecuted(object p)
     {
-        var index = Devices.IndexOf(selectDevice);
-        Devices[index].Name = NameDevice;
-        Devices[index].Config.PortName = PortName;
-        Devices[index].Config.Baud = Baud;
-        Devices[index].Config.StopBits = StopBits;
-        Devices[index].Config.Parity = Parity;
-        Devices[index].Config.DataBits = DataBits;
-        Devices[index].Config.Dtr = Dtr;
+        var index = AllDevices.IndexOf(selectDevice);
+        AllDevices[index].Name = NameDevice;
+        AllDevices[index].Config.PortName = PortName;
+        AllDevices[index].Config.Baud = Baud;
+        AllDevices[index].Config.StopBits = StopBits;
+        AllDevices[index].Config.Parity = Parity;
+        AllDevices[index].Config.DataBits = DataBits;
+        AllDevices[index].Config.Dtr = Dtr;
 
         NameDevice = selectDevice.Name;
 
@@ -377,26 +427,26 @@ public class ViewModel : Notify
             return Task.CompletedTask;
         }
 
-
         if (selectDevice is SwitcherMeter)
         {
             standTest.MultiSetConfigSwitcher(TypePort.SerialInput, PortName, Baud, StopBits, Parity,
                 DataBits, Dtr);
-            return Task.CompletedTask;
         }
         if (selectDevice is RelayVip)
         {
             standTest.MultiSetConfigRelayVip(TypePort.SerialInput, PortName, Baud, StopBits, Parity,
                 DataBits, Dtr);
-            return Task.CompletedTask;
         }
-        
 
-        Devices[index].SetConfigDevice(TypePort.SerialInput, PortName, Baud, StopBits, Parity,
+        AllDevices[index].SetConfigDevice(TypePort.SerialInput, PortName, Baud, StopBits, Parity,
             DataBits, Dtr);
-        var temp = Devices.ToList();
-        serializer.SerializeDevices(temp);
-        standTest.Devices = Devices;
+
+
+        //для сериализации
+        var serializeDevices = AllDevices.ToList();
+        serializer.SerializeDevices(serializeDevices);
+
+        DevicesInAllToSort();
 
         selectedDeviceCommand.Source =
             SelectDevice?.LibCmd.DeviceCommands.Where(x =>
@@ -843,52 +893,47 @@ public class ViewModel : Notify
         {
             if (!Set(ref selectDevice, value)) return;
 
-            if (!IsVipsSettings)
-            {
-                NameDevice = selectDevice.Name;
 
-                try
-                {
-                    PortName = selectDevice.GetConfigDevice().PortName;
-                    Baud = selectDevice.GetConfigDevice().Baud;
-                    StopBits = selectDevice.GetConfigDevice().StopBits;
-                    Parity = selectDevice.GetConfigDevice().Parity;
-                    DataBits = selectDevice.GetConfigDevice().DataBits;
-                    Dtr = selectDevice.GetConfigDevice().Dtr;
-              
+            NameDevice = selectDevice.Name;
 
-                //если устройство типа релейного модуля ОТКЛЮЧАЕМ возмонжность изменить его имя
-                if (selectDevice is SwitcherMeter)
-                {
-                    EnabledDeviceName = false;
-                }
-                //если устройство НЕ типа релейного модуля ВКЛЮЧАЕМ возмонжность изменить его имя
-                if (selectDevice is not SwitcherMeter)
-                {
-                    EnabledDeviceName = true;
-                }
-                //обновление команд выбранного устройства
-                selectedDeviceCommand.Source =
-                    value?.LibCmd.DeviceCommands.Where(x =>
-                        x.Key.NameDevice == selectDevice.Name);
-                OnPropertyChanged(nameof(SelectedDeviceCommand));
-                }
-                catch (Exception e)
-                {
-                    MessageBox.Show(e.Message);
-                }
-            }
-            else
+            try
             {
+
+
                 PortName = selectDevice.GetConfigDevice().PortName;
                 Baud = selectDevice.GetConfigDevice().Baud;
                 StopBits = selectDevice.GetConfigDevice().StopBits;
                 Parity = selectDevice.GetConfigDevice().Parity;
                 DataBits = selectDevice.GetConfigDevice().DataBits;
                 Dtr = selectDevice.GetConfigDevice().Dtr;
+
+                //если устройство типа релейного модуля ОТКЛЮЧАЕМ возмонжность изменить его имя
+                if (selectDevice is SwitcherMeter)
+                {
+                    EnabledDeviceName = false;
+                }
+                //если устройство типа Реле Випа ОТКЛЮЧАЕМ возмонжность изменить его имя
+                else if (selectDevice is RelayVip)
+                {
+                    EnabledDeviceName = false;
+                }
+                //если устройство НЕ типа релейного модуля ВКЛЮЧАЕМ возмонжность изменить его имя
+                else if (selectDevice is not SwitcherMeter)
+                {
+                    EnabledDeviceName = true;
+                }
+
+                //обновление команд выбранного устройства
+                selectedDeviceCommand.Source =
+                    value?.LibCmd.DeviceCommands.Where(x =>
+                        x.Key.NameDevice == selectDevice.Name);
+                OnPropertyChanged(nameof(SelectedDeviceCommand));
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
             }
 
-           
         }
     }
 
@@ -910,7 +955,7 @@ public class ViewModel : Notify
         set { Set(ref isVipsSettings, value); }
     }
 
-   
+
 
     private string nameDevice;
 

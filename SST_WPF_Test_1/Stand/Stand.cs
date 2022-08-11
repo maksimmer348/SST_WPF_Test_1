@@ -15,31 +15,48 @@ public class Stand : Notify
 {
     #region Компоноенты стенда
 
-    private ObservableCollection<BaseDevice> devices = new();
-
-    /// <summary>
-    /// Список внещних устройств
-    /// </summary>
-    public ObservableCollection<BaseDevice> Devices
-    {
-        get => devices;
-        set => Set(ref devices, value);
-    }
-
     public VoltageCurrentMeter VoltmeterStand { get; set; }
-    public ObservableCollection<SwitcherMeter> SwitchersMetersStand { get; set; } = new();
     public Thermometer ThermometerStand { get; set; }
     public Supply SupplyStand { get; set; }
     public SmallLoad SmallLoadStand { get; set; }
     public BigLoad BigLoadStand { get; set; }
     public Heat HeatStand { get; set; }
 
+    private ObservableCollection<BaseDevice> devices = new();
+    /// <summary>
+    /// Список внещних устройств
+    ///</summary>
+    public ObservableCollection<BaseDevice> Devices
+    {
+        get => devices;
+        set => Set(ref devices, value);
+    }
+
+
+    private ObservableCollection<BaseDevice> relaysVips = new();
+
+    /// <summary>
+    /// Список Релейных лпат Випов
+    /// </summary>
+    public ObservableCollection<BaseDevice> RelaysVips
+    {
+        get => relaysVips;
+        set => Set(ref relaysVips, value);
+    }
+
     /// <summary>
     /// Список Випов
     /// </summary>
-    public ObservableCollection<Vip> VipsPrepareStand { get; set; } = new();
-    public ConfigVips ConfigVips { get; set; } = new ConfigVips();
+    private ObservableCollection<Vip> vipsPrepareStand = new();
+    public ObservableCollection<Vip> VipsPrepareStand
+    {
+        get => vipsPrepareStand;
+        set => Set(ref vipsPrepareStand, value);
+    }
+
+    public ConfigVips ConfigVip { get; set; } = new ConfigVips();
     public ObservableCollection<TypeVip> TypeVips { get; set; } = new();
+
     #endregion
 
     //
@@ -231,6 +248,12 @@ public class Stand : Notify
             device.ConnectDevice += OnCheckDevice;
             device.Receive += Receive;
         }
+        foreach (var relayVip in RelaysVips)
+        {
+            relayVip.ConnectPort += OnCheckConnectPort;
+            relayVip.ConnectDevice += OnCheckDevice;
+            relayVip.Receive += Receive;
+        }
     }
 
     /// <summary>
@@ -245,33 +268,37 @@ public class Stand : Notify
             VoltmeterStand.ConnectPort += OnCheckConnectPort;
             VoltmeterStand.ConnectDevice += OnCheckDevice;
             VoltmeterStand.Receive += Receive;
+            Devices.Add(VoltmeterStand);
+
 
             ThermometerStand = new("GDM-78255A") { RowIndex = 0, ColumnIndex = 2 };
             ThermometerStand.SetConfigDevice(TypePort.SerialInput, "COM7", 115200, 1, 0, 8);
             ThermometerStand.ConnectPort += OnCheckConnectPort;
             ThermometerStand.ConnectDevice += OnCheckDevice;
             ThermometerStand.Receive += Receive;
+            Devices.Add(ThermometerStand);
 
             SupplyStand = new("PSW7-800-2.88") { RowIndex = 0, ColumnIndex = 1 };
             SupplyStand.SetConfigDevice(TypePort.SerialInput, "COM5", 115200, 1, 0, 8);
             SupplyStand.ConnectPort += OnCheckConnectPort;
             SupplyStand.ConnectDevice += OnCheckDevice;
             SupplyStand.Receive += Receive;
-
+            Devices.Add(SupplyStand);
+            
             //TODO вернуть 
             // SmallLoadStand = new("SMLL LOAD-87") { RowIndex = 0, ColumnIndex = 3 };
             // SmallLoadStand.SetConfigDevice(TypePort.SerialInput, "COM60", 2400, 1, 0, 8);
             // SmallLoadStand.ConnectPort += OnCheckConnectPort;
             // SmallLoadStand.ConnectDevice += OnCheckDevice;
             // SmallLoadStand.Receive += Receive;
-
-
-
+            //Devices.Add(SmallLoadStand);
+            
             BigLoadStand = new("AFG-72112") { RowIndex = 0, ColumnIndex = 4 };
             BigLoadStand.SetConfigDevice(TypePort.SerialInput, "COM6", 115200, 1, 0, 8);
             BigLoadStand.ConnectPort += OnCheckConnectPort;
             BigLoadStand.ConnectDevice += OnCheckDevice;
             BigLoadStand.Receive += Receive;
+            Devices.Add(BigLoadStand);
 
             //TODO вернуть 
             // HeatStand = new("Heat") { RowIndex = 0, ColumnIndex = 5 };
@@ -279,162 +306,145 @@ public class Stand : Notify
             // HeatStand.ConnectPort += OnCheckConnectPort;
             // HeatStand.ConnectDevice += OnCheckDevice;
             // HeatStand.Receive += Receive;
+            //Devices.Add(HeatStand);
+            
+            //TODO вернуть 
+            // Devices.Add(new SwitcherMeter("1") { RowIndex = 1, ColumnIndex = 0 });
+            // Devices.Add(new SwitcherMeter("2") { RowIndex = 1, ColumnIndex = 1 });
+            // Devices.Add(new SwitcherMeter("3") { RowIndex = 1, ColumnIndex = 2 });
+            // Devices.Add(new SwitcherMeter("4") { RowIndex = 1, ColumnIndex = 3 });
+            // Devices.Add(new SwitcherMeter("5") { RowIndex = 1, ColumnIndex = 4 });
+            // Devices.Add(new SwitcherMeter("6") { RowIndex = 1, ColumnIndex = 5 });
+            // Devices.Add(new SwitcherMeter("7") { RowIndex = 2, ColumnIndex = 0 });
+            // Devices.Add(new SwitcherMeter("8") { RowIndex = 2, ColumnIndex = 1 });
+            // Devices.Add(new SwitcherMeter("9") { RowIndex = 2, ColumnIndex = 2 });
+            // Devices.Add(new SwitcherMeter("10") { RowIndex = 2, ColumnIndex = 3 });
+            // Devices.Add(new SwitcherMeter("11") { RowIndex = 2, ColumnIndex = 4 });
+            // Devices.Add(new SwitcherMeter("12") { RowIndex = 2, ColumnIndex = 5 });
 
             //TODO вернуть 
-            // SwitchersMetersStand = new();
-            // SwitchersMetersStand.Add(new SwitcherMeter("1") { RowIndex = 1, ColumnIndex = 0 });
-            // SwitchersMetersStand.Add(new SwitcherMeter("2") { RowIndex = 1, ColumnIndex = 1 });
-            // SwitchersMetersStand.Add(new SwitcherMeter("3") { RowIndex = 1, ColumnIndex = 2 });
-            // SwitchersMetersStand.Add(new SwitcherMeter("4") { RowIndex = 1, ColumnIndex = 3 });
-            // SwitchersMetersStand.Add(new SwitcherMeter("5") { RowIndex = 1, ColumnIndex = 4 });
-            // SwitchersMetersStand.Add(new SwitcherMeter("6") { RowIndex = 1, ColumnIndex = 5 });
-            // SwitchersMetersStand.Add(new SwitcherMeter("7") { RowIndex = 2, ColumnIndex = 0 });
-            // SwitchersMetersStand.Add(new SwitcherMeter("8") { RowIndex = 2, ColumnIndex = 1 });
-            // SwitchersMetersStand.Add(new SwitcherMeter("9") { RowIndex = 2, ColumnIndex = 2 });
-            // SwitchersMetersStand.Add(new SwitcherMeter("10") { RowIndex = 2, ColumnIndex = 3 });
-            // SwitchersMetersStand.Add(new SwitcherMeter("11") { RowIndex = 2, ColumnIndex = 4 });
-            // SwitchersMetersStand.Add(new SwitcherMeter("12") { RowIndex = 2, ColumnIndex = 5 });
-
-            //TODO вернуть 
-            // foreach (var switcherMeter in SwitchersMetersStand)
+            // foreach (var switcherMeter in Devices)
             // {
-            //     switcherMeter.SetConfigDevice(TypePort.SerialInput, "COM3", 9600, 1, 0, 8);
+            //     if(switcherMeter is SwitcherMeter)
+            //     switcherMeter.SetConfigDevice(TypePort.SerialInput, "COM2", 9600, 1, 0, 8);
             //     switcherMeter.ConnectPort += OnCheckConnectPort;
             //     switcherMeter.ConnectDevice += OnCheckDevice;
             //     switcherMeter.Receive += Receive;
             // }
-        }
-
-
-        devices.Add(VoltmeterStand);
-        devices.Add(SupplyStand);
-        devices.Add(ThermometerStand);
-        devices.Add(SmallLoadStand);
-        devices.Add(BigLoadStand);
-        devices.Add(HeatStand);
-
-        foreach (var device in SwitchersMetersStand)
-        {
-            devices.Add(device);
+            
+            RelaysVips.Add(new RelayVip("1"));
+            RelaysVips.Add(new RelayVip("2"));
+            RelaysVips.Add(new RelayVip("3"));
+            RelaysVips.Add(new RelayVip("4"));
+            RelaysVips.Add(new RelayVip("5"));
+            RelaysVips.Add(new RelayVip("6"));
+            RelaysVips.Add(new RelayVip("7"));
+            RelaysVips.Add(new RelayVip("8"));
+            RelaysVips.Add(new RelayVip("9"));
+            RelaysVips.Add(new RelayVip("10"));
+            RelaysVips.Add(new RelayVip("11"));
+            RelaysVips.Add(new RelayVip("12"));
+            //TODO вернуть 
+            foreach (var relay in RelaysVips)
+            {
+                relay.SetConfigDevice(TypePort.SerialInput, "COM3", 9600, 1, 0, 8);
+                relay.ConnectPort += OnCheckConnectPort;
+                relay.ConnectDevice += OnCheckDevice;
+                relay.Receive += Receive;
+            }
         }
     }
 
     void SetPrepareVips()
     {
         VipsPrepareStand = new();
-        VipsPrepareStand.Add(new Vip
+        VipsPrepareStand.Add(new Vip(1)
         {
-            Name = "Вип-1",
-
-            ID = 1,
-            Relay = new RelayVip("1"),
             RowIndex = 0,
             ColumnIndex = 0
         });
-        VipsPrepareStand.Add(new Vip
+        VipsPrepareStand.Add(new Vip(2)
         {
-            Name = "Вип-2",
 
-            ID = 2,
-            Relay = new RelayVip("2"),
             RowIndex = 0,
             ColumnIndex = 1
         });
-        VipsPrepareStand.Add(new Vip
+        VipsPrepareStand.Add(new Vip(3)
         {
-            Name = "Вип-3",
 
-            ID = 3,
-            Relay = new RelayVip("3"),
             RowIndex = 0,
             ColumnIndex = 2
         });
-        VipsPrepareStand.Add(new Vip
+        VipsPrepareStand.Add(new Vip(4)
         {
-            Name = "Вип-4",
 
-            ID = 4,
-            Relay = new RelayVip("4"),
             RowIndex = 0,
             ColumnIndex = 3
         });
-        VipsPrepareStand.Add(new Vip
+        VipsPrepareStand.Add(new Vip(5)
         {
-            Name = "Вип-5",
-
-            ID = 5,
-            Relay = new RelayVip("5"),
             RowIndex = 1,
             ColumnIndex = 0
         });
-        VipsPrepareStand.Add(new Vip
+        VipsPrepareStand.Add(new Vip(6)
         {
-            Name = "Вип-6",
-
-            ID = 6,
-            Relay = new RelayVip("6"),
             RowIndex = 1,
             ColumnIndex = 1
         });
-        VipsPrepareStand.Add(new Vip
+        VipsPrepareStand.Add(new Vip(7)
         {
-            Name = "Вип-7",
 
-            ID = 7,
-            Relay = new RelayVip("7"),
             RowIndex = 1,
             ColumnIndex = 2
         });
-        VipsPrepareStand.Add(new Vip
+        VipsPrepareStand.Add(new Vip(8)
         {
-            Name = "Вип-8",
 
-            ID = 8,
-            Relay = new RelayVip("8"),
             RowIndex = 1,
             ColumnIndex = 3
         });
-        VipsPrepareStand.Add(new Vip
+        VipsPrepareStand.Add(new Vip(9)
         {
-            Name = "Вип-9",
 
-            ID = 9,
-            Relay = new RelayVip("9"),
             RowIndex = 2,
             ColumnIndex = 0
         });
-        VipsPrepareStand.Add(new Vip
+        VipsPrepareStand.Add(new Vip(10)
         {
-            Name = "Вип-10",
 
-            ID = 10,
-            Relay = new RelayVip("10"),
             RowIndex = 2,
             ColumnIndex = 1
         });
-        VipsPrepareStand.Add(new Vip
+        VipsPrepareStand.Add(new Vip(11)
         {
-            Name = "Вип-11",
 
-            ID = 11,
-            Relay = new RelayVip("11"),
             RowIndex = 2,
             ColumnIndex = 2
         });
-        VipsPrepareStand.Add(new Vip
+        VipsPrepareStand.Add(new Vip(12)
         {
-            Name = "Вип-12",
 
-            ID = 12,
-            Relay = new RelayVip("12"),
             RowIndex = 2,
             ColumnIndex = 3
         });
         //предустановленные типы випов
 
-        ConfigVips.PrepareAddTypeVips();
-        TypeVips = ConfigVips.TypeVips;
+        ConfigVip.PrepareAddTypeVips();
+        TypeVips = ConfigVip.TypeVips;
     }
+
+    public void AddRelayToVip(IEnumerable<BaseDevice> relays)
+    {
+        foreach (var vip in VipsPrepareStand)
+        {
+            foreach (var VARIABLE in relays)
+            {
+                //VARIABLE
+            }
+        }
+
+    }
+
 
     public void SetTypeVips(TypeVip selectTypeVip)
     {
@@ -451,7 +461,7 @@ public class Stand : Notify
             if (!string.IsNullOrWhiteSpace(vip.Number))
             {
                 vip.IsTested = true;
-              
+
             }
             else
             {
@@ -474,9 +484,12 @@ public class Stand : Notify
             int dataBits,
             bool dtr = true)
     {
-        foreach (var switcherMeter in SwitchersMetersStand)
+        foreach (var switcherMeter in Devices)
         {
-            switcherMeter.SetConfigDevice(typePort, portName, baud, stopBits, parity, dataBits);
+            if (switcherMeter is SwitcherMeter)
+            {
+                switcherMeter.SetConfigDevice(typePort, portName, baud, stopBits, parity, dataBits);
+            }
         }
     }
 
@@ -484,9 +497,9 @@ public class Stand : Notify
         int dataBits,
         bool dtr = true)
     {
-        foreach (var vip in VipsPrepareStand)
+        foreach (var relay in RelaysVips)
         {
-            vip.Relay.SetConfigDevice(typePort, portName, baud, stopBits, parity, dataBits);
+            relay.SetConfigDevice(typePort, portName, baud, stopBits, parity, dataBits);
         }
     }
     #endregion
@@ -539,6 +552,7 @@ public class Stand : Notify
     #region Инструменты проверки
 
     public ObservableCollection<BaseDevice> TempVerifiedDevices { get; set; } = new();
+
 
     /// <summary>
     /// Проверка на физическое существование порта  

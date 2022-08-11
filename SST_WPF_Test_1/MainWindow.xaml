@@ -329,7 +329,7 @@ TestAllTime}" DockPanel.Dock="Left" MinWidth="100"/>
                                      MinHeight="10" 
                                      HorizontalAlignment="Left" Orientation="Horizontal">
                             <ComboBox MinWidth="150"
-                                      ItemsSource="{Binding Devices, UpdateSourceTrigger=PropertyChanged}"
+                                      ItemsSource="{Binding AllDevices, UpdateSourceTrigger=PropertyChanged}"
                                       SelectedIndex="0"
                                       SelectedItem="{Binding SelectDevice, UpdateSourceTrigger=PropertyChanged}">
                                 <ComboBox.ItemTemplate>

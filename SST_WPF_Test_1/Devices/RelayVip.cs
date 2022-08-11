@@ -1,12 +1,19 @@
-﻿namespace SST_WPF_Test_1;
+﻿using System;
+using Newtonsoft.Json;
+
+namespace SST_WPF_Test_1;
 
 public class RelayVip : BaseDevice
 {
+    public int Id { get; set; }
+    [JsonIgnore]
     public bool Output { get; set; }
+    [JsonIgnore]
     public RelayVipError ErrorVip { get; set; }
     public RelayVip(string name) : base(name)
     {
-        IsDeviceType = $"Релейная плата # ";
+        Id = Int32.Parse(name);
+        IsDeviceType = $"Реле ВИПА-{Id}";
     }
 }
 

@@ -1,12 +1,17 @@
-﻿namespace SST_WPF_Test_1;
+﻿using System;
+using Newtonsoft.Json;
+
+namespace SST_WPF_Test_1;
 
 public class SwitcherMeter : BaseDevice
 {
-    public int ID { get; set; }
+    public int Id { get; set; }
+    [JsonIgnore]
     public bool Output { get; set; }
     
     public SwitcherMeter(string name) : base(name)
     {
-        IsDeviceType = $"Переключатель";
+        Id = Int32.Parse(name);
+        IsDeviceType = $"Переключатель-{name}";
     }
 }

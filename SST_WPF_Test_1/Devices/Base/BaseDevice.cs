@@ -18,6 +18,7 @@ public class BaseDevice : Notify
         get => isDeviceType;
         set => Set(ref isDeviceType, value);
     }
+
     private string name;
     /// <summary>
     /// Имя прибора
@@ -27,18 +28,20 @@ public class BaseDevice : Notify
         get => name;
         set => Set(ref name, value);
     }
-
+    [JsonIgnore]
     public bool IsConnect { get; set; }
 
-    
+    [JsonIgnore]
     private StatusDeviceTest statusTest;
 
+    [JsonIgnore]
     public StatusDeviceTest StatusTest
     {
         get => statusTest;
         set => Set(ref statusTest, value, nameof(StatusColor));
     }
 
+    [JsonIgnore]
     public Brush StatusColor =>
         StatusTest switch
         {
@@ -52,42 +55,43 @@ public class BaseDevice : Notify
     /// <summary>
     /// Компорт прибора
     /// </summary>
-    [field: NonSerialized]
+    [JsonIgnore]
     protected ISerialLib port { get; set; }
 
     /// <summary>
     /// Класс библиотеки
     /// </summary>
-    [NonSerialized]
+    [JsonIgnore]
     public BaseLibCmd LibCmd = BaseLibCmd.getInstance();
 
     /// <summary>
     /// Класс библиотеки
     /// </summary>
+    [JsonIgnore]
     protected TypeCmd typeReceive { get; set; }
 
     /// <summary>
     /// Задержка команды
     /// </summary>
+    [JsonIgnore]
     public int CmdDelay { get; set; }
 
     /// <summary>
     /// Событие проверки коннекта к порту
     /// </summary>
-    [field: NonSerialized]
+    [JsonIgnore]
     public Action<BaseDevice, bool> ConnectPort;
 
     /// <summary>
     /// Событие проверки коннекта к устройству
     /// </summary>
-    [field: NonSerialized]
+    [JsonIgnore]
     public Action<BaseDevice, bool> ConnectDevice;
-
 
     /// <summary>
     /// Событие приема данных с устройства
     /// </summary>
-    [field: NonSerialized]
+    [JsonIgnore]
     public Action<BaseDevice, string> Receive;
 
     Stopwatch stopwatch = new();

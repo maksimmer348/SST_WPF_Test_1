@@ -5,7 +5,8 @@ namespace SST_WPF_Test_1;
 
 public class Vip : Notify
 {
-    public int ID { get; set; }
+    public readonly int Id;
+
     private string name;
 
     public string Name
@@ -22,21 +23,26 @@ public class Vip : Notify
         get => number;
         set
         {
-            if (!Set(ref number, value, nameof(Name)))return;//, nameof(IsTested))) return;
+            if (!Set(ref number, value, nameof(Name))) return;//, nameof(IsTested))) return;
 
             if (!string.IsNullOrWhiteSpace(number))
             {
-                Name = $"Вип-{ID}, Номер-{number}";
+                Name = $"Вип-{Id}, Номер-{number}";
                 //IsTested = true;
             }
             else
             {
-                Name = $"Вип-{ID}";
+                Name = $"Вип-{Id}";
                 //IsTested = false;
             }
         }
     }
-    
+
+    public Vip(int id)
+    {
+        Id = id;
+        Name = $"ВИП - {Id}";
+    }
     private StatusDeviceTest statusTest;
 
     public StatusDeviceTest StatusTest
@@ -52,8 +58,8 @@ public class Vip : Notify
             StatusDeviceTest.Ok => Brushes.Green,
             _ => Brushes.DarkGray
         };
-    
-    
+
+
     public TypeVip Type { get; set; }
 
     //Текущие значения на Випе
@@ -63,15 +69,15 @@ public class Vip : Notify
     public double Temperature { get; set; }
     public double VoltageIn { get; set; }
     public bool Output { get; set; }
-    
+
     public RelayVip Relay { get; set; }
-    
+
     //
     public int RowIndex { get; set; }
 
     public int ColumnIndex { get; set; }
     //
 
-  
+
 
 }

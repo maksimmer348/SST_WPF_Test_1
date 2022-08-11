@@ -99,7 +99,7 @@ public class ConfigVips
     /// </summary>
     /// <param name="name">Имя Випа (Берется из текстбокса)</param>
     /// <param name="indexTypeVip">Тип Випа (берется из списка который будет привязан к индексу сомбобокса)</param>
-    public void AddVip(string name, int indexTypeVip)
+    public void AddVip(string name, int indexTypeVip, int id)
     {
         if (!string.IsNullOrWhiteSpace(name))
         {
@@ -119,7 +119,7 @@ public class ConfigVips
                 throw new VipException($"Название добавляемого Випа - {name}, уже есть в списке");
             }
 
-            var vip = new Vip()
+            var vip = new Vip(id)
             {
                 Name = name,
                 Type = TypeVips[indexTypeVip],
