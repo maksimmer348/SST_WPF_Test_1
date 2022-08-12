@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Text;
 using Microsoft.Extensions.Logging.Abstractions;
 using RJCP.IO.Ports;
@@ -13,13 +14,14 @@ public class SerialInput : ISerialLib
     public bool Dtr { get; set; }
     public string GetPortNum { get; set; }
     public int Delay { get; set; }
-    
-    
+
+
     public Action<bool> ConnectionStatusChanged { get; set; }
     public Action<string> MessageReceived { get; set; }
 
     public void SetPort(string pornName, int baud, int stopBits, int parity, int dataBits, bool dtr = false)
     {
+
         var adaptSettings = SetPortAdapter(stopBits, parity, dataBits);
         port = new SerialPortInput(new NullLogger<SerialPortInput>());
         port.ConnectionStatusChanged += OnPortConnectionStatusChanged;
@@ -39,26 +41,45 @@ public class SerialInput : ISerialLib
 
     public bool Open()
     {
-        if (!port.IsConnected)
+        try
         {
-         return port.Connect();
-        }
+            if (!port.IsConnected)
+            {
+                Debug.WriteLine($"SerialInput message: {GetPortNum} включаен");
+                return port.Connect();
+            }
 
+            if (port.IsConnected)
+            {
+                return true;
+            }
+        }
+        catch (Exception e)
+        {
+            throw new SerialException(
+                $"SerialInput exception: Порт \"{GetPortNum}\" не открыт, ошибка - {e.Message}");
+        }
         return false;
     }
 
     public void Close()
     {
-        if (port != null)
+        try
         {
-            if (port.IsConnected)
-            {
-                port.Disconnect();
-            }
+            //if (port.IsConnected)
+            //{
+            Debug.WriteLine($"SerialInput message: {GetPortNum} отключен");
+            port.Disconnect();
+            //}
+        }
+        catch (Exception e)
+        {
+            throw new SerialException(
+                $"SerialInput exception: Порт \"{GetPortNum}\" не закрыт, ошибка - {e.Message}");
         }
     }
-    
-    
+
+
     /// <summary>
     /// Прием ответа соединения от serial port
     /// </summary>
@@ -80,13 +101,13 @@ public class SerialInput : ISerialLib
         var answer = (data);
         MessageReceived.Invoke(answer);
     }
-    
+
     /// <summary>
     /// Адаптер значений для библиотеки 
     /// </summary>
     /// <param name="sBits">Stop bits (1-2)</param>
     /// <param name="par">Patyty bits (0-2)</param>
-    /// <param name="dBits">Data bits (5-8)</param>
+    /// <param name="dBits">Data bits (5-8)</param>open
     /// <returns></returns>
     public (StopBits, Parity, DataBits) SetPortAdapter(int sBits, int par, int dBits)
     {
@@ -148,7 +169,15 @@ public class SerialInput : ISerialLib
 
         Delay = delay;
         var message = System.Text.Encoding.UTF8.GetBytes(cmd + terminator);
-        port.SendMessage(message);
+        try
+        {
+            port.SendMessage(message);
+        }
+        catch (Exception e)
+        {
+            throw new SerialException(
+                $"SerialInput exception: Команда \"{message}\", в порт \"{GetPortNum}\" не отправлена, ошибка - {e.Message}");
+        }
     }
 
     /// <summary>

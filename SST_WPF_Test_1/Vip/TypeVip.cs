@@ -1,11 +1,16 @@
 ﻿namespace SST_WPF_Test_1;
 
-public class TypeVip
+public class TypeVip : Notify
 {
-    public string Type { get; set; }
-
+   
+    private string type;
+    public  string Type
+    {
+        get => type;
+        set => Set(ref type, value);
+    }
     //максимальные значения во время цикла испытаниий 1...n, они означают ошибку
-    
+
     public double MaxTemperature { get; set; }
     public double MaxVoltageIn { get; set; }
 

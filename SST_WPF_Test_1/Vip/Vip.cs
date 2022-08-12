@@ -60,6 +60,8 @@ public class Vip : Notify
         };
 
 
+
+
     public TypeVip Type { get; set; }
 
     //Текущие значения на Випе

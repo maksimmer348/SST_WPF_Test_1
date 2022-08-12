@@ -237,6 +237,10 @@ public class Stand : Notify
 
     #region Вспомогательные методы
 
+
+    CancellationTokenSource ctsCheckDevice = new();
+    //CancellationTokenSource cts2 = new();
+
     /// <summary>
     /// Подпись на события из устройств
     /// </summary>
@@ -284,7 +288,7 @@ public class Stand : Notify
             SupplyStand.ConnectDevice += OnCheckDevice;
             SupplyStand.Receive += Receive;
             Devices.Add(SupplyStand);
-            
+
             //TODO вернуть 
             // SmallLoadStand = new("SMLL LOAD-87") { RowIndex = 0, ColumnIndex = 3 };
             // SmallLoadStand.SetConfigDevice(TypePort.SerialInput, "COM60", 2400, 1, 0, 8);
@@ -292,7 +296,7 @@ public class Stand : Notify
             // SmallLoadStand.ConnectDevice += OnCheckDevice;
             // SmallLoadStand.Receive += Receive;
             //Devices.Add(SmallLoadStand);
-            
+
             BigLoadStand = new("AFG-72112") { RowIndex = 0, ColumnIndex = 4 };
             BigLoadStand.SetConfigDevice(TypePort.SerialInput, "COM6", 115200, 1, 0, 8);
             BigLoadStand.ConnectPort += OnCheckConnectPort;
@@ -307,7 +311,7 @@ public class Stand : Notify
             // HeatStand.ConnectDevice += OnCheckDevice;
             // HeatStand.Receive += Receive;
             //Devices.Add(HeatStand);
-            
+
             //TODO вернуть 
             // Devices.Add(new SwitcherMeter("1") { RowIndex = 1, ColumnIndex = 0 });
             // Devices.Add(new SwitcherMeter("2") { RowIndex = 1, ColumnIndex = 1 });
@@ -331,7 +335,7 @@ public class Stand : Notify
             //     switcherMeter.ConnectDevice += OnCheckDevice;
             //     switcherMeter.Receive += Receive;
             // }
-            
+
             RelaysVips.Add(new RelayVip("1"));
             RelaysVips.Add(new RelayVip("2"));
             RelaysVips.Add(new RelayVip("3"));
@@ -361,23 +365,20 @@ public class Stand : Notify
         VipsPrepareStand.Add(new Vip(1)
         {
             RowIndex = 0,
-            ColumnIndex = 0
+            ColumnIndex = 0,
         });
         VipsPrepareStand.Add(new Vip(2)
         {
-
             RowIndex = 0,
             ColumnIndex = 1
         });
         VipsPrepareStand.Add(new Vip(3)
         {
-
             RowIndex = 0,
             ColumnIndex = 2
         });
         VipsPrepareStand.Add(new Vip(4)
         {
-
             RowIndex = 0,
             ColumnIndex = 3
         });
@@ -393,37 +394,31 @@ public class Stand : Notify
         });
         VipsPrepareStand.Add(new Vip(7)
         {
-
             RowIndex = 1,
             ColumnIndex = 2
         });
         VipsPrepareStand.Add(new Vip(8)
         {
-
             RowIndex = 1,
             ColumnIndex = 3
         });
         VipsPrepareStand.Add(new Vip(9)
         {
-
             RowIndex = 2,
             ColumnIndex = 0
         });
         VipsPrepareStand.Add(new Vip(10)
         {
-
             RowIndex = 2,
             ColumnIndex = 1
         });
         VipsPrepareStand.Add(new Vip(11)
         {
-
             RowIndex = 2,
             ColumnIndex = 2
         });
         VipsPrepareStand.Add(new Vip(12)
         {
-
             RowIndex = 2,
             ColumnIndex = 3
         });
@@ -433,19 +428,19 @@ public class Stand : Notify
         TypeVips = ConfigVip.TypeVips;
     }
 
-    public void AddRelayToVip(IEnumerable<BaseDevice> relays)
+    public void AddRelayToVip()
     {
-        foreach (var vip in VipsPrepareStand)
+        for (var index = 0; index < VipsPrepareStand.Count; index++)
         {
-            foreach (var VARIABLE in relays)
-            {
-                //VARIABLE
-            }
+            var vip = VipsPrepareStand[index];
+            vip.Relay = RelaysVips[index] as RelayVip;
         }
-
     }
 
-
+    /// <summary>
+    /// Установка типа випов
+    /// </summary>
+    /// <param name="selectTypeVip">ВЫбранный тип Випа</param>
     public void SetTypeVips(TypeVip selectTypeVip)
     {
         foreach (var vip in VipsPrepareStand)
@@ -454,14 +449,18 @@ public class Stand : Notify
         }
     }
 
-    public void SetVips()
+    /// <summary>
+    /// Если у випа отстутвует номер его не тестировать
+    /// </summary>
+    public void SetIsTestedVips()
     {
         foreach (var vip in VipsPrepareStand)
         {
+            vip.StatusTest = StatusDeviceTest.None;
+
             if (!string.IsNullOrWhiteSpace(vip.Number))
             {
                 vip.IsTested = true;
-
             }
             else
             {
@@ -510,13 +509,13 @@ public class Stand : Notify
 
     /// <summary>
     /// Событие поверки порта на коннект 
-    /// </summary>
-    /// <param name="baseDevice"></param>
+    /// </summary>/// <param name="baseDevice"></param>
     /// <param name="connect"></param>
     public void OnCheckConnectPort(BaseDevice baseDevice, bool connect)
     {
         if (connect)
         {
+            //Debug.WriteLine(baseDevice.Name);
             TempVerifiedDevices.Add(baseDevice);
         }
     }
@@ -528,10 +527,37 @@ public class Stand : Notify
     /// <param name="connect"></param>
     private void OnCheckDevice(BaseDevice baseDevice, bool connect)
     {
-        PercentCurrentTest += (1 / (float)Devices.Count) * 80;
+
+        TestCurrentDevice = baseDevice;
         if (connect)
         {
             TempVerifiedDevices.Add(baseDevice);
+        }
+
+        if (baseDevice is not RelayVip)
+        {
+            PercentCurrentTest += ((1 / (float)Devices.Count) * 60);
+
+            //сраниваем списки
+            var ss = Devices.Except(TempVerifiedDevices).ToList();
+
+            if (!ss.Any())
+            {
+                ctsCheckDevice.Cancel();
+            }
+        }
+
+        if (baseDevice is RelayVip)
+        {
+            PercentCurrentTest += ((1 / (float)Devices.Count) * 60);
+
+            //сраниваем списки
+            var ss = RelaysVips.Except(TempVerifiedDevices).ToList();
+
+            if (!ss.Any())
+            {
+                ctsCheckDevice.Cancel();
+            }
         }
     }
 
@@ -551,7 +577,23 @@ public class Stand : Notify
 
     #region Инструменты проверки
 
+
     public ObservableCollection<BaseDevice> TempVerifiedDevices { get; set; } = new();
+
+    //public async void ReconnectDevices(List<BaseDevice> devices)
+    //{
+
+    //    foreach (var device in devices)
+    //    {
+    //        device.Close();
+    //    }
+    //    await Task.Delay(TimeSpan.FromMilliseconds(100));
+    //    foreach (var device in devices)
+    //    {
+    //        device.Open();
+    //    }
+    //}
+
 
 
     /// <summary>
@@ -570,7 +612,7 @@ public class Stand : Notify
             device.Close();
         }
 
-        await Task.Delay(TimeSpan.FromMilliseconds(20));
+        await Task.Delay(TimeSpan.FromMilliseconds(100));
 
         foreach (var device in tempCheckDevices)
         {
@@ -578,9 +620,11 @@ public class Stand : Notify
         }
 
         await Task.Delay(TimeSpan.FromMilliseconds(100));
+
         //
         PercentCurrentTest = 20;
         //
+
         //после задержки в этом списке будут устройства не прошедшие проверку
         var tempErrorDevices = GetErrorDevices(tempCheckDevices);
         return tempErrorDevices;
@@ -590,37 +634,41 @@ public class Stand : Notify
     /// Проверка устройств пингуются ли они
     /// </summary>
     /// <param name="tempCheckDevices">Временный списко устройств</param>
+    /// <param name="token"></param>
     /// <param name="externalDelay">Общая задержка проверки (по умолчанию 0)</param>
     /// <returns></returns>
     public async Task<List<BaseDevice>> CheckConnectDevices(List<BaseDevice> tempCheckDevices,
-        int externalDelay = 0)
+        CancellationToken token, int externalDelay = 0)
     {
-        //список для задержек из приборов
-        var delaysList = new List<int>();
         //временный список дефетктивынх приборов
-        var tempErrorDevices = new List<BaseDevice>();
-
-        foreach (var device in tempCheckDevices)
+        List<BaseDevice> tempErrorDevices = new List<BaseDevice>();
+        try
         {
-            //отправляем команду проверки на устройство
-            TestCurrentDevice = device;
-            device.CheckedConnectDevice();
-            delaysList.Add(device.CmdDelay);
-        }
+            foreach (var device in tempCheckDevices)
+            {
+                //отправляем команду проверки на устройство
+                TestCurrentDevice = device;
+                device.CheckedConnectDevice();
+            }
+            //ждем
+            await Task.Delay(TimeSpan.FromMilliseconds(1000), ctsCheckDevice.Token);
 
-        double delay = 0;
-        if (externalDelay == 0)
-        {
-            //используем самую большую задержку из всех проверяемых приборов
-            delay = Convert.ToDouble(delaysList.Count > 0 ? delaysList.Max() : 100);
-        }
-        else
-        {
-            delay = externalDelay;
-        }
+            //сраниваем списки
+            tempErrorDevices = GetErrorDevices(tempCheckDevices);
 
-        await Task.Delay(TimeSpan.FromMilliseconds(1000));
-        tempErrorDevices = GetErrorDevices(tempCheckDevices);
+            Debug.WriteLine("Normal");
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+            //сраниваем списки
+            tempErrorDevices = GetErrorDevices(tempCheckDevices);
+            ctsCheckDevice = new CancellationTokenSource();
+            return tempErrorDevices;
+        }
+        catch (Exception e)
+        {
+           throw new StandException( $"StandException: ошибка  {e.Message} при проверке устройств");
+        }
         PercentCurrentTest = 100;
         return tempErrorDevices;
     }
@@ -636,11 +684,10 @@ public class Stand : Notify
         {
             return checkedDevices.ToList();
         }
-
         //сравниваем 
         var tempErrorDevices = checkedDevices.Except(TempVerifiedDevices).ToList();
-        TempVerifiedDevices.Clear();
 
+        TempVerifiedDevices.Clear();
         //возвращаем список приборов не прошедших проверку
         return tempErrorDevices;
     }
@@ -677,15 +724,19 @@ public class Stand : Notify
     public async Task<bool> PrimaryCheckDevices()
     {
         //TODO  для канселивентов
-        bool isPrimaryCheckDevices = false;
         //сброс статуса теста
         TestRun = TypeOfTestRun.None;
         //установка статуса теста первичноая провека устройств
         TestRun = TypeOfTestRun.PrimaryCheckDevices;
 
-        int checkCount = 1;
-        for (int i = 0; i < checkCount; i++)
+        int checkCountAll = 2;
+        int checkCountCurrent = 0;
+
+        while (true)
         {
+            PercentCurrentTest = 0;
+            checkCountCurrent++;
+
             //вставка во временный список список приоров для проверки
             var tempCheckDevices = Devices.ToList();
             //сброс всех статусов
@@ -697,26 +748,34 @@ public class Stand : Notify
             //принимает все компорты
             if (tempCheckDevices.Count > 0)
             {
-                List<BaseDevice> errorList = await CheckConnectPorts(tempCheckDevices);
-                //ждем (если по прношесвтии этого времени в errorPortsList чтот появится значит проверка не прошла)
+                //сброс временого списка сбоынйх компортов
+                List<BaseDevice> errorPortList = new List<BaseDevice>();
+
+                //если это первая попытка проверки то  
+                if (checkCountCurrent > 0)
+                {
+                    //ждем (если по прношесвтии этого времени в errorPortsList чтот появится значит проверка порта не прошла)
+                    errorPortList = await CheckConnectPorts(tempCheckDevices);
+                }
+
 
                 //если сбойные компорты есть 
-                if (errorList.Any())
+                if (errorPortList.Any())
                 {
                     //вписываем в них ошибку теста
-                    foreach (var errorPort in errorList)
+                    foreach (var errorPort in errorPortList)
                     {
                         errorPort.StatusTest = StatusDeviceTest.Error;
                     }
 
                     //отбираем прошедшие проверку компорты (сбоыйные порты отброшены)
-                    var noErrorPortsList = tempCheckDevices.Except(errorList).ToList();
+                    var noErrorPortsList = tempCheckDevices.Except(errorPortList).ToList();
 
                     //если такие компорты есть проводим проверку приборов на них на предмет пинга
                     if (noErrorPortsList.Any())
                     {
                         //собираем приборы котороые не ответили на команду статус - сбойные
-                        List<BaseDevice> errorDevicesList = await CheckConnectDevices(noErrorPortsList);
+                        List<BaseDevice> errorDevicesList = await CheckConnectDevices(noErrorPortsList, ctsCheckDevice.Token);
 
                         //елси сбойные утройства есть
                         if (errorDevicesList.Any())
@@ -729,22 +788,30 @@ public class Stand : Notify
                         }
 
                         //отбираем нормальные устройства прошедшие и проверку портов и проверку пинга
-                        var noErrorList = tempCheckDevices.Except(errorDevicesList.Union(errorList)).ToList();
+                        var noErrorList = tempCheckDevices.Except(errorDevicesList.Union(errorPortList)).ToList();
 
                         //вписываем в них ок теста
-                        foreach (var noErrorDevice in noErrorList)
+                        foreach (var device in tempCheckDevices)
                         {
-                            noErrorDevice.StatusTest = StatusDeviceTest.Ok;
+                            
+                                device.StatusTest = StatusDeviceTest.Ok;
                         }
-
+                        PercentCurrentTest = 100;
                         TestCurrentDevice = new BaseDevice("0");
-                        return false;
+
+                       // если количетво попыток больше устновленных выходим из петли с false
+                        if (checkCountCurrent > checkCountAll)
+                        {
+                            return false;
+                        }
                     }
                 }
                 //если сбоынйх компортов ВООБЩЕ нет проводим проверку приборов на них на предмет пинга
                 else
                 {
-                    List<BaseDevice> errorDevicesList = await CheckConnectDevices(tempCheckDevices);
+                    //отбор сбоынйх устройств
+                    List<BaseDevice> errorDevicesList = await CheckConnectDevices(tempCheckDevices, ctsCheckDevice.Token);
+
                     //если сбоынйу устройства есть
                     if (errorDevicesList.Any())
                     {
@@ -754,8 +821,24 @@ public class Stand : Notify
                             errorDevice.StatusTest = StatusDeviceTest.Error;
                         }
 
+                        //отбираем прошедшие проверку устройства (сбоыйные устройства отброшены)
+                        var noErrorDeviceList = tempCheckDevices.Except(errorDevicesList).ToList();
+
+                        //вписываем в них ок теста
+                        foreach (var noErrorDevice in noErrorDeviceList)
+                        {
+                            noErrorDevice.StatusTest = StatusDeviceTest.Ok;
+                        }
+
+                        //если количетво попыток больше устновленных выходим из петли с false
+                        if (checkCountCurrent > checkCountAll)
+                        {
+                            PercentCurrentTest = 100;
+                            TestCurrentDevice = new BaseDevice("0");
+                            return false;
+                        }
+                        PercentCurrentTest = 100;
                         TestCurrentDevice = new BaseDevice("0");
-                        return false;
                     }
                     else
                     {
@@ -764,18 +847,20 @@ public class Stand : Notify
                             device.StatusTest = StatusDeviceTest.Ok;
                         }
 
+                        PercentCurrentTest = 100;
                         TestRun = TypeOfTestRun.PrimaryCheckDevicesReady;
                         TestCurrentDevice = new BaseDevice("0");
                         return true;
                     }
                 }
             }
+            if (checkCountCurrent > checkCountAll)
+            {
+                PercentCurrentTest = 100;
+                TestCurrentDevice = new BaseDevice("0");
+                return false;
+            }
         }
-
-        PercentCurrentTest = 100;
-        TestCurrentDevice = new BaseDevice("0");
-
-        return false;
     }
 
     /// <summary>
@@ -790,20 +875,20 @@ public class Stand : Notify
         //установка тест первичный платок випов 
         TestRun = TypeOfTestRun.PrimaryCheckVips;
 
-        //предварительная настройка випов
-        SetVips();
+        //предварительная настройка тестрировать ли платок випы 
+        SetIsTestedVips();
 
         PercentCurrentTest = 0;
 
-        //вставка во временный список список приоров для проверки
-        var tempCheckVips = VipsPrepareStand;
+        //вставка во временный список список Випов для проверки платок
+        var tempCheckVips = VipsPrepareStand.Where(x => x.IsTested);
 
-        foreach (var vip in tempCheckVips)
-        {
-            vip.StatusTest = StatusDeviceTest.None;
-        }
+        List<BaseDevice> errorList = await CheckConnectPorts(SetRelayInVips(tempCheckVips));
+
+        Devices[0].TransmitCmdInLib("Status");
 
 
+        //if()
         PercentCurrentTest = 100;
 
         TestRun = TypeOfTestRun.PrimaryCheckVipsReady;
@@ -815,6 +900,18 @@ public class Stand : Notify
 
 
         return false;
+    }
+
+    private List<BaseDevice> SetRelayInVips(IEnumerable<Vip> tempCheckVips)
+    {
+        var tempRelays = new List<BaseDevice>();
+
+        foreach (var vip in tempCheckVips)
+        {
+            tempRelays.Add(vip.Relay);
+        }
+
+        return tempRelays;
     }
 
     #endregion

@@ -162,7 +162,7 @@ public class ViewModel : Notify
         var relays = AllDevices.Where(x => x is RelayVip);
         RelaysVips = new ObservableCollection<BaseDevice>(relays);
         standTest.RelaysVips = RelaysVips;
-        standTest.AddRelayToVip(relays);
+        standTest.AddRelayToVip();
 
         standTest.InvokeDevices();
     }
@@ -840,6 +840,9 @@ public class ViewModel : Notify
 
     public TypeVip selectTypeVip;
 
+    /// <summary>
+    /// Выбор типа Випа
+    /// </summary>
     public TypeVip SelectTypeVip
     {
         get
@@ -856,7 +859,6 @@ public class ViewModel : Notify
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
                 throw;
             }
         }

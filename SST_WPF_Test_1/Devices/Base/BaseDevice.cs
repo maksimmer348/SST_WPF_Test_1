@@ -49,7 +49,7 @@ public class BaseDevice : Notify
             StatusDeviceTest.Ok => Brushes.Green,
             _ => Brushes.DarkGray
         };
-    
+
     public ConfigDeviceParams Config { get; set; } = new ConfigDeviceParams();
 
     /// <summary>
@@ -98,7 +98,6 @@ public class BaseDevice : Notify
 
     //
     public int RowIndex { get; set; }
-
     public int ColumnIndex { get; set; }
     //
 
@@ -126,13 +125,14 @@ public class BaseDevice : Notify
 
     public void Close()
     {
-        
         if (port != null)
         {
             port.Close();
         }
     }
-    
+
+
+
     /// <summary>
     /// Конфигурация компортра утройства
     /// </summary>
@@ -146,33 +146,38 @@ public class BaseDevice : Notify
     /// <returns></returns>
     public void Start()
     {
-        if (Config.TypePort == TypePort.GodSerial)
-        {
-            port = new SerialGod();
-        }
+        //if (Config.TypePort == TypePort.GodSerial)
+        //{
+        //    port = new SerialGod();
+        //}
 
-        if (Config.TypePort == TypePort.SerialInput)
-        {
-            port = new SerialInput();
-        }
+        //if (Config.TypePort == TypePort.SerialInput)
+        //{
+        //    port = new SerialInput();
+        //}
+
+        port = new SerialInput();
 
         port.ConnectionStatusChanged += ConnectionStatusChanged;
         port.MessageReceived += MessageReceived;
-        
+
         port.SetPort(Config.PortName, Config.Baud, Config.StopBits, Config.Parity, Config.DataBits);
+
         port.Open();
-        
+
         port.Dtr = Config.Dtr;
     }
-    
+
     public ConfigDeviceParams GetConfigDevice()
     {
-        if (Config != null)
+        try
         {
             return Config;
         }
-
-        throw new DeviceException("BaseDevice exception: Файл конфига отсутствует");
+        catch (Exception e)
+        {
+            throw new DeviceException("BaseDevice exception: Файл конфига отсутствует");
+        }
     }
 
     /// <summary>
@@ -184,7 +189,6 @@ public class BaseDevice : Notify
     /// <exception cref="DeviceException">Такого устройства, нет в библиотеке команд</exception>
     public void CheckedConnectDevice(string checkCmd = "", int delay = 0, string terminator = "")
     {
-
         //если строка команды пустая
         if (string.IsNullOrWhiteSpace(checkCmd))
         {
@@ -241,7 +245,7 @@ public class BaseDevice : Notify
     protected DeviceCmd GetLibItem(string cmd, string deviceName)
     {
         return LibCmd.DeviceCommands
-            .FirstOrDefault(x => x.Key.NameDevice == deviceName && x.Key.NameCmd == cmd ).Value;
+            .FirstOrDefault(x => x.Key.NameDevice == deviceName && x.Key.NameCmd == cmd).Value;
     }
 
     /// <summary>
@@ -249,11 +253,11 @@ public class BaseDevice : Notify
     /// </summary>
     private void ConnectionStatusChanged(bool isConnect)
     {
-        IsConnect = true;
-        ConnectPort.Invoke(this, true);
+        IsConnect = isConnect;
+        ConnectPort.Invoke(this, isConnect);
     }
 
-  
+
     /// <summary>
     /// Обработка прнятого сообщения из устройства
     /// </summary>
@@ -261,7 +265,7 @@ public class BaseDevice : Notify
     {
         //для проверки на статус 
         var selectCmd = GetLibItem("Status", Name);
-        
+
         if (typeReceive == TypeCmd.Text)
         {
             if (receive.Contains(selectCmd.Receive))

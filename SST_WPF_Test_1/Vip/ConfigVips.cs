@@ -74,8 +74,8 @@ public class ConfigVips
         {
             Type = "Vip71",
             //максимаьные значения во время испытаниий они означают ошибку
-            MaxTemperature = 70,
-            MaxVoltageIn = 220,
+            MaxTemperature = 90,
+            MaxVoltageIn = 120,
             MaxVoltageOut1 = 20,
             MaxVoltageOut2 = 25,
             MaxCurrentIn = 5,
