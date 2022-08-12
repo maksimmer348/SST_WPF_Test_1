@@ -597,7 +597,7 @@ public class Stand : Notify
 
 
     /// <summary>
-    /// Проверка на физическое существование порта  
+    /// Проверка на физическое существование портов  
     /// </summary>
     /// <param name="tempCheckDevices">Временный списко устройств</param>
     /// <param name="delay">Общая задержка проверки (по умолчанию 100)</param>
@@ -607,6 +607,7 @@ public class Stand : Notify
         //
         PercentCurrentTest = 0;
         //
+
         foreach (var device in tempCheckDevices)
         {
             device.Close();
@@ -620,6 +621,7 @@ public class Stand : Notify
         }
 
         await Task.Delay(TimeSpan.FromMilliseconds(100));
+
 
         //
         PercentCurrentTest = 20;
@@ -729,8 +731,9 @@ public class Stand : Notify
         //установка статуса теста первичноая провека устройств
         TestRun = TypeOfTestRun.PrimaryCheckDevices;
 
-        int checkCountAll = 2;
-        int checkCountCurrent = 0;
+        //TODO вынести в конфиг (возможно)
+        int checkCountAll = 3;
+        int checkCountCurrent = 1;
 
         while (true)
         {
@@ -752,7 +755,7 @@ public class Stand : Notify
                 List<BaseDevice> errorPortList = new List<BaseDevice>();
 
                 //если это первая попытка проверки то  
-                if (checkCountCurrent > 0)
+                if (checkCountCurrent > 1)
                 {
                     //ждем (если по прношесвтии этого времени в errorPortsList чтот появится значит проверка порта не прошла)
                     errorPortList = await CheckConnectPorts(tempCheckDevices);
@@ -791,10 +794,9 @@ public class Stand : Notify
                         var noErrorList = tempCheckDevices.Except(errorDevicesList.Union(errorPortList)).ToList();
 
                         //вписываем в них ок теста
-                        foreach (var device in tempCheckDevices)
+                        foreach (var device in noErrorList)
                         {
-                            
-                                device.StatusTest = StatusDeviceTest.Ok;
+                            device.StatusTest = StatusDeviceTest.Ok;
                         }
                         PercentCurrentTest = 100;
                         TestCurrentDevice = new BaseDevice("0");
@@ -863,6 +865,8 @@ public class Stand : Notify
         }
     }
 
+
+    //TODO обьеденить в один метод
     /// <summary>
     /// Предварительная проверка випов
     /// </summary>
@@ -875,29 +879,41 @@ public class Stand : Notify
         //установка тест первичный платок випов 
         TestRun = TypeOfTestRun.PrimaryCheckVips;
 
-        //предварительная настройка тестрировать ли платок випы 
+        //предварительная настройка тестрировать ли вип => если етсь имя то тестировать
         SetIsTestedVips();
-
-        PercentCurrentTest = 0;
 
         //вставка во временный список список Випов для проверки платок
         var tempCheckVips = VipsPrepareStand.Where(x => x.IsTested);
+        //временный список для проверяеызх реле
+        var tempRelays = SetRelayInVips(tempCheckVips);
 
-        List<BaseDevice> errorList = await CheckConnectPorts(SetRelayInVips(tempCheckVips));
+        while (true)
+        {
+            //
+            PercentCurrentTest = 0;
+            //
 
-        Devices[0].TransmitCmdInLib("Status");
+            List<BaseDevice> errorRelaysList = await CheckConnectPorts(tempRelays);
+
+            if (errorRelaysList.Any())
+            {
+                foreach (var relay in errorRelaysList)
+                {
+                    relay.StatusTest = StatusDeviceTest.Error;
+                }
+            }
 
 
-        //if()
-        PercentCurrentTest = 100;
+            PercentCurrentTest = 100;
 
-        TestRun = TypeOfTestRun.PrimaryCheckVipsReady;
+            TestRun = TypeOfTestRun.PrimaryCheckVipsReady;
 
-        //сброс текущего проверямего устройства
-        TestCurrentDevice = new BaseDevice("0");
+            //сброс текущего проверямего устройства
+            TestCurrentDevice = new BaseDevice("0");
 
-        return true;
+            return true;
 
+        }
 
         return false;
     }
