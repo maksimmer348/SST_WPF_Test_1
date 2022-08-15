@@ -1,5 +1,8 @@
 ﻿namespace SST_WPF_Test_1;
 
+/// <summary>
+/// Параметры компорта устройства
+/// </summary>
 public class ConfigDeviceParams
 {
     public TypePort TypePort{ get; set; }

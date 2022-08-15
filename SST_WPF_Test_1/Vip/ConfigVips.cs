@@ -6,15 +6,54 @@ namespace SST_WPF_Test_1;
 public class ConfigVips
 {
     private MainValidator mainValidator = new();
-
-    public ConfigVips()
-    {
-        Vips = new ObservableCollection<Vip>();
-        //PrepareAddTypeVips();
-    }
-
-    public ObservableCollection<Vip> Vips { get; set; }
+    public ObservableCollection<Vip> Vips { get; set; } = new ObservableCollection<Vip>();
     public ObservableCollection<TypeVip> TypeVips { get; set; } = new ObservableCollection<TypeVip>();
+
+    #region Типы Випов
+
+    //TODO испрвить на реальные значения
+    /// <summary>
+    /// Предваритльное добавление типов Випов
+    /// </summary>
+    public void PrepareAddTypeVips()
+    {
+        var typeVip71 = new TypeVip
+        {
+            Type = "Vip71",
+            //максимаьные значения во время испытаниий они означают ошибку
+            MaxTemperature = 90,
+            MaxVoltageIn = 120,
+            MaxVoltageOut1 = 20,
+            MaxVoltageOut2 = 25,
+            MaxCurrentIn = 5,
+            //максимальные значения во время предпотготовки испытания (PrepareMaxVoltageOut1 и PrepareMaxVoltageOut2
+            //берутся из MaxVoltageOut1 и MaxVoltageOut2 соотвественно)
+            PrepareMaxCurrentIn = 0.5,
+            //настройки для приборов они зависят от типа Випа
+        };
+
+        typeVip71.SetDeviceParameters( Random.Shared.Next(100,200), 3.3, 1.65, 20, 20, 5);
+        AddTypeVips(typeVip71);
+
+        var typeVip70 = new TypeVip
+        {
+            Type = "Vip70",
+            MaxTemperature = 70,
+            //максимаьные значения во время испытаниий они означают ошибку
+            MaxVoltageIn = 220,
+            MaxVoltageOut1 = 40,
+            MaxVoltageOut2 = 45,
+            MaxCurrentIn = 2.5,
+            //максимальные значения во время предпотготовки испытания (PrepareMaxVoltageOut1 и PrepareMaxVoltageOut2
+            //берутся из MaxVoltageOut1 и MaxVoltageOut2 соотвественно)
+            PrepareMaxCurrentIn = 0.5,
+            //настройки для приборов они зависят от типа Випа
+            
+        };
+       
+       typeVip70.SetDeviceParameters(Random.Shared.Next(200,300), 4, 2, 10, 30, 10);
+       AddTypeVips(typeVip70);
+    }
 
     /// <summary>
     /// Тип випа от него зависит его предварительные и рабочие макс значения  
@@ -68,37 +107,16 @@ public class ConfigVips
         }
     }
 
-    public void PrepareAddTypeVips()
-    {
-        AddTypeVips(new TypeVip
-        {
-            Type = "Vip71",
-            //максимаьные значения во время испытаниий они означают ошибку
-            MaxTemperature = 90,
-            MaxVoltageIn = 120,
-            MaxVoltageOut1 = 20,
-            MaxVoltageOut2 = 25,
-            MaxCurrentIn = 5,
-            //максимальные значения во время предпотготовки испытания 
-            PrepareMaxCurrentIn = 0.5
-        });
-        AddTypeVips(new TypeVip
-        {
-            Type = "Vip70", MaxTemperature = 70,
-            MaxVoltageIn = 220,
-            MaxVoltageOut1 = 40,
-            MaxVoltageOut2 = 45,
-            MaxCurrentIn = 2.5, PrepareMaxCurrentIn = 0.5
-        });
-    }
+    #endregion
 
+    #region Добавление и удаление Випов
 
-    //TODO сделать чтобы выполнялось при потере контекста в текстбоксе
     /// <summary>
     /// Доабавить новый Вип
     /// </summary>
     /// <param name="name">Имя Випа (Берется из текстбокса)</param>
     /// <param name="indexTypeVip">Тип Випа (берется из списка который будет привязан к индексу сомбобокса)</param>
+    [ObsoleteAttribute("Метод больше не используется")]
     public void AddVip(string name, int indexTypeVip, int id)
     {
         if (!string.IsNullOrWhiteSpace(name))
@@ -136,6 +154,7 @@ public class ConfigVips
     /// Удаление Випа
     /// </summary>
     /// <param name="indexVip">Индекс Випа (берется из списка который будет привязан к индексу сомбобокса)</param>
+    [ObsoleteAttribute("Метод больше не используется")]
     public void RemoveVip(Vip vip)
     {
         try
@@ -149,4 +168,6 @@ public class ConfigVips
             throw new VipException("Вип c индексом: " + vip.Name + "не был был удален");
         }
     }
+
+    #endregion
 }

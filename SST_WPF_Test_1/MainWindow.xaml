@@ -304,7 +304,7 @@ TestAllTime}" DockPanel.Dock="Left" MinWidth="100"/>
                 <!--Настройки-->
                 <TabItem.Header>
                     <DockPanel>
-                        <TextBlock VerticalAlignment="Center">Настройки Внешних устройств</TextBlock>
+                        <TextBlock VerticalAlignment="Center">Измерители/коммутаторы</TextBlock>
                     </DockPanel>
                 </TabItem.Header>
 

@@ -1,6 +1,7 @@
 using System;
+using System.Linq;
 using System.Text;
-using System.Threading;
+//using System.Threading;
 using GodSharp.SerialPort;
 
 namespace SST_WPF_Test_1;
@@ -14,7 +15,7 @@ public class SerialGod : ISerialLib
     public int Delay { get; set; }
     public bool IsConnect { get; set; }
     public Action<bool> ConnectionStatusChanged { get; set; }
-    public Action<string> MessageReceived { get; set; }
+    public Action<byte[]> MessageReceived { get; set; }
 
 
     public void SetPort(string pornName, int baud, int stopBits, int parity, int dataBits, bool dtr = false)
@@ -49,7 +50,7 @@ public class SerialGod : ISerialLib
 
     public bool Open()
     {
-      return port.Open();
+        return port.Open();
     }
 
     public void Close()
@@ -68,12 +69,20 @@ public class SerialGod : ISerialLib
             throw new SerialException($"SerialGod exception: Порт \"{GetPortNum}\" не отвечает, ошибка - {e.Message}");
         }
     }
-
-
+    
     // "0A""0D"
-    private string[] trashStr = {"FE", "FC", "F8", "FF", "F0", "E0", " ", "C0"};
+    private string[] trashStr = { "FE", "FC", "F8", "FF", "F0", "E0", " ", "C0" };
 
-    public string ReadPSP(string startOfString, string endOfString = "", int innerCount = 10, int countReads = 3)
+    /// <summary>
+    /// Отправка и прием сообщений для Psp 405
+    /// </summary>
+    /// <param name="startOfString">Начало строки</param>
+    /// <param name="endOfString">Конец строки</param>
+    /// <param name="countReads">Общее количетво попыток считать данные</param>
+    /// <param name="innerCount">Колво внутренних попыток сиать данные (по умолчанию 10)</param>
+    /// <returns>Ответ от прибора</returns>
+    /// <exception cref="SerialException"></exception>
+    public string ReadWritePsp(string startOfString, string endOfString = "", int countReads = 3,int innerCount = 10)
     {
         int innerNullCount = innerCount;
         int innerErrorCount = innerCount;
@@ -86,13 +95,17 @@ public class SerialGod : ISerialLib
             {
                 //пытаемся еще раз прочиать
                 s = port.ReadString();
-                Thread.Sleep(10);
+                
+                
+                //Thread.Sleep(10);
+                
+                
                 //если innerCount раз не прочиатлась то вызов исключения
                 innerNullCount--;
 
                 if (innerNullCount == 0)
                 {
-                    throw new SerialException($"SerialGod exception: Ответа нет (null), удачных попыток {innerCount}");
+                    throw new SerialException($"SerialGod exception: Ответ от устройства - null, удачных попыток {innerCount}");
                 }
             }
 
@@ -120,7 +133,8 @@ public class SerialGod : ISerialLib
                     }
 
                     //возвращаем строку
-                    MessageReceived.Invoke(s);
+                    var ss = ISerialLib.StringToByteArray(s);
+                    MessageReceived.Invoke(ss);
                     return s;
                 }
 
@@ -129,26 +143,23 @@ public class SerialGod : ISerialLib
                 //и выбрасываем исключение
                 if (innerErrorCount <= 0)
                 {
-                    //TODO раскоменетить
-                    //throw new Exception($"SerialGod exception: Слишком много неудачых попыток (notNull) - {innerCount}");
-                    Console.WriteLine($"SerialGod exception: Слишком много неудачых попыток (notNull) - {innerCount}");
+                    throw new Exception($"SerialGod exception: Слишком много неудачых попыток, ответ от устройства - notNull - {innerCount}");
                 }
 
-                Thread.Sleep(10);
+                //Thread.Sleep(10);
             }
 
             if (!s.Contains(startOfString))
             {
                 port.DiscardInBuffer();
                 port.DiscardOutBuffer();
-                Thread.Sleep(20);
+                //Thread.Sleep(20);
                 TransmitCmdTextString(startOfString);
             }
         }
-
-        throw new Exception($"SerialGod exception: Ответа нет, неудачых попыток {countReads}");
+        throw new SerialException($"SerialGod exception: Ответа нет, неудачых попыток {countReads}");
     }
-
+    
     public void TransmitCmdTextString(string cmd, int delay = 0, string start = null, string end = null,
         string terminator = null)
     {
@@ -166,8 +177,8 @@ public class SerialGod : ISerialLib
         try
         {
             port.WriteHexString(cmd + terminator);
-            Thread.Sleep(30);
-            ReadPSP(start, end);
+            //Thread.Sleep(30);
+            ReadWritePsp(start, end);
         }
         catch (SerialException e)
         {
@@ -178,42 +189,8 @@ public class SerialGod : ISerialLib
     public void TransmitCmdHexString(string cmd, int delay = 0, string start = null, string end = null,
         string terminator = null)
     {
-        TransmitCmdTextString(GetStringHexInText(cmd), delay,
-            GetStringHexInText(start), GetStringHexInText(end),
-            GetStringHexInText(terminator));
-    }
-
-    //TODO убрать расплодившиеся методы
-    string GetStringTextInHex(string s)
-    {
-        if (!string.IsNullOrEmpty(s))
-        {
-            byte[] bytes = new byte[s.Length / 2];
-            for (int i = 0; i < s.Length; i += 2)
-            {
-                var ff = bytes[i / 2];
-                bytes[i / 2] = Convert.ToByte(s.Substring(i, 2), 16);
-            }
-
-            return Encoding.ASCII.GetString(bytes);
-        }
-
-        return "";
-    }
-
-    string GetStringHexInText(string s)
-    {
-        if (!string.IsNullOrEmpty(s))
-        {
-            string hex = "";
-            foreach (var ss in s)
-            {
-                hex += Convert.ToByte(ss).ToString("x2");
-            }
-
-            return hex;
-        }
-
-        return "";
+        TransmitCmdTextString(ISerialLib.GetStringHexInText(cmd), delay,
+            ISerialLib.GetStringHexInText(start), ISerialLib.GetStringHexInText(end),
+            ISerialLib.GetStringHexInText(terminator));
     }
 }

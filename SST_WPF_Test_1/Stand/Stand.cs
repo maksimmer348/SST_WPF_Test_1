@@ -14,7 +14,6 @@ namespace SST_WPF_Test_1;
 public class Stand : Notify
 {
     #region Компоноенты стенда
-
     public VoltageCurrentMeter VoltmeterStand { get; set; }
     public Thermometer ThermometerStand { get; set; }
     public Supply SupplyStand { get; set; }
@@ -23,6 +22,7 @@ public class Stand : Notify
     public Heat HeatStand { get; set; }
 
     private ObservableCollection<BaseDevice> devices = new();
+
     /// <summary>
     /// Список внещних устройств
     ///</summary>
@@ -48,6 +48,7 @@ public class Stand : Notify
     /// Список Випов
     /// </summary>
     private ObservableCollection<Vip> vipsPrepareStand = new();
+
     public ObservableCollection<Vip> VipsPrepareStand
     {
         get => vipsPrepareStand;
@@ -237,9 +238,16 @@ public class Stand : Notify
 
     #region Вспомогательные методы
 
-
     CancellationTokenSource ctsCheckDevice = new();
-    //CancellationTokenSource cts2 = new();
+
+    /// <summary>
+    /// Сброс текущего проверяемого устройства и процента теста
+    /// </summary>
+    void ResetTestDeviceAndPercent()
+    {
+        PercentCurrentTest = 100;
+        TestCurrentDevice = new BaseDevice("0");
+    }
 
     /// <summary>
     /// Подпись на события из устройств
@@ -252,6 +260,7 @@ public class Stand : Notify
             device.ConnectDevice += OnCheckDevice;
             device.Receive += Receive;
         }
+
         foreach (var relayVip in RelaysVips)
         {
             relayVip.ConnectPort += OnCheckConnectPort;
@@ -358,7 +367,8 @@ public class Stand : Notify
             }
         }
     }
-
+    
+    
     void SetPrepareVips()
     {
         VipsPrepareStand = new();
@@ -422,12 +432,16 @@ public class Stand : Notify
             RowIndex = 2,
             ColumnIndex = 3
         });
-        //предустановленные типы випов
 
+        //Добавляем предустановленные типы випов
         ConfigVip.PrepareAddTypeVips();
+
         TypeVips = ConfigVip.TypeVips;
     }
 
+    /// <summary>
+    /// Предварительное добавление каждой релейной платы к соответвующему випу
+    /// </summary>
     public void AddRelayToVip()
     {
         for (var index = 0; index < VipsPrepareStand.Count; index++)
@@ -470,18 +484,18 @@ public class Stand : Notify
     }
 
     /// <summary>
-    ///Для настройки одинаковых плат => 1 настройка на 12 плат
+    ///Для настройки одинаковых плат коммутации => 1 настройка на 12 плат
     /// </summary>
-    /// <param name="typePort"></param>
-    /// <param name="portName"></param>
-    /// <param name="baud"></param>
-    /// <param name="stopBits"></param>
-    /// <param name="parity"></param>
-    /// <param name="dataBits"></param>
+    /// <param name="typePort">Тип исопльзуемой библиотеки com port</param>
+    /// <param name="portName">омер компорта</param>
+    /// <param name="baud">Бауд рейт компорта</param>
+    /// <param name="stopBits">Стоповые биты компорта</param>
+    /// <param name="parity">Parity bits</param>
+    /// <param name="dataBits">Data bits count</param>
     /// <param name="dtr"></param>
     public void MultiSetConfigSwitcher(TypePort typePort, string portName, int baud, int stopBits, int parity,
-            int dataBits,
-            bool dtr = true)
+        int dataBits,
+        bool dtr = true)
     {
         foreach (var switcherMeter in Devices)
         {
@@ -492,6 +506,16 @@ public class Stand : Notify
         }
     }
 
+    /// <summary>
+    ///Для настройки одинаковых плат реле в Випах => 1 настройка на 12 плат
+    /// </summary>
+    /// <param name="typePort">Тип исопльзуемой библиотеки com port</param>
+    /// <param name="portName">омер компорта</param>
+    /// <param name="baud">Бауд рейт компорта</param>
+    /// <param name="stopBits">Стоповые биты компорта</param>
+    /// <param name="parity">Parity bits</param>
+    /// <param name="dataBits">Data bits count</param>
+    /// <param name="dtr"></param>
     public void MultiSetConfigRelayVip(TypePort typePort, string portName, int baud, int stopBits, int parity,
         int dataBits,
         bool dtr = true)
@@ -501,11 +525,12 @@ public class Stand : Notify
             relay.SetConfigDevice(typePort, portName, baud, stopBits, parity, dataBits);
         }
     }
+
     #endregion
 
     //
 
-    #region Прием данных с приборов
+    #region Обработка событий с приборов
 
     /// <summary>
     /// Событие поверки порта на коннект 
@@ -527,7 +552,6 @@ public class Stand : Notify
     /// <param name="connect"></param>
     private void OnCheckDevice(BaseDevice baseDevice, bool connect)
     {
-
         TestCurrentDevice = baseDevice;
         if (connect)
         {
@@ -549,7 +573,7 @@ public class Stand : Notify
 
         if (baseDevice is RelayVip)
         {
-            PercentCurrentTest += ((1 / (float)Devices.Count) * 60);
+            PercentCurrentTest += ((1 / (float)RelaysVips.Count) * 60);
 
             //сраниваем списки
             var ss = RelaysVips.Except(TempVerifiedDevices).ToList();
@@ -577,24 +601,7 @@ public class Stand : Notify
 
     #region Инструменты проверки
 
-
     public ObservableCollection<BaseDevice> TempVerifiedDevices { get; set; } = new();
-
-    //public async void ReconnectDevices(List<BaseDevice> devices)
-    //{
-
-    //    foreach (var device in devices)
-    //    {
-    //        device.Close();
-    //    }
-    //    await Task.Delay(TimeSpan.FromMilliseconds(100));
-    //    foreach (var device in devices)
-    //    {
-    //        device.Open();
-    //    }
-    //}
-
-
 
     /// <summary>
     /// Проверка на физическое существование портов  
@@ -622,7 +629,6 @@ public class Stand : Notify
 
         await Task.Delay(TimeSpan.FromMilliseconds(100));
 
-
         //
         PercentCurrentTest = 20;
         //
@@ -642,7 +648,7 @@ public class Stand : Notify
     public async Task<List<BaseDevice>> CheckConnectDevices(List<BaseDevice> tempCheckDevices,
         CancellationToken token, int externalDelay = 0)
     {
-        //временный список дефетктивынх приборов
+        //сброс временного списка дефетктивынх приборов
         List<BaseDevice> tempErrorDevices = new List<BaseDevice>();
         try
         {
@@ -652,33 +658,34 @@ public class Stand : Notify
                 TestCurrentDevice = device;
                 device.CheckedConnectDevice();
             }
+
             //ждем
-            await Task.Delay(TimeSpan.FromMilliseconds(1000), ctsCheckDevice.Token);
+            await Task.Delay(TimeSpan.FromMilliseconds(800), ctsCheckDevice.Token);
 
-            //сраниваем списки
+            //после задержки в этом списке будут устройства не прошедшие проверку
             tempErrorDevices = GetErrorDevices(tempCheckDevices);
-
-            Debug.WriteLine("Normal");
         }
+        //елси задлаче была прервана заранее полняем следующий код
         catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
-            //сраниваем списки
+            //после прерывания задрежки в этом списке будут устройства не прошедшие проверку
             tempErrorDevices = GetErrorDevices(tempCheckDevices);
             ctsCheckDevice = new CancellationTokenSource();
             return tempErrorDevices;
         }
         catch (Exception e)
         {
-           throw new StandException( $"StandException: ошибка  {e.Message} при проверке устройств");
+            throw new StandException($"StandException: ошибка  \"{e.Message})]\" при проверке устройств");
         }
+
         PercentCurrentTest = 100;
         return tempErrorDevices;
     }
 
     /// <summary>
-    /// Получение списка сбоынх приборов
+    /// Получение списка сбойных приборов
     /// </summary>
-    /// <param name="checkedDevices">Временный списко устройств</param>
+    /// <param name="checkedDevices">Временный список устройств</param>
     /// <returns></returns>
     private List<BaseDevice> GetErrorDevices(List<BaseDevice> checkedDevices)
     {
@@ -686,16 +693,37 @@ public class Stand : Notify
         {
             return checkedDevices.ToList();
         }
-        //сравниваем 
+
+        //сравниваем временный список утсройств со списком сформировванным из отвветивших приборов
+        //и кладем в список сбойных устройств
         var tempErrorDevices = checkedDevices.Except(TempVerifiedDevices).ToList();
 
+        //очищаем список ответивших приборов
         TempVerifiedDevices.Clear();
+
         //возвращаем список приборов не прошедших проверку
         return tempErrorDevices;
     }
 
-    #endregion
+    /// <summary>
+    /// Получение списка проверяемых релейных плат из выбранных Випов 
+    /// </summary>
+    /// <param name="tempCheckVips"></param>
+    /// <returns></returns>
+    private List<BaseDevice> GetRelayInVips(IEnumerable<Vip> tempCheckVips)
+    {
+        var tempRelays = new List<BaseDevice>();
 
+        foreach (var vip in tempCheckVips)
+        {
+            tempRelays.Add(vip.Relay);
+        }
+
+        return tempRelays;
+    }
+
+    #endregion
+    
     //
 
     #region Предварительные проверки устройств
@@ -725,14 +753,59 @@ public class Stand : Notify
     /// <returns>Результат предаварительной проверки</returns>
     public async Task<bool> PrimaryCheckDevices()
     {
-        //TODO  для канселивентов
         //сброс статуса теста
         TestRun = TypeOfTestRun.None;
         //установка статуса теста первичноая провека устройств
         TestRun = TypeOfTestRun.PrimaryCheckDevices;
+        var check = await CheckBaseDevices(Devices.ToList());
+        if (check)
+        {
+            TestRun = TypeOfTestRun.PrimaryCheckDevicesReady;
+        }
 
-        //TODO вынести в конфиг (возможно)
-        int checkCountAll = 3;
+        return check;
+    }
+
+    /// <summary>
+    /// Предварительная проверка випов
+    /// </summary>
+    /// <returns></returns>
+    public async Task<bool> PrimaryCheckVips()
+    {
+        //сброс статуса теста
+        TestRun = TypeOfTestRun.None;
+
+        //установка тест первичный платок випов 
+        TestRun = TypeOfTestRun.PrimaryCheckVips;
+
+        //предварительная настройка тестрировать ли вип => если у Випа есть имя то тестировать
+        SetIsTestedVips();
+        //вставка во временный список список Випов для проверки платок
+        var tempCheckVips = VipsPrepareStand.Where(x => x.IsTested);
+        //временный список для проверяемых реле
+        var tempRelays = GetRelayInVips(tempCheckVips);
+
+        var check = await CheckBaseDevices(tempRelays);
+
+        if (check)
+        {
+            PercentCurrentTest = 100;
+            TestRun = TypeOfTestRun.PrimaryCheckVipsReady;
+        }
+
+        PercentCurrentTest = 100;
+        return check;
+    }
+
+    //TODO вынести в конфиг checkCountAll (возможно)
+    /// <summary>
+    /// Проверка компорта и ответа от любого устройства на команду Статус
+    /// </summary>
+    /// <param name="tempCheckDevices">Список устройств</param>
+    /// <param name="checkCountAll">Колво попыток достучатся до устройств если они не отвечают</param>
+    /// <returns></returns>
+    public async Task<bool> CheckBaseDevices(List<BaseDevice> tempCheckDevices, int checkCountAll = 3)
+    {
         int checkCountCurrent = 1;
 
         while (true)
@@ -741,7 +814,8 @@ public class Stand : Notify
             checkCountCurrent++;
 
             //вставка во временный список список приоров для проверки
-            var tempCheckDevices = Devices.ToList();
+            //var tempCheckDevices = Devices.ToList();
+
             //сброс всех статусов
             foreach (var device in tempCheckDevices)
             {
@@ -778,7 +852,8 @@ public class Stand : Notify
                     if (noErrorPortsList.Any())
                     {
                         //собираем приборы котороые не ответили на команду статус - сбойные
-                        List<BaseDevice> errorDevicesList = await CheckConnectDevices(noErrorPortsList, ctsCheckDevice.Token);
+                        List<BaseDevice> errorDevicesList =
+                            await CheckConnectDevices(noErrorPortsList, ctsCheckDevice.Token);
 
                         //елси сбойные утройства есть
                         if (errorDevicesList.Any())
@@ -798,10 +873,12 @@ public class Stand : Notify
                         {
                             device.StatusTest = StatusDeviceTest.Ok;
                         }
-                        PercentCurrentTest = 100;
-                        TestCurrentDevice = new BaseDevice("0");
 
-                       // если количетво попыток больше устновленных выходим из петли с false
+                        //
+                        ResetTestDeviceAndPercent();
+                        //
+
+                        // если количетво попыток больше устновленных выходим из петли с false
                         if (checkCountCurrent > checkCountAll)
                         {
                             return false;
@@ -812,7 +889,8 @@ public class Stand : Notify
                 else
                 {
                     //отбор сбоынйх устройств
-                    List<BaseDevice> errorDevicesList = await CheckConnectDevices(tempCheckDevices, ctsCheckDevice.Token);
+                    List<BaseDevice> errorDevicesList =
+                        await CheckConnectDevices(tempCheckDevices, ctsCheckDevice.Token);
 
                     //если сбоынйу устройства есть
                     if (errorDevicesList.Any())
@@ -835,12 +913,15 @@ public class Stand : Notify
                         //если количетво попыток больше устновленных выходим из петли с false
                         if (checkCountCurrent > checkCountAll)
                         {
-                            PercentCurrentTest = 100;
-                            TestCurrentDevice = new BaseDevice("0");
+                            //
+                            ResetTestDeviceAndPercent();
+                            //
                             return false;
                         }
-                        PercentCurrentTest = 100;
-                        TestCurrentDevice = new BaseDevice("0");
+
+                        //
+                        ResetTestDeviceAndPercent();
+                        //
                     }
                     else
                     {
@@ -849,91 +930,41 @@ public class Stand : Notify
                             device.StatusTest = StatusDeviceTest.Ok;
                         }
 
-                        PercentCurrentTest = 100;
-                        TestRun = TypeOfTestRun.PrimaryCheckDevicesReady;
-                        TestCurrentDevice = new BaseDevice("0");
+                        //
+                        ResetTestDeviceAndPercent();
+                        //
                         return true;
                     }
                 }
             }
+
             if (checkCountCurrent > checkCountAll)
             {
-                PercentCurrentTest = 100;
-                TestCurrentDevice = new BaseDevice("0");
+                ResetTestDeviceAndPercent();
                 return false;
             }
         }
     }
 
-
-    //TODO обьеденить в один метод
-    /// <summary>
-    /// Предварительная проверка випов
-    /// </summary>
-    /// <returns></returns>
-    public async Task<bool> PrimaryCheckVips()
-    {
-        //сброс статуса теста
-        TestRun = TypeOfTestRun.None;
-
-        //установка тест первичный платок випов 
-        TestRun = TypeOfTestRun.PrimaryCheckVips;
-
-        //предварительная настройка тестрировать ли вип => если етсь имя то тестировать
-        SetIsTestedVips();
-
-        //вставка во временный список список Випов для проверки платок
-        var tempCheckVips = VipsPrepareStand.Where(x => x.IsTested);
-        //временный список для проверяеызх реле
-        var tempRelays = SetRelayInVips(tempCheckVips);
-
-        while (true)
-        {
-            //
-            PercentCurrentTest = 0;
-            //
-
-            List<BaseDevice> errorRelaysList = await CheckConnectPorts(tempRelays);
-
-            if (errorRelaysList.Any())
-            {
-                foreach (var relay in errorRelaysList)
-                {
-                    relay.StatusTest = StatusDeviceTest.Error;
-                }
-            }
-
-
-            PercentCurrentTest = 100;
-
-            TestRun = TypeOfTestRun.PrimaryCheckVipsReady;
-
-            //сброс текущего проверямего устройства
-            TestCurrentDevice = new BaseDevice("0");
-
-            return true;
-
-        }
-
-        return false;
-    }
-
-    private List<BaseDevice> SetRelayInVips(IEnumerable<Vip> tempCheckVips)
-    {
-        var tempRelays = new List<BaseDevice>();
-
-        foreach (var vip in tempCheckVips)
-        {
-            tempRelays.Add(vip.Relay);
-        }
-
-        return tempRelays;
-    }
-
     #endregion
 
     //
+    
+    #region Инструменты отправки/приема команд на стенд
 
+    DeviceParameters GetParameterForDevice()
+    {
+        return  vipsPrepareStand[0].Type.GetDeviceParameters();
+    }
+    
+    private async Task WriteCommandInDevice(BaseDevice device, string cmd, string parameter = null)
+    {
+        device.TransmitCmdInLib(cmd, parameter);
+    }
+    #endregion
+    
+    //
+    
     #region Замеры
 
     /// <summary>
@@ -943,44 +974,17 @@ public class Stand : Notify
     public async Task<bool> MeasurementZero()
     {
         TestRun = TypeOfTestRun.None;
-
         //Уведомляем что начался тест 0
         TestRun = TypeOfTestRun.MeasurementZero;
-        if (true)
-        {
-            TestRun = TypeOfTestRun.DeviceOperation;
-            //
-            TestCurrentDevice = BigLoadStand;
-            //
-            PercentCurrentTest = 0;
-            await Task.Delay(TimeSpan.FromMilliseconds(100));
-            //
-            TestCurrentDevice = SupplyStand;
-            //
-            TestRun = TypeOfTestRun.DeviceOperationReady;
-            PercentCurrentTest = 20;
-            await Task.Delay(TimeSpan.FromMilliseconds(100));
-            TestRun = TypeOfTestRun.MeasurementZero;
-            PercentCurrentTest = 20;
-            PercentCurrentTest = 40;
-            await Task.Delay(TimeSpan.FromMilliseconds(100));
-            PercentCurrentTest = 60;
-            await Task.Delay(TimeSpan.FromMilliseconds(100));
-            TestRun = TypeOfTestRun.DeviceOperation;
-            //
-            TestCurrentDevice = BigLoadStand;
-            //
-            PercentCurrentTest = 80;
-            await Task.Delay(TimeSpan.FromMilliseconds(1000));
-            TestRun = TypeOfTestRun.DeviceOperationReady;
-            PercentCurrentTest = 100;
 
-
-            TestCurrentDevice = new BaseDevice("0");
-            TestRun = TypeOfTestRun.MeasurementZeroReady;
-            return true;
-        }
-
+        TestRun = TypeOfTestRun.DeviceOperation;
+        BigLoadStand = Devices.GetTypeDevice<BigLoad>();
+        
+        testCurrentDevice = BigLoadStand;
+       var ss=  Random.Shared.Next(0,100);
+       vipsPrepareStand[0].Type.Parameters.BigLoadValues.Freq = ss.ToString();
+        await WriteCommandInDevice(BigLoadStand, "Set freq", GetParameterForDevice().BigLoadValues.Freq);
+        
         return false;
     }
 
@@ -997,7 +1001,7 @@ public class Stand : Notify
         if (true)
         {
             //
-            TestCurrentDevice = BigLoadStand;
+            //TestCurrentDevice = BigLoadStand;
             //
             PercentCurrentTest = 0;
             await Task.Delay(TimeSpan.FromMilliseconds(1000));
@@ -1011,7 +1015,7 @@ public class Stand : Notify
             PercentCurrentTest = 60;
             await Task.Delay(TimeSpan.FromMilliseconds(100));
             //
-            TestCurrentDevice = BigLoadStand;
+           // TestCurrentDevice = BigLoadStand;
             //
             PercentCurrentTest = 80;
             await Task.Delay(TimeSpan.FromMilliseconds(100));
@@ -1041,7 +1045,7 @@ public class Stand : Notify
         {
             i++;
             //
-            TestCurrentDevice = BigLoadStand;
+            //TestCurrentDevice = BigLoadStand;
             //
             PercentCurrentTest = 0;
             await Task.Delay(TimeSpan.FromMilliseconds(100));
@@ -1055,7 +1059,7 @@ public class Stand : Notify
             PercentCurrentTest = 60;
             await Task.Delay(TimeSpan.FromMilliseconds(100));
             //
-            TestCurrentDevice = BigLoadStand;
+            //TestCurrentDevice = BigLoadStand;
             //
             PercentCurrentTest = 80;
             await Task.Delay(TimeSpan.FromMilliseconds(100));
@@ -1076,6 +1080,4 @@ public class Stand : Notify
     }
 
     #endregion
-
-
 }

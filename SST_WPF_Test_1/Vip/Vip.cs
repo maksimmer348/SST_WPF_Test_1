@@ -58,10 +58,10 @@ public class Vip : Notify
             StatusDeviceTest.Ok => Brushes.Green,
             _ => Brushes.DarkGray
         };
-
-
-
-
+    
+    /// <summary>
+    /// Тип Випа - регулирует максимальные значения температуры напряжения и пр.
+    /// </summary>
     public TypeVip Type { get; set; }
 
     //Текущие значения на Випе
@@ -72,11 +72,14 @@ public class Vip : Notify
     public double VoltageIn { get; set; }
     public bool Output { get; set; }
 
+    /// <summary>
+    /// Релейный модуль Випа
+    /// </summary>
     public RelayVip Relay { get; set; }
 
     //
+    //расположение в таблице окна пограммы
     public int RowIndex { get; set; }
-
     public int ColumnIndex { get; set; }
     //
 

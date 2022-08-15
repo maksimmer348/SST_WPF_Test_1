@@ -6,6 +6,10 @@ public class Heat : BaseDevice
 {
     [JsonIgnore]
     public double Temperature { get; set; }
+    
+    /// <summary>
+    /// Статус выхода устройства
+    /// </summary>
     [JsonIgnore]
     public bool Output { get; set; }
 

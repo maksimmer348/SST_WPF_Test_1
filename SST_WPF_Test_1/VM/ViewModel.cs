@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -35,6 +36,7 @@ public class ViewModel : Notify
     }
 
     private ObservableCollection<BaseDevice> devices = new();
+
     /// <summary>
     /// Внешние устройства
     /// </summary>
@@ -45,6 +47,7 @@ public class ViewModel : Notify
     }
 
     private ObservableCollection<BaseDevice> relaysVips = new();
+
     /// <summary>
     /// Реле Випов
     /// </summary>
@@ -75,7 +78,6 @@ public class ViewModel : Notify
     }
 
     #endregion
-
 
     #endregion
 
@@ -190,6 +192,7 @@ public class ViewModel : Notify
         {
             AllDevices.Add(device);
         }
+
         foreach (var relay in standTest.RelaysVips)
         {
             AllDevices.Add(relay);
@@ -304,6 +307,7 @@ public class ViewModel : Notify
         {
             try
             {
+               
                 await standTest.PrimaryCheckDevices();
             }
             catch (DeviceException e)
@@ -432,6 +436,7 @@ public class ViewModel : Notify
             standTest.MultiSetConfigSwitcher(TypePort.SerialInput, PortName, Baud, StopBits, Parity,
                 DataBits, Dtr);
         }
+
         if (selectDevice is RelayVip)
         {
             standTest.MultiSetConfigRelayVip(TypePort.SerialInput, PortName, Baud, StopBits, Parity,
@@ -845,10 +850,7 @@ public class ViewModel : Notify
     /// </summary>
     public TypeVip SelectTypeVip
     {
-        get
-        {
-            return selectTypeVip;
-        }
+        get { return selectTypeVip; }
         set
         {
             if (!Set(ref selectTypeVip, value)) return;
@@ -900,8 +902,6 @@ public class ViewModel : Notify
 
             try
             {
-
-
                 PortName = selectDevice.GetConfigDevice().PortName;
                 Baud = selectDevice.GetConfigDevice().Baud;
                 StopBits = selectDevice.GetConfigDevice().StopBits;
@@ -935,7 +935,6 @@ public class ViewModel : Notify
             {
                 MessageBox.Show(e.Message);
             }
-
         }
     }
 
@@ -956,7 +955,6 @@ public class ViewModel : Notify
         get => isVipsSettings;
         set { Set(ref isVipsSettings, value); }
     }
-
 
 
     private string nameDevice;

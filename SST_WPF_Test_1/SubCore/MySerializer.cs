@@ -1,17 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
+
 using Newtonsoft.Json;
 
 namespace SST_WPF_Test_1;
 
 public class MySerializer
 {
+    /// <summary>
+    /// Сериализуемая библиотека
+    /// </summary>
     public Dictionary<DeviceIdentCmd, DeviceCmd> LibCmd;
-
+    
     public List<KeyValuePair<DeviceIdentCmd, DeviceCmd>> SerializedLocations
     {
         get { return LibCmd.ToList(); }
@@ -25,7 +26,7 @@ public class MySerializer
         File.WriteAllText(@"CommandLib.json", json.ToString());
     }
 
-    public Dictionary<DeviceIdentCmd, DeviceCmd>? DeserializeLib()
+    public Dictionary<DeviceIdentCmd, DeviceCmd> DeserializeLib()
     {
         var json =
             JsonConvert.DeserializeObject<List<KeyValuePair<DeviceIdentCmd, DeviceCmd>>>(
@@ -39,7 +40,7 @@ public class MySerializer
 
         return temp;
     }
-
+    
     
     public void SerializeDevices(List<BaseDevice> devices)
     {
