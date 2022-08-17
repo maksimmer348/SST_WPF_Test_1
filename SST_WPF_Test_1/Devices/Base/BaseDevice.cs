@@ -202,7 +202,7 @@ public class BaseDevice : Notify
             throw new DeviceException("BaseDevice exception: Файл конфига отсутствует");
         }
     }
-
+    
     /// <summary>
     /// Проверка устройства на ответ на статусную команду
     /// </summary>
@@ -242,18 +242,27 @@ public class BaseDevice : Notify
         }
 
         CmdDelay = selectCmd.Delay;
-        
+
         if (selectCmd.MessageType == TypeCmd.Hex)
         {
             TypeReceive = TypeCmd.Hex;
-            port.TransmitCmdHexString(selectCmd.Transmit+parameter, selectCmd.Delay,
-                selectCmd.StartOfString, selectCmd.EndOfString,
-                selectCmd.Terminator);
+            if (selectCmd.IsXor)
+            {
+                port.TransmitCmdHexString(selectCmd.Transmit + parameter, selectCmd.Delay,
+                    selectCmd.StartOfString, selectCmd.EndOfString,
+                    selectCmd.Terminator, true);
+            }
+            else
+            {
+                port.TransmitCmdHexString(selectCmd.Transmit + parameter, selectCmd.Delay,
+                    selectCmd.StartOfString, selectCmd.EndOfString,
+                    selectCmd.Terminator);
+            }
         }
         else
         {
             TypeReceive = TypeCmd.Text;
-            port.TransmitCmdTextString(selectCmd.Transmit+parameter, selectCmd.Delay, selectCmd.StartOfString,
+            port.TransmitCmdTextString(selectCmd.Transmit + parameter, selectCmd.Delay, selectCmd.StartOfString,
                 selectCmd.EndOfString,
                 selectCmd.Terminator);
         }

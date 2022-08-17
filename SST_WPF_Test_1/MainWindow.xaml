@@ -340,7 +340,6 @@ TestAllTime}" DockPanel.Dock="Left" MinWidth="100"/>
                                     </DataTemplate>
                                 </ComboBox.ItemTemplate>
                             </ComboBox>
-                            <CheckBox Content="Випы" Margin="10, 5,0,0" IsChecked="{Binding IsVipsSettings}" DockPanel.Dock="Right"/>
                         </StackPanel>
 
 
@@ -418,6 +417,7 @@ TestAllTime}" DockPanel.Dock="Left" MinWidth="100"/>
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Имя" Binding="{Binding Key.NameCmd}" />
                                 <DataGridTextColumn Header="Передача" Binding="{Binding Value.Transmit}" />
+                                <DataGridTextColumn Header="Xor" Binding="{Binding Value.IsXor}" />
                                 <DataGridTextColumn Header="Прием" Binding="{Binding Value.Receive}" />
                                 <DataGridTextColumn Header="Разделитель" Binding="{Binding Value.Terminator}" />
                                 <DataGridTextColumn Header="Тип сообщения" Binding="{Binding Value.MessageType}" />
@@ -456,6 +456,7 @@ TestAllTime}" DockPanel.Dock="Left" MinWidth="100"/>
                             <StackPanel Grid.Row="0" Grid.Column="1">
                                 <TextBlock Text="Передача" />
                                 <TextBox Text="{Binding TransmitCmdLib}" MinWidth="100" />
+                                <CheckBox Content="Xor" Margin="10, 5,0,0" IsChecked="{Binding IsXor}" DockPanel.Dock="Right"/>
                             </StackPanel>
                             <StackPanel Grid.Row="0" Grid.Column="2">
                                 <TextBlock Text="Прием" />

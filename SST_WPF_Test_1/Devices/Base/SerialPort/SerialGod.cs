@@ -187,7 +187,7 @@ public class SerialGod : ISerialLib
     }
 
     public void TransmitCmdHexString(string cmd, int delay = 0, string start = null, string end = null,
-        string terminator = null)
+        string terminator = null, bool b = false)
     {
         TransmitCmdTextString(ISerialLib.GetStringHexInText(cmd), delay,
             ISerialLib.GetStringHexInText(start), ISerialLib.GetStringHexInText(end),

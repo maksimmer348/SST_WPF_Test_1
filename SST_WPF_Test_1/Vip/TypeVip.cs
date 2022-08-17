@@ -61,18 +61,38 @@ public class TypeVip : Notify
     public DeviceParameters Parameters = new DeviceParameters();
 
 
-    public void SetDeviceParameters(double freq, double ampl, double dco, double squ, double supVoltage, double supCurrent)
+    
+    public void SetDeviceParameters(DeviceParameters deviceParameters)
     {
+        Parameters = deviceParameters;
         //TODO добавить проверки влиадаторы
-        Parameters.BigLoadValues = new BigLoadValues()
-        {
-            Freq = freq.ToString(CultureInfo.InvariantCulture),
-            Ampl = ampl.ToString(CultureInfo.InvariantCulture),
-            Dco = dco.ToString(CultureInfo.InvariantCulture),
-            Squ = squ.ToString(CultureInfo.InvariantCulture),
-        };
-        Parameters.SupplyVoltage = supVoltage.ToString(CultureInfo.InvariantCulture);
-        Parameters.SupplyCurrent = supCurrent.ToString(CultureInfo.InvariantCulture);
+        //TODO темины сделать через передачу в метод класса DeviceParameters
+        // //Parameters.BigLoadValues = new BigLoadValues()
+        
+        
+        
+        
+        
+        // {
+        //     OutputOn = "1",
+        //     OutputOff = "0",
+        //     Freq = freq.ToString(CultureInfo.InvariantCulture),
+        //     Ampl = ampl.ToString(CultureInfo.InvariantCulture),
+        //     Dco = dco.ToString(CultureInfo.InvariantCulture),
+        //     Squ = squ.ToString(CultureInfo.InvariantCulture),
+        // };
+        // Parameters.HeatValues = new HeatValues()
+        // {
+        //     OutputOn = "1",
+        //     OutputOff = "0"
+        // };
+        // Parameters.SupplyValues = new SupplyValues()
+        // {
+        //     Voltage = supVoltage.ToString(CultureInfo.InvariantCulture),
+        //     Current = supCurrent.ToString(CultureInfo.InvariantCulture)
+        // };
+        
+
     }
 
     public DeviceParameters GetDeviceParameters()
@@ -86,22 +106,49 @@ public class TypeVip : Notify
             throw new VipException("VipException: Параметры випа не заданы");
         }
     }
-    
+
     #endregion
 }
 
 public class DeviceParameters
 {
     public BigLoadValues BigLoadValues { get; set; }
+    public HeatValues HeatValues { get; set; }
+    public SupplyValues SupplyValues { get; set; }
 
-    public string SupplyVoltage { get; set; }
-    public string SupplyCurrent { get; set; }
+
 }
 
-public class BigLoadValues
+public class BaseDeviceValues
+{
+    public string OutputOn { get; set; } = "1";
+    public string OutputOff { get; set; } = "0";
+}
+
+public class BigLoadValues : BaseDeviceValues
 {
     public string Freq { get; set; }
     public string Ampl { get; set; }
     public string Dco { get; set; }
     public string Squ { get; set; }
+
+    public BigLoadValues(string freq, string ampl, string dco, string squ)
+    {
+        Freq = freq;
+        Ampl = ampl;
+        Dco = dco;
+        Squ = squ;
+    }
 }
+
+public class HeatValues : BaseDeviceValues
+{
+    //тут ничего не будет не отвелкайся
+}
+
+public class SupplyValues : BaseDeviceValues
+{
+    public string Voltage { get; set; }
+    public string Current { get; set; }
+}
+

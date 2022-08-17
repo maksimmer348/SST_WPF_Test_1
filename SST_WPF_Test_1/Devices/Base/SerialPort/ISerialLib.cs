@@ -74,8 +74,9 @@ public interface ISerialLib
     /// <param name="start">Начало строки для библиотеки SerialGod </param>
     /// <param name="end">Конец строки для библиотеки SerialGod</param>
     /// <param name="terminator">Окончание строки команды - по умолчанию \n\r или 0D0A </param>
+    /// <param name="b"></param>
     public void TransmitCmdHexString(string cmd, int delay = 0, string start = null, string end = null,
-        string terminator = null);
+        string terminator = null, bool b = false);
 
     /// <summary>
     /// Преборазование строки в массив байт
@@ -131,5 +132,22 @@ public interface ISerialLib
         }
 
         return "";
+    }
+
+    /// <summary>
+    /// Xor калькулятор для хекс строки 
+    /// </summary>
+    /// <param name="bArr"></param>
+    /// <returns></returns>
+    public static byte XorCalcArr(byte[] bArr)
+    {
+        var xor = 0;
+
+        foreach (var b in bArr)
+        {
+            xor ^= b;
+        }
+
+        return (byte)xor;
     }
 }

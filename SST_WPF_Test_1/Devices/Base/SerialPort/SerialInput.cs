@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging.Abstractions;
 using RJCP.IO.Ports;
@@ -13,7 +14,7 @@ public class SerialInput : ISerialLib
     public bool Dtr { get; set; }
     public string GetPortNum { get; set; }
     public int Delay { get; set; }
-    
+
     public Action<bool> ConnectionStatusChanged { get; set; }
     public Action<byte[]> MessageReceived { get; set; }
 
@@ -111,17 +112,17 @@ public class SerialInput : ISerialLib
                 $"SerialInput exception: Порт \"{GetPortNum}\" не закрыт, ошибка - {e.Message}");
         }
     }
-    
+
     public void OnPortConnectionStatusChanged(object sender, ConnectionStatusChangedEventArgs args)
     {
         ConnectionStatusChanged.Invoke(args.Connected);
     }
-    
+
     public void OnPortMessageReceived(object sender, MessageReceivedEventArgs args)
     {
         MessageReceived.Invoke(args.Data);
     }
-    
+
     public void TransmitCmdTextString(string cmd, int delay = 0, string start = null, string end = null,
         string terminator = null)
     {
@@ -154,7 +155,7 @@ public class SerialInput : ISerialLib
     }
 
     public void TransmitCmdHexString(string cmd, int delay = 0, string start = null, string end = null,
-        string terminator = null)
+        string terminator = null, bool isXor = false)
     {
         if (string.IsNullOrEmpty(cmd))
         {
@@ -173,15 +174,28 @@ public class SerialInput : ISerialLib
 
         Delay = delay;
 
-        var message = ISerialLib.StringToByteArray(cmd + terminator);
+        //преобразуем входную строку команды в байтовый массив команды
+        var cmdMsg = ISerialLib.StringToByteArray(cmd);
+        //массив команды складываем xor 
+        var xorCalc = ISerialLib.XorCalcArr(cmdMsg);
+        //создаем список чтобы можно было легче приклеить xor сумму к массиву команды
+        var t = new List<byte>(cmdMsg);
+        //приклеиваем 
+        t.Add(xorCalc);
+        //преобразуме терминатор в строку
+        if (terminator != null)
+        {
+            var term = ISerialLib.StringToByteArray(terminator);//+ terminator);
+            t.AddRange(term);
+        }
         try
         {
-            port.SendMessage(message);
+            port.SendMessage(t.ToArray());
         }
         catch (Exception e)
         {
             throw new SerialException(
-                $"SerialInput exception: Команда \"{message}\", в порт \"{GetPortNum}\" не отправлена, ошибка - {e.Message}");
+                $"SerialInput exception: Команда \"{cmdMsg}\", в порт \"{GetPortNum}\" не отправлена, ошибка - {e.Message}");
         }
     }
 }

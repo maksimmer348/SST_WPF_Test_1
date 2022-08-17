@@ -259,10 +259,12 @@ public class ViewModel : Notify
         if (TestRun == TypeOfTestRun.PrimaryCheckDevicesReady)
         {
             SelectTab = 1;
+            PercentCurrentTest = 0;
         }
         else if (TestRun == TypeOfTestRun.PrimaryCheckVipsReady)
         {
             SelectTab = 2;
+            PercentCurrentTest = 0;
         }
     }
 
@@ -277,12 +279,11 @@ public class ViewModel : Notify
     /// </summary>
     public ICommand CancelAllTestCmd { get; }
 
-    Task OnCancelAllTestCmdExecuted(object p)
+    async Task OnCancelAllTestCmdExecuted(object p)
     {
         //TODO добавить canellded
-        standTest.ResetCurrentTest();
+        await standTest.ResetCurrentTest();
         SelectTab = 0;
-        return Task.CompletedTask;
     }
 
     bool CanCancelAllTestCmdExecuted(object p)
@@ -307,33 +308,61 @@ public class ViewModel : Notify
         {
             try
             {
-               
                 await standTest.PrimaryCheckDevices();
             }
             catch (DeviceException e)
             {
-                const string caption = "Ошибка команды";
+                const string caption = "Ошибка предварительной проверки устройств";
                 var result = MessageBox.Show(e.Message + " Перейти в настройки?", caption, MessageBoxButton.YesNo);
 
                 if (result == MessageBoxResult.Yes)
                 {
-                    //TODO Переходим в настройки
+                    SelectTab = 3;
                 }
             }
         }
 
         else if (SelectTab == 1)
         {
-            await standTest.PrimaryCheckVips();
+            try
+            {
+                await standTest.PrimaryCheckVips();
+            }
+            catch (DeviceException e)
+            {
+                const string caption = "Ошибка предварительной проверки плат Випов";
+                var result = MessageBox.Show(e.Message + " Перейти в настройки?", caption, MessageBoxButton.YesNo);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    SelectTab = 3;
+                }
+            }
         }
 
         else if (SelectTab == 2)
         {
-            var mesZero = await standTest.MeasurementZero();
-
-            if (mesZero)
+            try
             {
-                await standTest.CyclicMeasurement();
+                var mesZero = await standTest.MeasurementZero();
+                if (mesZero)
+                {
+                    var heat = await standTest.WaitForTestMode();
+                    if (heat)
+                    {
+                        await standTest.CyclicMeasurement();
+                    }
+                }
+            }
+            catch (DeviceException e)
+            {
+                const string caption = "Ошибка 0 замера";
+                var result = MessageBox.Show(e.Message + " Перейти в настройки?", caption, MessageBoxButton.YesNo);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    SelectTab = 3;
+                }
             }
         }
     }
@@ -521,8 +550,8 @@ public class ViewModel : Notify
 
     Task OnAddCmdFromDeviceCmdExecuted(object p)
     {
-        libCmd.AddCommand(nameCmdLib, SelectDevice.Name, transmitCmdLib, receiveCmdLib, delayCmdLib,
-            startStingCmdLib, endStringCmdLib, pingCountCmdLib, TypeMessageCmdLib);
+        libCmd.AddCommand(NameCmdLib, SelectDevice.Name, TransmitCmdLib, ReceiveCmdLib, DelayCmdLib,
+            StartStingCmdLib, EndStringCmdLib, PingCountCmdLib, TypeMessageCmdLib, IsXor);
 
         selectedDeviceCommand.Source =
             SelectDevice?.LibCmd.DeviceCommands.Where(x =>
@@ -612,9 +641,9 @@ public class ViewModel : Notify
 
             if (testRun == TypeOfTestRun.Stop)
             {
-                TextCurrentTest = "";
+                TextCurrentTest = "Стенд остановлен";
                 PercentCurrentTest = 0;
-
+                TextCurrentTestDevice = "";
                 TabsDisable();
                 PrimaryCheckDevicesTab = true;
             }
@@ -945,15 +974,15 @@ public class ViewModel : Notify
     /// </summary>
     public ICollectionView? SelectedDeviceCommand => selectedDeviceCommand?.View;
 
-    private bool isVipsSettings;
+    private bool isXor;
 
     /// <summary>
     /// Имя устройства в текстбоксе
     /// </summary>
-    public bool IsVipsSettings
+    public bool IsXor
     {
-        get => isVipsSettings;
-        set { Set(ref isVipsSettings, value); }
+        get => isXor;
+        set { Set(ref isXor, value); }
     }
 
 

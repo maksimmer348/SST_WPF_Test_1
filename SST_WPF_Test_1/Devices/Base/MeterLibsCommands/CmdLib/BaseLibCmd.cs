@@ -261,14 +261,16 @@ public class BaseLibCmd
     /// <param name="nameDevice">Прибор для которого эта команда предназначена</param>
     /// <param name="transmitCmd">Команда котороую нужно передать в прибор</param>
     /// <param name="receiveCmd">Ответ от прибора на команду</param>
-    /// <param name="delayCmd">Задержка между передачей команды и приемом ответа</param>\
-    /// <param name="type">Тип ответа (по умолчанию текстовый)</param>
+    /// <param name="delayCmd">Задержка между передачей команды и приемом ответа</param>
     /// <param name="startOfString">Начало строки для библиотеки SerialGod</param>
     /// <param name="endOfString"> Конец строки для библиотеки SerialGod </param>
     /// <param name="pingCount">Количество попыток на считывание команды для библиотеки SerialGod - попытка += ~30мс </param>
+    /// <param name="type">Тип ответа (по умолчанию текстовый)</param>
+    /// <param name="isXor"></param>
+    /// \
     public void AddCommand(string nameCommand, string nameDevice, string transmitCmd, string receiveCmd,
         int delayCmd, string startOfString = null, string endOfString = null, int pingCount = 0,
-        TypeCmd type = TypeCmd.Text)
+        TypeCmd type = TypeCmd.Text, bool isXor = false)
     {
         var tempIdentCmd = new DeviceIdentCmd
         {
@@ -283,7 +285,8 @@ public class BaseLibCmd
             Delay = delayCmd,
             StartOfString = startOfString,
             EndOfString = endOfString,
-            PingCount = pingCount
+            PingCount = pingCount,
+            IsXor = isXor
         };
 
         DeviceCommands.Add(tempIdentCmd, tempCmd);

@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SST_WPF_Test_1", "SST_WPF_Test_1\SST_WPF_Test_1.csproj", "{95994635-A080-4A61-BAA9-91DCE0145EAF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SerialPortLib", "..\libs\serialport-lib-dotnet-master\SerialPortLib\SerialPortLib.csproj", "{DF8EA3AF-3AA8-4117-ACF5-D12F11AAC09E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{95994635-A080-4A61-BAA9-91DCE0145EAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{95994635-A080-4A61-BAA9-91DCE0145EAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{95994635-A080-4A61-BAA9-91DCE0145EAF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DF8EA3AF-3AA8-4117-ACF5-D12F11AAC09E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DF8EA3AF-3AA8-4117-ACF5-D12F11AAC09E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DF8EA3AF-3AA8-4117-ACF5-D12F11AAC09E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DF8EA3AF-3AA8-4117-ACF5-D12F11AAC09E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

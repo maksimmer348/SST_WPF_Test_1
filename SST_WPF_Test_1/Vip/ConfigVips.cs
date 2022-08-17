@@ -29,10 +29,15 @@ public class ConfigVips
             //максимальные значения во время предпотготовки испытания (PrepareMaxVoltageOut1 и PrepareMaxVoltageOut2
             //берутся из MaxVoltageOut1 и MaxVoltageOut2 соотвественно)
             PrepareMaxCurrentIn = 0.5,
-            //настройки для приборов они зависят от типа Випа
         };
-
-        typeVip71.SetDeviceParameters( Random.Shared.Next(100,200), 3.3, 1.65, 20, 20, 5);
+        //настройки для приборов они зависят от типа Випа
+        typeVip71.SetDeviceParameters(new DeviceParameters()
+        {
+            //TODO сделатбь так
+           // BigLoadValues =  new BigLoadValues(1,1,1,1),
+            HeatValues = new HeatValues(),
+            
+        });
         AddTypeVips(typeVip71);
 
         var typeVip70 = new TypeVip
@@ -47,12 +52,10 @@ public class ConfigVips
             //максимальные значения во время предпотготовки испытания (PrepareMaxVoltageOut1 и PrepareMaxVoltageOut2
             //берутся из MaxVoltageOut1 и MaxVoltageOut2 соотвественно)
             PrepareMaxCurrentIn = 0.5,
-            //настройки для приборов они зависят от типа Випа
-            
         };
+        //настройки для приборов они зависят от типа Випа
        
-       typeVip70.SetDeviceParameters(Random.Shared.Next(200,300), 4, 2, 10, 30, 10);
-       AddTypeVips(typeVip70);
+        AddTypeVips(typeVip70);
     }
 
     /// <summary>
