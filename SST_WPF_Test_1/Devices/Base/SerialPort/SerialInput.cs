@@ -176,12 +176,15 @@ public class SerialInput : ISerialLib
 
         //преобразуем входную строку команды в байтовый массив команды
         var cmdMsg = ISerialLib.StringToByteArray(cmd);
-        //массив команды складываем xor 
-        var xorCalc = ISerialLib.XorCalcArr(cmdMsg);
         //создаем список чтобы можно было легче приклеить xor сумму к массиву команды
         var t = new List<byte>(cmdMsg);
-        //приклеиваем 
-        t.Add(xorCalc);
+        if (isXor)
+        {
+            //массив команды складываем xor 
+            var xorCalc = ISerialLib.XorCalcArr(cmdMsg);
+            //приклеиваем 
+            t.Add(xorCalc);
+        }
         //преобразуме терминатор в строку
         if (terminator != null)
         {

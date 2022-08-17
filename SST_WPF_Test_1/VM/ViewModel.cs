@@ -152,6 +152,7 @@ public class ViewModel : Notify
 
         //добавление в списко всех утсройств
         AllDevices = new ObservableCollection<BaseDevice>(deserializeDevices);
+        
         DevicesInAllToSort();
     }
 
@@ -164,8 +165,8 @@ public class ViewModel : Notify
         var relays = AllDevices.Where(x => x is RelayVip);
         RelaysVips = new ObservableCollection<BaseDevice>(relays);
         standTest.RelaysVips = RelaysVips;
+        
         standTest.AddRelayToVip();
-
         standTest.InvokeDevices();
     }
 
@@ -469,6 +470,8 @@ public class ViewModel : Notify
         if (selectDevice is RelayVip)
         {
             standTest.MultiSetConfigRelayVip(TypePort.SerialInput, PortName, Baud, StopBits, Parity,
+                DataBits, Dtr);
+            standTest.ConfigMainRelay(TypePort.SerialInput, PortName, Baud, StopBits, Parity,
                 DataBits, Dtr);
         }
 

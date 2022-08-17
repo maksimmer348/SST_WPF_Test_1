@@ -24,4 +24,9 @@ public class RelayVip : BaseDevice
         Id = Int32.Parse(name);
         IsDeviceType = $"Реле ВИПА-{Id}";
     }
+    
+    public void SetUnityPort(ISerialLib unityPort)
+    {
+        port = unityPort;
+    }
 }

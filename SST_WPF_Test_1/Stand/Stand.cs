@@ -23,6 +23,8 @@ public class Stand : Notify
     public BigLoad BigLoadStand { get; set; }
     public Heat HeatStand { get; set; }
 
+    public MainRelay MainRelayVip { get; set; }
+
     private ObservableCollection<BaseDevice> devices = new();
 
     /// <summary>
@@ -264,12 +266,17 @@ public class Stand : Notify
             device.Receive += Receive;
         }
 
+        //TODO раскоменить елси чтот пойдет не так
         foreach (var relayVip in RelaysVips)
         {
             relayVip.ConnectPort += OnCheckConnectPort;
             relayVip.ConnectDevice += OnCheckDevice;
             relayVip.Receive += Receive;
         }
+
+        MainRelayVip.ConnectPort += OnCheckConnectPort;
+        MainRelayVip.ConnectDevice += OnCheckDevice;
+        MainRelayVip.Receive += Receive;
     }
 
     /// <summary>
@@ -438,7 +445,6 @@ public class Stand : Notify
 
         //Добавляем предустановленные типы випов
         ConfigVip.PrepareAddTypeVips();
-
         TypeVips = ConfigVip.TypeVips;
     }
 
@@ -452,6 +458,16 @@ public class Stand : Notify
             var vip = VipsPrepareStand[index];
             vip.Relay = RelaysVips[index] as RelayVip;
         }
+
+        InitMainRelayVip();
+    }
+
+    public void InitMainRelayVip()
+    {
+        MainRelayVip = new("MainRelay", RelaysVips);
+        var config = RelaysVips[0].GetConfigDevice();
+        MainRelayVip.SetConfigDevice(config.TypePort, config.PortName, config.Baud, config.StopBits, config.Parity,
+            config.DataBits);
     }
 
     /// <summary>
@@ -502,9 +518,9 @@ public class Stand : Notify
     {
         foreach (var switcherMeter in Devices)
         {
-            if (switcherMeter is SwitcherMeter)
+            if (switcherMeter is SwitcherMeter s)
             {
-                switcherMeter.SetConfigDevice(typePort, portName, baud, stopBits, parity, dataBits);
+                s.SetConfigDevice(typePort, portName, baud, stopBits, parity, dataBits);
             }
         }
     }
@@ -527,6 +543,12 @@ public class Stand : Notify
         {
             relay.SetConfigDevice(typePort, portName, baud, stopBits, parity, dataBits);
         }
+    }
+
+    public void ConfigMainRelay(TypePort typePort, string portName, int baud, int stopBits, int parity, int dataBits,
+        bool dtr)
+    {
+        MainRelayVip.SetConfigDevice(typePort, portName, baud, stopBits, parity, dataBits);
     }
 
     #endregion
@@ -574,24 +596,16 @@ public class Stand : Notify
             }
         }
 
-        if (baseDevice is RelayVip)
+        if (baseDevice is RelayVip or MainRelay)
         {
             PercentCurrentTest += ((1 / (float)RelaysVips.Count) * 60);
-
-            //сраниваем списки
-            var ss = RelaysVips.Except(TempVerifiedDevices).ToList();
-
-            if (!ss.Any())
-            {
-                ctsCheckDevice.Cancel();
-            }
         }
     }
 
     private Dictionary<BaseDevice, List<string>> ReceiveInDevice = new Dictionary<BaseDevice, List<string>>();
 
     /// <summary>
-    /// Событие приема данных из приборад
+    /// Событие приема данных из прибора
     /// </summary>
     /// <param name="device">Прибор посылающий данные</param>
     /// <param name="receive">Данные</param>
@@ -626,7 +640,27 @@ public class Stand : Notify
         //
         PercentCurrentTest = 0;
         //
-    
+        if (tempCheckDevices.All(x => x is RelayVip))
+        {
+            //тк все релейны платы висят на одном компорту проверяем только маин реле
+            MainRelayVip.Close();
+            await Task.Delay(TimeSpan.FromMilliseconds(100));
+            MainRelayVip.Start();
+            await Task.Delay(TimeSpan.FromMilliseconds(100));
+            
+            //
+            PercentCurrentTest = 20;
+            //
+
+            if (TempVerifiedDevices.Contains(MainRelayVip))
+            {
+                return new List<BaseDevice>();
+            }
+
+            //если 
+            return tempCheckDevices;
+        }
+
         foreach (var device in tempCheckDevices)
         {
             device.Close();
@@ -664,18 +698,35 @@ public class Stand : Notify
         List<BaseDevice> tempErrorDevices = new List<BaseDevice>();
         try
         {
-            foreach (var device in tempCheckDevices)
+            if (tempCheckDevices.All(x => x is RelayVip))
             {
-                //отправляем команду проверки на устройство
-                TestCurrentDevice = device;
-                device.CheckedConnectDevice();
+                foreach (var device in tempCheckDevices)
+                {
+                    TestCurrentDevice = device;
+                    //отправляем команду проверки на устройство
+                    MainRelayVip.CheckedConnectRelay(device.Name);
+                    //ждем
+                    await Task.Delay(TimeSpan.FromMilliseconds(200));
+                }
+
+                //после задержки в этом списке будут устройства не прошедшие проверку
+                tempErrorDevices = GetErrorDevices(tempCheckDevices);
             }
+            else
+            {
+                foreach (var device in tempCheckDevices)
+                {
+                    //отправляем команду проверки на устройство
+                    TestCurrentDevice = device;
+                    device.CheckedConnectDevice();
+                }
 
-            //ждем
-            await Task.Delay(TimeSpan.FromMilliseconds(800), ctsCheckDevice.Token);
+                //ждем
+                await Task.Delay(TimeSpan.FromMilliseconds(800), ctsCheckDevice.Token);
 
-            //после задержки в этом списке будут устройства не прошедшие проверку
-            tempErrorDevices = GetErrorDevices(tempCheckDevices);
+                //после задержки в этом списке будут устройства не прошедшие проверку
+                tempErrorDevices = GetErrorDevices(tempCheckDevices);
+            }
         }
         //елси задлаче была прервана заранее полняем следующий код
         catch (OperationCanceledException) when (token.IsCancellationRequested)
@@ -792,6 +843,11 @@ public class Stand : Notify
         //установка тест первичный платок випов 
         TestRun = TypeOfTestRun.PrimaryCheckVips;
 
+        foreach (var relayVip in RelaysVips)
+        {
+            relayVip.StatusTest = StatusDeviceTest.None;
+        }
+        
         //предварительная настройка тестрировать ли вип => если у Випа есть имя то тестировать
         SetIsTestedVips();
         //вставка во временный список список Випов для проверки платок
@@ -850,8 +906,7 @@ public class Stand : Notify
                     //ждем (если по прношесвтии этого времени в errorPortsList чтот появится значит проверка порта не прошла)
                     errorPortList = await CheckConnectPorts(tempCheckDevices);
                 }
-
-
+                
                 //если сбойные компорты есть 
                 if (errorPortList.Any())
                 {
@@ -1085,13 +1140,13 @@ public class Stand : Notify
         //Уведомляем что начался тест 0
         TestRun = TypeOfTestRun.MeasurementZero;
         //уведопляем что идет работа с приобором
-       
+
         //вытаскиваем из списка приборов - прибор нужного типа (BigLoad)
         BigLoadStand = Devices.GetTypeDevice<BigLoad>();
         //статус проверяемого прибора для вьюмодели
         TestCurrentDevice = BigLoadStand;
         TestRun = TypeOfTestRun.DeviceOperation;
-        
+
         //запрос на установку параметров генератора/большой нагрузки
         await WriteCommand(BigLoadStand, "Set freq", GetParameterForDevice().BigLoadValues.Freq);
         await WriteCommand(BigLoadStand, "Set ampl", GetParameterForDevice().BigLoadValues.Ampl);
@@ -1113,7 +1168,7 @@ public class Stand : Notify
         if (t.IsOk)
         {
             return await OutputDevice(BigLoadStand, GetParameterForDevice().BigLoadValues);
-            
+
             //если выход генератора/большой нагрузки выкл 
             if (await WriteReadCommandsChecked(BigLoadStand, "Get output",
                     GetParameterForDevice().BigLoadValues.OutputOff,
@@ -1164,7 +1219,7 @@ public class Stand : Notify
         TestRun = TypeOfTestRun.None;
         //Уведомляем что начался выход на режим 
         TestRun = TypeOfTestRun.WaitSettingToOperatingMode;
-        
+
 
         //--TODO раскомменить когда добавится нагреватель--
 

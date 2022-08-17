@@ -105,6 +105,11 @@ public class BaseDevice : Notify
     /// </summary>
     [JsonIgnore] public Action<BaseDevice, string> Receive;
 
+    /// <summary>
+    /// Событие приема данных с устройства
+    /// </summary>
+    [JsonIgnore] public Action<string> ReceiveRelay;
+
     Stopwatch stopwatch = new();
 
     //
@@ -168,6 +173,13 @@ public class BaseDevice : Notify
     /// </summary>
     public void Start()
     {
+        SetPort();
+        port.Open();
+        port.Dtr = Config.Dtr;
+    }
+
+    public void SetPort()
+    {
         if (Config.TypePort == TypePort.GodSerial)
         {
             port = new SerialGod();
@@ -178,12 +190,14 @@ public class BaseDevice : Notify
             port = new SerialInput();
         }
 
+        SetInvoke();
+        port.SetPort(Config.PortName, Config.Baud, Config.StopBits, Config.Parity, Config.DataBits);
+    }
+
+    public void SetInvoke()
+    {
         port.ConnectionStatusChanged += ConnectionStatusChanged;
         port.MessageReceived += MessageReceived;
-
-        port.SetPort(Config.PortName, Config.Baud, Config.StopBits, Config.Parity, Config.DataBits);
-        port.Open();
-        port.Dtr = Config.Dtr;
     }
 
     /// <summary>
@@ -202,7 +216,7 @@ public class BaseDevice : Notify
             throw new DeviceException("BaseDevice exception: Файл конфига отсутствует");
         }
     }
-    
+
     /// <summary>
     /// Проверка устройства на ответ на статусную команду
     /// </summary>
@@ -302,6 +316,31 @@ public class BaseDevice : Notify
     private void MessageReceived(byte[] data)
     {
         var receive = "";
+
+
+        if (Name == "MainRelay")
+        {
+            if (TypeReceive == TypeCmd.Text)
+            {
+                receive = Encoding.UTF8.GetString(data);
+                ReceiveRelay.Invoke(receive);
+                return;
+            }
+
+            if (TypeReceive == TypeCmd.Hex)
+            {
+                foreach (var d in data)
+                {
+                    receive += Convert.ToByte(d).ToString("x2");
+                }
+
+                ReceiveRelay.Invoke(receive);
+                return;
+            }
+
+            Receive.Invoke(this, receive);
+            return;
+        }
 
         var selectCmd = GetLibItem("Status", Name);
 

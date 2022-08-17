@@ -17,4 +17,8 @@ public class SwitcherMeter : BaseDevice
         Id = Int32.Parse(name);
         IsDeviceType = $"Переключатель-{name}";
     }
+    public void SetUnityPort(ISerialLib unityPort)
+    {
+        port = unityPort;
+    }
 }
