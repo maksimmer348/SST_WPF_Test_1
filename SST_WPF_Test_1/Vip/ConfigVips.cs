@@ -35,7 +35,8 @@ public class ConfigVips
         {
             //TODO сделатбь так
            // BigLoadValues =  new BigLoadValues(1,1,1,1),
-            HeatValues = new HeatValues(),
+            //BigLoadValues = new BigLoadValues(),
+            //HeatValues = new HeatValues(),
             
         });
         AddTypeVips(typeVip71);

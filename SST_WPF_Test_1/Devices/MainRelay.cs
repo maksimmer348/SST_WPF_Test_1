@@ -27,9 +27,9 @@ public class MainRelay : BaseDevice
         ReceiveRelay += ReceiveRelayMessage;
     }
 
-    public void CheckedConnectRelay(string deviceName)
+    public void CheckedConnectRelay(BaseDevice device)
     {
-        var selectCmd = GetLibItem("Status", deviceName);
+        var selectCmd = GetLibItem("Status", device.Name);
 
         if (selectCmd == null)
         {
@@ -71,6 +71,7 @@ public class MainRelay : BaseDevice
             var cmdInLib = GetLibItem("Status", "1");
             if (receive.Substring(4).Contains(cmdInLib.Receive))
             {
+                ((RelayVip)relays[0]).IdName = "ad";
                 ConnectDevice?.Invoke(relays[0], true);
             }
         }
@@ -80,9 +81,9 @@ public class MainRelay : BaseDevice
             var cmdInLib = GetLibItem("Status", "2");
             if (receive.Substring(4).Contains(cmdInLib.Receive))
             {
+                ((RelayVip)relays[1]).IdName = "ae";
                 ConnectDevice?.Invoke(relays[1], true);
             }
-            
         }
 
         else if (receive.Substring(2).Contains("af"))
@@ -90,9 +91,29 @@ public class MainRelay : BaseDevice
             var cmdInLib = GetLibItem("Status", "3");
             if (receive.Substring(4).Contains(cmdInLib.Receive))
             {
+                ((RelayVip)relays[2]).IdName = "af";
                 ConnectDevice?.Invoke(relays[2], true);
             }
-           
+        }
+
+        else if (receive.Substring(2).Contains("b0"))
+        {
+            var cmdInLib = GetLibItem("Status", "4");
+            if (receive.Substring(4).Contains(cmdInLib.Receive))
+            {
+                ((RelayVip)relays[2]).IdName = "b0";
+                ConnectDevice?.Invoke(relays[3], true);
+            }
+        }
+        
+        else if (receive.Substring(2).Contains("b9"))
+        {
+            var cmdInLib = GetLibItem("Status", "5");
+            if (receive.Substring(4).Contains(cmdInLib.Receive))
+            {
+                ((RelayVip)relays[2]).IdName = "af";
+                ConnectDevice?.Invoke(relays[4], true);
+            }
         }
     }
 }

@@ -19,6 +19,12 @@ public class RelayVip : BaseDevice
     [JsonIgnore]
     public RelayVipError ErrorVip { get; set; }
 
+    /// <summary>
+    /// Вид ошибки Випа
+    /// </summary>
+    public string IdName { get; set; }
+
+    
     public RelayVip(string name) : base(name)
     {
         Id = Int32.Parse(name);

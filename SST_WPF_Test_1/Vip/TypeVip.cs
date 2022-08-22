@@ -54,6 +54,21 @@ public class TypeVip : Notify
     public double PrepareMaxVoltageOut1 { get; set; }
     public double PrepareMaxVoltageOut2 { get; set; }
 
+
+    private string enableTypeVipName;
+
+    /// <summary>
+    /// Тип Випа
+    /// </summary>
+    public string EnableTypeVipName
+    {
+        get => enableTypeVipName;
+        set => Set(ref enableTypeVipName, value);
+    }
+
+    public double PercentAccuracyVoltages { get; set; }
+
+    public double PercentAccuracyCurrent { get; set; }
     #endregion
 
     #region Значения для приброров
@@ -61,18 +76,15 @@ public class TypeVip : Notify
     public DeviceParameters Parameters = new DeviceParameters();
 
 
-    
     public void SetDeviceParameters(DeviceParameters deviceParameters)
     {
         Parameters = deviceParameters;
+
         //TODO добавить проверки влиадаторы
         //TODO темины сделать через передачу в метод класса DeviceParameters
         // //Parameters.BigLoadValues = new BigLoadValues()
-        
-        
-        
-        
-        
+
+
         // {
         //     OutputOn = "1",
         //     OutputOff = "0",
@@ -91,8 +103,6 @@ public class TypeVip : Notify
         //     Voltage = supVoltage.ToString(CultureInfo.InvariantCulture),
         //     Current = supCurrent.ToString(CultureInfo.InvariantCulture)
         // };
-        
-
     }
 
     public DeviceParameters GetDeviceParameters()
@@ -115,14 +125,32 @@ public class DeviceParameters
     public BigLoadValues BigLoadValues { get; set; }
     public HeatValues HeatValues { get; set; }
     public SupplyValues SupplyValues { get; set; }
+    public ThermometerValues ThermometerValues { get; set; }
+}
 
+public class ThermometerValues : BaseDeviceValues
+{
 
+    public ThermometerValues(string outputOn, string outputOff) : base(outputOn, outputOff)
+    {
+    }
 }
 
 public class BaseDeviceValues
 {
-    public string OutputOn { get; set; } = "1";
-    public string OutputOff { get; set; } = "0";
+    public string OutputOn { get; set; }
+    public string OutputOff { get; set; }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="outputOn">Включить выход</param>
+    /// <param name="outputOff">Выключить выход</param>
+    public BaseDeviceValues(string outputOn, string outputOff)
+    {
+        OutputOn = outputOn;
+        OutputOff = outputOff;
+    }
 }
 
 public class BigLoadValues : BaseDeviceValues
@@ -132,7 +160,8 @@ public class BigLoadValues : BaseDeviceValues
     public string Dco { get; set; }
     public string Squ { get; set; }
 
-    public BigLoadValues(string freq, string ampl, string dco, string squ)
+    public BigLoadValues(string freq, string ampl, string dco, string squ, string outputOn, string outputOff) : base(
+        outputOn, outputOff)
     {
         Freq = freq;
         Ampl = ampl;
@@ -143,12 +172,25 @@ public class BigLoadValues : BaseDeviceValues
 
 public class HeatValues : BaseDeviceValues
 {
-    //тут ничего не будет не отвелкайся
+    public HeatValues(string outputOn, string outputOff) : base(outputOn, outputOff)
+    {
+        //тут ничего не будет не отвелкайся
+    }
 }
 
 public class SupplyValues : BaseDeviceValues
 {
     public string Voltage { get; set; }
     public string Current { get; set; }
-}
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="voltage">Напряжение</param>
+    /// <param name="current">Ток</param>
+    public SupplyValues(string voltage, string current, string outputOn, string outputOff) : base(outputOn, outputOff)
+    {
+        Voltage = voltage;
+        Current = current;
+    }
+}

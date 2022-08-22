@@ -61,4 +61,24 @@ public class MySerializer
                 });
         return json;
     }
+    
+    public void SerializeTypeVips(List<TypeVip> types)
+    {
+        var json = JsonConvert.SerializeObject(types, Formatting.Indented, new JsonSerializerSettings
+        {
+            TypeNameHandling = TypeNameHandling.Auto
+        });
+        File.WriteAllText(@"TypesVips.json", json.ToString());
+    }
+    
+    public List<TypeVip> DeserializeTypeVips()
+    {
+        var json =
+            JsonConvert.DeserializeObject<List<TypeVip>>(
+                File.ReadAllText(@"TypesVips.json"), new JsonSerializerSettings
+                {
+                    TypeNameHandling = TypeNameHandling.Auto
+                });
+        return json;
+    }
 }

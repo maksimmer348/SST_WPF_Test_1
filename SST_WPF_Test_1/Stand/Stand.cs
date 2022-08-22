@@ -704,9 +704,9 @@ public class Stand : Notify
                 {
                     TestCurrentDevice = device;
                     //отправляем команду проверки на устройство
-                    MainRelayVip.CheckedConnectRelay(device.Name);
+                    MainRelayVip.CheckedConnectRelay(device);
                     //ждем
-                    await Task.Delay(TimeSpan.FromMilliseconds(200));
+                    await Task.Delay(TimeSpan.FromMilliseconds(300));
                 }
 
                 //после задержки в этом списке будут устройства не прошедшие проверку
