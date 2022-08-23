@@ -3,44 +3,26 @@ using System.Collections.ObjectModel;
 
 namespace SST_WPF_Test_1;
 
-public class ConfigVips
+public class ConfigVips : Notify
 {
     private MainValidator mainValidator = new();
     public ObservableCollection<Vip> Vips { get; set; } = new ObservableCollection<Vip>();
-    public ObservableCollection<TypeVip> TypeVips { get; set; } = new ObservableCollection<TypeVip>();
+   
+    private ObservableCollection<TypeVip> typeVips = new();
+    public ObservableCollection<TypeVip> TypeVips
 
+{
+        get => typeVips;
+        set => Set(ref typeVips, value);
+    }
     #region Типы Випов
 
-    //TODO испрвить на реальные значения
+
     /// <summary>
     /// Предваритльное добавление типов Випов
     /// </summary>
     public void PrepareAddTypeVips()
     {
-        var typeVip71 = new TypeVip
-        {
-            Type = "Vip71",
-            //максимаьные значения во время испытаниий они означают ошибку
-            MaxTemperature = 90,
-            MaxVoltageIn = 120,
-            MaxVoltageOut1 = 20,
-            MaxVoltageOut2 = 25,
-            MaxCurrentIn = 5,
-            //максимальные значения во время предпотготовки испытания (PrepareMaxVoltageOut1 и PrepareMaxVoltageOut2
-            //берутся из MaxVoltageOut1 и MaxVoltageOut2 соотвественно)
-            PrepareMaxCurrentIn = 0.5,
-        };
-        //настройки для приборов они зависят от типа Випа
-        typeVip71.SetDeviceParameters(new DeviceParameters()
-        {
-            //TODO сделатбь так
-           // BigLoadValues =  new BigLoadValues(1,1,1,1),
-            //BigLoadValues = new BigLoadValues(),
-            //HeatValues = new HeatValues(),
-            
-        });
-        AddTypeVips(typeVip71);
-
         var typeVip70 = new TypeVip
         {
             Type = "Vip70",
@@ -53,10 +35,52 @@ public class ConfigVips
             //максимальные значения во время предпотготовки испытания (PrepareMaxVoltageOut1 и PrepareMaxVoltageOut2
             //берутся из MaxVoltageOut1 и MaxVoltageOut2 соотвественно)
             PrepareMaxCurrentIn = 0.5,
+            //процент погрешности измерения
+            PercentAccuracyCurrent = 10,
+            PercentAccuracyVoltages = 5,
         };
         //настройки для приборов они зависят от типа Випа
-       
+        typeVip70.SetDeviceParameters(new DeviceParameters()
+        {
+            BigLoadValues = new BigLoadValues("300", "4", "2", "40", "1", "0"),
+            HeatValues = new HeatValues("1", "0"),
+            SupplyValues = new SupplyValues("2", "1", "1", "0"),
+            ThermoVoltmeterValues = new ThermoVoltmeterValues("100","1", "0")
+        });
+        typeVip70.BaseDeviceValues.Add(typeVip70.GetDeviceParameters().BigLoadValues);
+        typeVip70.BaseDeviceValues.Add(typeVip70.GetDeviceParameters().HeatValues);
+        typeVip70.BaseDeviceValues.Add(typeVip70.GetDeviceParameters().SupplyValues);
+        typeVip70.BaseDeviceValues.Add(typeVip70.GetDeviceParameters().ThermoVoltmeterValues);
+        var typeVip71 = new TypeVip
+        {
+            Type = "Vip71",
+            //максимаьные значения во время испытаниий они означают ошибку
+            MaxTemperature = 90,
+            MaxVoltageIn = 120,
+            MaxVoltageOut1 = 20,
+            MaxVoltageOut2 = 25,
+            MaxCurrentIn = 5,
+            //максимальные значения во время предпотготовки испытания (PrepareMaxVoltageOut1 и PrepareMaxVoltageOut2
+            //берутся из MaxVoltageOut1 и MaxVoltageOut2 соотвественно)
+            PrepareMaxCurrentIn = 0.5,
+            //процент погрешности измерения
+            PercentAccuracyCurrent = 10,
+            PercentAccuracyVoltages = 5,
+        };
+        //настройки для приборов они зависят от типа Випа
+        typeVip71.SetDeviceParameters(new DeviceParameters()
+        {
+            BigLoadValues = new BigLoadValues("200", "3.3", "1.65", "20", "1", "0"),
+            HeatValues = new HeatValues("1", "0"),
+            SupplyValues = new SupplyValues("3", "2", "1", "0"),
+            ThermoVoltmeterValues = new ThermoVoltmeterValues("10","1", "0")
+        });
+        typeVip71.BaseDeviceValues.Add(typeVip70.GetDeviceParameters().BigLoadValues);
+        typeVip71.BaseDeviceValues.Add(typeVip70.GetDeviceParameters().HeatValues);
+        typeVip71.BaseDeviceValues.Add(typeVip70.GetDeviceParameters().SupplyValues);
+        typeVip71.BaseDeviceValues.Add(typeVip70.GetDeviceParameters().ThermoVoltmeterValues);
         AddTypeVips(typeVip70);
+        AddTypeVips(typeVip71);
     }
 
     /// <summary>
@@ -79,37 +103,36 @@ public class ConfigVips
         }
     }
 
-    public void RemoveTypeVips(int indextypeVip)
+    public void RemoveTypeVips(TypeVip tv)
     {
         try
         {
-            Console.WriteLine($"Удален тип Випа {TypeVips[indextypeVip]}");
-            TypeVips.RemoveAt(indextypeVip);
+            TypeVips.Remove(tv);
             //уведомить
         }
         catch (Exception e)
         {
-            throw new VipException($"Не удален тип Випа {TypeVips[indextypeVip]}, ошибка{e}");
+            throw new VipException($"Не удален тип Випа {tv.Type}, ошибка{e}");
         }
     }
 
-    public void ChangedTypeVips(int indextypeVip, TypeVip newTypeVips)
-    {
-        try
-        {
-            //Console.WriteLine($"До изменения типа Випа {TypeVips[indextypeVip].PrepareMaxVoltageOut1}, {TypeVips[indextypeVip].PrepareMaxVoltageOut2}");
-            Console.WriteLine(
-                $"До изменения типа Випа {TypeVips[indextypeVip].MaxVoltageOut1}, {TypeVips[indextypeVip].MaxVoltageOut2}");
-            TypeVips[indextypeVip] = newTypeVips;
-            //Console.WriteLine($"После изменения тип Випа {TypeVips[indextypeVip].PrepareMaxVoltageOut1}, {TypeVips[indextypeVip].PrepareMaxVoltageOut2}");
-            Console.WriteLine(
-                $"После изменения тип Випа {TypeVips[indextypeVip].MaxVoltageOut1}, {TypeVips[indextypeVip].MaxVoltageOut2}");
-        }
-        catch (Exception e)
-        {
-            throw new VipException($"Не изменен тип Випа {TypeVips[indextypeVip]}, ошибка{e}");
-        }
-    }
+    //public void ChangedTypeVips(int indextypeVip, TypeVip newTypeVips)
+    //{
+    //    try
+    //    {
+    //        //Console.WriteLine($"До изменения типа Випа {TypeVips[indextypeVip].PrepareMaxVoltageOut1}, {TypeVips[indextypeVip].PrepareMaxVoltageOut2}");
+    //        Console.WriteLine(
+    //            $"До изменения типа Випа {TypeVips[indextypeVip].MaxVoltageOut1}, {TypeVips[indextypeVip].MaxVoltageOut2}");
+    //        TypeVips[indextypeVip] = newTypeVips;
+    //        //Console.WriteLine($"После изменения тип Випа {TypeVips[indextypeVip].PrepareMaxVoltageOut1}, {TypeVips[indextypeVip].PrepareMaxVoltageOut2}");
+    //        Console.WriteLine(
+    //            $"После изменения тип Випа {TypeVips[indextypeVip].MaxVoltageOut1}, {TypeVips[indextypeVip].MaxVoltageOut2}");
+    //    }
+    //    catch (Exception e)
+    //    {
+    //        throw new VipException($"Не изменен тип Випа {TypeVips[indextypeVip]}, ошибка{e}");
+    //    }
+    //}
 
     #endregion
 

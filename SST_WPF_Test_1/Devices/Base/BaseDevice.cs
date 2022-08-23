@@ -245,7 +245,7 @@ public class BaseDevice : Notify
     /// </summary>
     /// <param name="nameCommand">Имя команды (например Status)</param>
     /// <param name="parameter"></param>
-    public void TransmitCmdInLib(string nameCommand, string parameter = null)
+    public string TransmitCmdInLib(string nameCommand, string parameter = null)
     {
         var selectCmd = GetLibItem(nameCommand, Name);
 
@@ -280,6 +280,8 @@ public class BaseDevice : Notify
                 selectCmd.EndOfString,
                 selectCmd.Terminator);
         }
+
+        return selectCmd.Receive;
     }
 
     /// <summary>
@@ -316,8 +318,7 @@ public class BaseDevice : Notify
     private void MessageReceived(byte[] data)
     {
         var receive = "";
-
-
+        
         if (Name == "MainRelay")
         {
             if (TypeReceive == TypeCmd.Text)
@@ -347,6 +348,7 @@ public class BaseDevice : Notify
         if (TypeReceive == TypeCmd.Text)
         {
             receive = Encoding.UTF8.GetString(data);
+            
             if (receive.Contains(selectCmd.Receive))
             {
                 ConnectDevice.Invoke(this, true);
@@ -354,6 +356,7 @@ public class BaseDevice : Notify
             }
 
             Receive.Invoke(this, receive);
+            return;
         }
 
         if (TypeReceive == TypeCmd.Hex)
@@ -370,6 +373,7 @@ public class BaseDevice : Notify
             }
 
             Receive.Invoke(this, ISerialLib.GetStringHexInText(receive));
+            return;
         }
     }
 }

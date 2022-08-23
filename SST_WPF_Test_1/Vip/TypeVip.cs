@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.Globalization;
 
 namespace SST_WPF_Test_1;
@@ -16,7 +17,7 @@ public class TypeVip : Notify
         set => Set(ref type, value);
     }
 
-    #region MyRegion
+    #region Значения для Випов
 
     //максимальные значения во время цикла испытаниий 1...n, они означают ошибку
     public double MaxTemperature { get; set; }
@@ -24,7 +25,6 @@ public class TypeVip : Notify
     public double MaxVoltageIn { get; set; }
 
     private double maxVoltageOut1;
-
     public double MaxVoltageOut1
     {
         get => maxVoltageOut1;
@@ -36,7 +36,6 @@ public class TypeVip : Notify
     }
 
     private double maxVoltageOut2;
-
     public double MaxVoltageOut2
     {
         get => maxVoltageOut2;
@@ -49,18 +48,15 @@ public class TypeVip : Notify
 
     public double MaxCurrentIn { get; set; }
 
+
+
     //максимальные значения во время замера 0
     public double PrepareMaxCurrentIn { get; set; }
     public double PrepareMaxVoltageOut1 { get; set; }
     public double PrepareMaxVoltageOut2 { get; set; }
 
-
-    private string enableTypeVipName;
-
-    /// <summary>
-    /// Тип Випа
-    /// </summary>
-    public string EnableTypeVipName
+    private bool enableTypeVipName = true;
+    public bool EnableTypeVipName
     {
         get => enableTypeVipName;
         set => Set(ref enableTypeVipName, value);
@@ -69,40 +65,20 @@ public class TypeVip : Notify
     public double PercentAccuracyVoltages { get; set; }
 
     public double PercentAccuracyCurrent { get; set; }
+
     #endregion
+
+    //
 
     #region Значения для приброров
 
-    public DeviceParameters Parameters = new DeviceParameters();
+    public ObservableCollection<BaseDeviceValues> BaseDeviceValues = new ObservableCollection<BaseDeviceValues>();
 
+    public DeviceParameters Parameters;
 
-    public void SetDeviceParameters(DeviceParameters deviceParameters)
+    public void SetDeviceParameters(DeviceParameters dp)
     {
-        Parameters = deviceParameters;
-
-        //TODO добавить проверки влиадаторы
-        //TODO темины сделать через передачу в метод класса DeviceParameters
-        // //Parameters.BigLoadValues = new BigLoadValues()
-
-
-        // {
-        //     OutputOn = "1",
-        //     OutputOff = "0",
-        //     Freq = freq.ToString(CultureInfo.InvariantCulture),
-        //     Ampl = ampl.ToString(CultureInfo.InvariantCulture),
-        //     Dco = dco.ToString(CultureInfo.InvariantCulture),
-        //     Squ = squ.ToString(CultureInfo.InvariantCulture),
-        // };
-        // Parameters.HeatValues = new HeatValues()
-        // {
-        //     OutputOn = "1",
-        //     OutputOff = "0"
-        // };
-        // Parameters.SupplyValues = new SupplyValues()
-        // {
-        //     Voltage = supVoltage.ToString(CultureInfo.InvariantCulture),
-        //     Current = supCurrent.ToString(CultureInfo.InvariantCulture)
-        // };
+        Parameters = dp;
     }
 
     public DeviceParameters GetDeviceParameters()
@@ -125,14 +101,16 @@ public class DeviceParameters
     public BigLoadValues BigLoadValues { get; set; }
     public HeatValues HeatValues { get; set; }
     public SupplyValues SupplyValues { get; set; }
-    public ThermometerValues ThermometerValues { get; set; }
+    public ThermoVoltmeterValues ThermoVoltmeterValues { get; set; }
 }
 
-public class ThermometerValues : BaseDeviceValues
+public class ThermoVoltmeterValues : BaseDeviceValues
 {
-
-    public ThermometerValues(string outputOn, string outputOff) : base(outputOn, outputOff)
+    public string VoltageMaxLimit { get; set; }
+   
+    public ThermoVoltmeterValues(string voltageMaxLimit, string outputOn, string outputOff) : base(outputOn, outputOff)
     {
+        VoltageMaxLimit = voltageMaxLimit;
     }
 }
 
@@ -160,6 +138,15 @@ public class BigLoadValues : BaseDeviceValues
     public string Dco { get; set; }
     public string Squ { get; set; }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="freq">Частота</param>
+    /// <param name="ampl">Амплитуда</param>
+    /// <param name="dco">Л=DCO</param>
+    /// <param name="squ">SQU</param>
+    /// <param name="outputOn">Вкл</param>
+    /// <param name="outputOff">Выкл</param>
     public BigLoadValues(string freq, string ampl, string dco, string squ, string outputOn, string outputOff) : base(
         outputOn, outputOff)
     {
@@ -172,6 +159,11 @@ public class BigLoadValues : BaseDeviceValues
 
 public class HeatValues : BaseDeviceValues
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="outputOn">Вкл</param>
+    /// <param name="outputOff">Выкл</param>
     public HeatValues(string outputOn, string outputOff) : base(outputOn, outputOff)
     {
         //тут ничего не будет не отвелкайся

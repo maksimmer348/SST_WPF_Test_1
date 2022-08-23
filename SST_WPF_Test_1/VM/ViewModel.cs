@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -20,8 +21,6 @@ public class ViewModel : Notify
     private MySerializer serializer = new MySerializer();
 
     private Stand standTest = new();
-
-    private ConfigVips configVips;
 
     #region Devices Устройства
 
@@ -89,7 +88,7 @@ public class ViewModel : Notify
     {
         //включаем уведомления из модели
         standTest.PropertyChanged += StandTestOnPropertyChanged;
-
+        standTest.ConfigVip.PropertyChanged += StandTestOnPropertyChanged;
         //включаем кладку Подключения Устройств
         standTest.TestRun = TypeOfTestRun.Stop;
 
@@ -116,6 +115,15 @@ public class ViewModel : Notify
 
         #endregion
 
+        #region Настройки ТиповВипов
+
+        SaveTypeVipSettingsCmd = new ActionCommand(OnSaveTypeVipSettingsCmdExecuted, CanSaveTypeVipSettingsCmdExecuted);
+
+        RemoveTypeVipSettingsCmd =
+            new ActionCommand(OnRemoveTypeVipSettingsCmdExecuted, CanRemoveTypeVipSettingsCmdExecuted);
+
+        #endregion
+
         #endregion
     }
 
@@ -124,7 +132,7 @@ public class ViewModel : Notify
     public void ConfigDevices()
     {
         DeserializeDevicesAndLib();
-
+        DeserializeTypeVips();
         //SetDevices();
         AddPrepareVips();
 
@@ -157,7 +165,16 @@ public class ViewModel : Notify
 
         DevicesInAllToSort();
     }
+    void DeserializeTypeVips()
+    {
+        //десериализация 
+        var deserializeTypeVips = serializer.DeserializeTypeVips();
 
+        standTest.ConfigVip.TypeVips = new ObservableCollection<TypeVip>(deserializeTypeVips);
+        AllTypeVips = standTest.ConfigVip.TypeVips;
+
+        DevicesInAllToSort();
+    }
     private void DevicesInAllToSort()
     {
         var devices = AllDevices.Where(x => x is not RelayVip);
@@ -246,6 +263,11 @@ public class ViewModel : Notify
         }
 
         #endregion
+
+        if (e.PropertyName == "TypeVips")
+        {
+            AllTypeVips = standTest.ConfigVip.TypeVips;
+        }
     }
 
     #region Команды
@@ -350,11 +372,11 @@ public class ViewModel : Notify
                 var mesZero = await standTest.MeasurementZero();
                 if (mesZero)
                 {
-                    var heat = await standTest.WaitForTestMode();
-                    if (heat)
-                    {
-                        await standTest.CyclicMeasurement();
-                    }
+                    // var heat = await standTest.WaitForTestMode();
+                    // if (heat)
+                    // {
+                    //     await standTest.CyclicMeasurement();
+                    // }
                 }
             }
             catch (DeviceException e)
@@ -600,39 +622,112 @@ public class ViewModel : Notify
 
     #endregion
 
+    //
 
-    #region Настройка Випов
+    #region Команда Настройка Випов
 
     /// <summary>
     /// Команда ДОБАВИТЬ тип випа
     /// </summary>
-    public ICommand AddTypeVipCmd { get; }
+    public ICommand SaveTypeVipSettingsCmd { get; }
 
-    Task OnAddTypeVipExecuted(object p)
+    Task OnSaveTypeVipSettingsCmdExecuted(object p)
     {
         var typeConfig = new TypeVip();
 
+        typeConfig.Type = TypeVipNameSettings;
+        typeConfig.PrepareMaxCurrentIn = Convert.ToDouble(PrepareMaxCurrentIn);
+        typeConfig.MaxCurrentIn = Convert.ToDouble(MaxCurrentIn);
+        typeConfig.PercentAccuracyCurrent = Convert.ToDouble(PercentAccuracyCurrent);
+        typeConfig.MaxVoltageOut1 = Convert.ToDouble(MaxVoltageOut1);
+        typeConfig.MaxVoltageOut2 = Convert.ToDouble(MaxVoltageOut2);
+        typeConfig.PercentAccuracyVoltages = Convert.ToDouble(PercentAccuracyVoltages);
+        
         typeConfig.SetDeviceParameters(new DeviceParameters()
         {
             BigLoadValues = new BigLoadValues(FreqLoad, AmplLoad, DcoLoad, SquLoad, OutputOnLoad, OutputOffLoad),
             HeatValues = new HeatValues(OutputOnHeat, OutputOffHeat),
             SupplyValues = new SupplyValues(VoltageSupply, CurrentSupply, OutputOnSupply, OutputOffSupply),
-            ThermometerValues = new ThermometerValues(OutputOnThermometer, OutputOffThermometer)
+            ThermoVoltmeterValues = new ThermoVoltmeterValues(VoltageMaxThermoVoltmeter, OutputOnThermoVoltmeter, OutputOffThermoVoltmeter)
         });
 
-        configVips.AddTypeVips(typeConfig);
+        standTest.ConfigVip.AddTypeVips(typeConfig);
+        AllTypeVips = standTest.ConfigVip.TypeVips;
+
 
         selectedTypeVips.Source = SelectTypeVipSettings?.Type;
         OnPropertyChanged(nameof(SelectedTypeVips));
 
-        var SerializeTypeVips = configVips.TypeVips.ToList();
-        serializer.SerializeTypeVips(SerializeTypeVips);
+        var serializeTypeVips = standTest.ConfigVip.TypeVips.ToList();
+        serializer.SerializeTypeVips(serializeTypeVips);
 
+        CurrentTypeVipSettings = AllTypeVips.IndexOf(typeConfig);
         return Task.CompletedTask;
     }
 
+    bool CanSaveTypeVipSettingsCmdExecuted(object p)
+    {
+        return true;
+    }
 
-    bool CanAddTypeVipExecuted(object p)
+    /// <summary>
+    /// Команда УДАЛИТЬ тип випа
+    /// </summary>
+    public ICommand RemoveTypeVipSettingsCmd { get; }
+
+    Task OnRemoveTypeVipSettingsCmdExecuted(object p)
+    {
+       var index =  AllTypeVips.IndexOf(SelectTypeVipSettings);
+
+
+        standTest.ConfigVip.RemoveTypeVips(SelectTypeVipSettings);
+        AllTypeVips = standTest.ConfigVip.TypeVips;
+
+        var serializeTypeVips = standTest.ConfigVip.TypeVips.ToList();
+        serializer.SerializeTypeVips(serializeTypeVips);
+
+        if (index > 0)
+        {
+
+            CurrentTypeVipSettings = index - 1;
+        }
+        else
+        {
+            TypeVipNameSettings = null;
+            EnableTypeVipName = true;
+            PrepareMaxCurrentIn = null;
+            MaxCurrentIn = null;
+            PercentAccuracyCurrent = null;
+            MaxVoltageOut1 = null;
+            MaxVoltageOut2 = null;
+            PercentAccuracyVoltages = null;
+
+            FreqLoad = null;
+            AmplLoad = null;
+            DcoLoad = null;
+            SquLoad = null;
+
+            OutputOnLoad = null;
+            OutputOffLoad = null;
+
+            OutputOnHeat = null;
+            OutputOffHeat = null;
+
+            VoltageSupply = null;
+            CurrentSupply = null;
+            OutputOnSupply = null;
+            OutputOffSupply = null;
+
+            VoltageMaxThermoVoltmeter = null;
+            OutputOnThermoVoltmeter = null;
+            OutputOffThermoVoltmeter = null;
+
+            CurrentTypeVipSettings = 0;
+        }
+        return Task.CompletedTask;
+    }
+
+    bool CanRemoveTypeVipSettingsCmdExecuted(object p)
     {
         return true;
     }
@@ -768,14 +863,30 @@ public class ViewModel : Notify
 
             //
 
-            if (testRun == TypeOfTestRun.WaitSettingToOperatingMode)
+            if (testRun == TypeOfTestRun.WaitSupplyMeasurementZero)
+            {
+                TextCurrentTest = " Ожидание источника питания";
+                TabsDisable();
+                CheckVipsTab = true;
+            }
+
+            if (testRun == TypeOfTestRun.WaitSupplyMeasurementZeroReady)
+            {
+                TextCurrentTest = " Ожидание источника питания ОК";
+                TabsEnable();
+            }
+
+           
+            //
+
+            if (testRun == TypeOfTestRun.WaitHeatPlate)
             {
                 TextCurrentTest = " Нагрев основания";
                 TabsDisable();
                 CheckVipsTab = true;
             }
 
-            if (testRun == TypeOfTestRun.WaitSettingToOperatingModeReady)
+            if (testRun == TypeOfTestRun.WaitHeatPlateReady)
             {
                 TextCurrentTest = " Нагрев основания ОК";
                 TabsEnable();
@@ -857,7 +968,14 @@ public class ViewModel : Notify
     {
         get => selectTab;
 
-        set => Set(ref selectTab, value);
+        set
+        {
+            Set(ref selectTab, value);
+            if (selectTab == 4 || selectTab == 1)
+            {
+                AllTypeVips = standTest.ConfigVip.TypeVips;
+            }
+        }
     }
 
     #endregion
@@ -916,7 +1034,7 @@ public class ViewModel : Notify
 
     #region Поля подключение ВИПов
 
-    public TypeVip selectTypeVip;
+    private TypeVip selectTypeVip;
 
     /// <summary>
     /// Выбор типа Випа
@@ -969,7 +1087,6 @@ public class ViewModel : Notify
         set
         {
             if (!Set(ref selectDevice, value)) return;
-
 
             NameDevice = selectDevice.Name;
 
@@ -1176,6 +1293,17 @@ public class ViewModel : Notify
         set => Set(ref transmitCmdLib, value);
     }
 
+
+    private bool xorIsHex;
+    /// <summary>
+    /// Xor можно высчитывать только если тип сообщения hex
+    /// </summary>
+    public bool XorIsHex
+    {
+        get => xorIsHex;
+        set => Set(ref xorIsHex, value);
+    }
+
     private string receiveCmdLib;
 
     /// <summary>
@@ -1264,13 +1392,32 @@ public class ViewModel : Notify
         set
         {
             selectedCmdLib = value;
+            NameCmdLib = SelectedCmdLib.Key.NameCmd;
+            TransmitCmdLib = SelectedCmdLib.Value.Transmit;
+            IsXor = SelectedCmdLib.Value.IsXor;
+            ReceiveCmdLib = SelectedCmdLib.Value.Receive;
+            TerminatorCmdLib = SelectedCmdLib.Value.Terminator;
+            TypeMessageCmdLib = SelectedCmdLib.Value.MessageType;
+            DelayCmdLib = SelectedCmdLib.Value.Delay;
+            PingCountCmdLib = SelectedCmdLib.Value.PingCount;
+            StartStingCmdLib = SelectedCmdLib.Value.StartOfString;
+            EndStringCmdLib = SelectedCmdLib.Value.EndOfString;
+
+            if (TypeMessageCmdLib == TypeCmd.Hex)
+            {
+                XorIsHex = true;
+            }
+            if (TypeMessageCmdLib == TypeCmd.Text)
+            {
+                XorIsHex = false;
+            }
             OnPropertyChanged(nameof(SelectedCmdLib));
         }
     }
 
     #endregion
 
-    #region MyRegion
+    #region Настроски типа випа
 
     private string freqLoad;
 
@@ -1404,70 +1551,96 @@ public class ViewModel : Notify
         set => Set(ref outputOffSupply, value);
     }
 
-    private string outputOnThermometer;
-
+    private string voltageMaxThermoVoltmeter;
     /// <summary>
     /// 
     /// </summary>
-    public string OutputOnThermometer
+    public string VoltageMaxThermoVoltmeter
     {
-        get => outputOnThermometer;
-        set => Set(ref outputOnThermometer, value);
+        get => voltageMaxThermoVoltmeter;
+        set => Set(ref voltageMaxThermoVoltmeter, value);
     }
 
-    private string outputOffThermometer;
+
+    private string outputOnThermoVoltmeter;
 
     /// <summary>
     /// 
     /// </summary>
-    public string OutputOffThermometer
+    public string OutputOnThermoVoltmeter
     {
-        get => outputOffThermometer;
-        set => Set(ref outputOffThermometer, value);
+        get => outputOnThermoVoltmeter;
+        set => Set(ref outputOnThermoVoltmeter, value);
+    }
+
+    private string outputOffThermoVoltmeter;
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public string OutputOffThermoVoltmeter
+    {
+        get => outputOffThermoVoltmeter;
+        set => Set(ref outputOffThermoVoltmeter, value);
     }
 
     private TypeVip selectTypeVipSettings;
 
     /// <summary>
-    /// Выбор устройства в в выпадающем списке
+    /// Выбор типа в в выпадающем списке
     /// </summary>
     public TypeVip SelectTypeVipSettings
     {
         get { return selectTypeVipSettings; }
-        set { }
-        //    if (!Set(ref selectTypeVipSettings, value)) return;
+        set
+        {
+            if (!Set(ref selectTypeVipSettings, value)) return;
 
-        //    NameDevice = selectDevice.Name;
-        //    TypeVipName = selectTypeVip.Type;
-        //    try
-        //    {
-        //        FreqLoad = selectTypeVip.GetDeviceParameters().BigLoadValues.Freq;
-        //        AmplLoad = selectTypeVip.GetDeviceParameters().BigLoadValues.Ampl;
-        //        DcoLoad = selectTypeVip.GetDeviceParameters().BigLoadValues.Dco;
-        //        SquLoad = selectTypeVip.GetDeviceParameters().BigLoadValues.Squ;
-        //        OutputOnLoad = selectTypeVip.GetDeviceParameters().BigLoadValues.OutputOn;
-        //        OutputOffLoad = selectTypeVip.GetDeviceParameters().BigLoadValues.OutputOff;
+            if (selectTypeVipSettings == null)
+            {
+                return;
+            }
+            try
+            {
+                TypeVipNameSettings = selectTypeVipSettings.Type;
+                EnableTypeVipName = selectTypeVipSettings.EnableTypeVipName;
+                PrepareMaxCurrentIn = selectTypeVipSettings.PrepareMaxCurrentIn.ToString(CultureInfo.InvariantCulture);
+                MaxCurrentIn = selectTypeVipSettings.MaxCurrentIn.ToString(CultureInfo.InvariantCulture);
+                PercentAccuracyCurrent =
+                    selectTypeVipSettings.PercentAccuracyCurrent.ToString(CultureInfo.InvariantCulture);
+                MaxVoltageOut1 = selectTypeVipSettings.PrepareMaxVoltageOut1.ToString(CultureInfo.InvariantCulture);
+                MaxVoltageOut2 = selectTypeVipSettings.MaxVoltageOut2.ToString(CultureInfo.InvariantCulture);
+                PercentAccuracyVoltages =
+                    selectTypeVipSettings.PercentAccuracyVoltages.ToString(CultureInfo.InvariantCulture);
 
-        //        OutputOnHeat = selectTypeVip.GetDeviceParameters().HeatValues.OutputOn;
-        //        OutputOffHeat = selectTypeVip.GetDeviceParameters().HeatValues.OutputOff;
+                FreqLoad = selectTypeVipSettings.GetDeviceParameters().BigLoadValues.Freq;
+                AmplLoad = selectTypeVipSettings.GetDeviceParameters().BigLoadValues.Ampl;
+                DcoLoad = selectTypeVipSettings.GetDeviceParameters().BigLoadValues.Dco;
+                SquLoad = selectTypeVipSettings.GetDeviceParameters().BigLoadValues.Squ;
+                OutputOnLoad = selectTypeVipSettings.GetDeviceParameters().BigLoadValues.OutputOn;
+                OutputOffLoad = selectTypeVipSettings.GetDeviceParameters().BigLoadValues.OutputOff;
 
-        //        VoltageSupply = selectTypeVip.GetDeviceParameters().SupplyValues.Voltage;
-        //        CurrentSupply = selectTypeVip.GetDeviceParameters().SupplyValues.Current;
-        //        OutputOnSupply = selectTypeVip.GetDeviceParameters().SupplyValues.OutputOn;
-        //        OutputOffSupply = selectTypeVip.GetDeviceParameters().SupplyValues.OutputOff;
+                OutputOnHeat = selectTypeVipSettings.GetDeviceParameters().HeatValues.OutputOn;
+                OutputOffHeat = selectTypeVipSettings.GetDeviceParameters().HeatValues.OutputOff;
 
-        //        OutputOnThermometer = selectTypeVip.GetDeviceParameters().ThermometerValues.OutputOn;
-        //        OutputOffThermometer = selectTypeVip.GetDeviceParameters().ThermometerValues.OutputOff;
+                VoltageSupply = selectTypeVipSettings.GetDeviceParameters().SupplyValues.Voltage;
+                CurrentSupply = selectTypeVipSettings.GetDeviceParameters().SupplyValues.Current;
+                OutputOnSupply = selectTypeVipSettings.GetDeviceParameters().SupplyValues.OutputOn;
+                OutputOffSupply = selectTypeVipSettings.GetDeviceParameters().SupplyValues.OutputOff;
 
-        //        //обновление типа випа выбранного
-        //        selectedTypeVips.Source = SelectTypeVipSettings?.Type;
-        //        OnPropertyChanged(nameof(SelectedTypeVips));
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        MessageBox.Show(e.Message);
-        //    }
-        //}
+                VoltageMaxThermoVoltmeter = selectTypeVipSettings.GetDeviceParameters().ThermoVoltmeterValues.VoltageMaxLimit;
+                OutputOnThermoVoltmeter = selectTypeVipSettings.GetDeviceParameters().ThermoVoltmeterValues.OutputOn;
+                OutputOffThermoVoltmeter = selectTypeVipSettings.GetDeviceParameters().ThermoVoltmeterValues.OutputOff;
+
+                //обновление типа випа выбранного
+                selectedTypeVips.Source = SelectTypeVipSettings?.Type;
+                OnPropertyChanged(nameof(SelectedTypeVips));
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+        }
     }
 
     public string TypeVipName { get; set; }
@@ -1478,6 +1651,82 @@ public class ViewModel : Notify
     /// Для показа/обновление типа випов
     /// </summary>
     public ICollectionView? SelectedTypeVips => selectedTypeVips?.View;
+
+
+    private string typeVipNameSettings;
+
+    public string TypeVipNameSettings
+    {
+        get => typeVipNameSettings;
+        set => Set(ref typeVipNameSettings, value);
+    }
+
+    private bool enableTypeVipName;
+
+    public bool EnableTypeVipName
+    {
+        get => enableTypeVipName;
+        set => Set(ref enableTypeVipName, value);
+    }
+
+    private string repareMaxCurrentIn;
+
+    public string PrepareMaxCurrentIn
+    {
+        get => repareMaxCurrentIn;
+        set => Set(ref repareMaxCurrentIn, value);
+    }
+
+    private string maxCurrentIn;
+
+    public string MaxCurrentIn
+    {
+        get => maxCurrentIn;
+        set => Set(ref maxCurrentIn, value);
+    }
+
+    private string percentAccuracyCurrent;
+
+    public string PercentAccuracyCurrent
+    {
+        get => percentAccuracyCurrent;
+        set => Set(ref percentAccuracyCurrent, value);
+    }
+
+    private string maxVoltageOut1;
+
+    public string MaxVoltageOut1
+    {
+        get => maxVoltageOut1;
+        set => Set(ref maxVoltageOut1, value);
+    }
+
+    private string maxVoltageOut2;
+
+    public string MaxVoltageOut2
+    {
+        get => maxVoltageOut2;
+        set => Set(ref maxVoltageOut2, value);
+    }
+
+    private string percentAccuracyVoltages;
+
+    public string PercentAccuracyVoltages
+    {
+        get => percentAccuracyVoltages;
+        set => Set(ref percentAccuracyVoltages, value);
+    }
+
+   
+
+    private int currentTypeVipSettings;
+
+    public int CurrentTypeVipSettings
+    {
+        get => currentTypeVipSettings;
+        set => Set(ref currentTypeVipSettings, value);
+    }
+
 
     #endregion
 

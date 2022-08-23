@@ -16,13 +16,12 @@ public class Stand : Notify
 {
     #region Компоноенты стенда
 
-    public VoltageCurrentMeter VoltmeterStand { get; set; }
-    public Thermometer ThermometerStand { get; set; }
+    public Currentmeter CurrentmeterStand { get; set; }
+    public ThermoVoltmeter ThermoVoltmeterStand { get; set; }
     public Supply SupplyStand { get; set; }
     public SmallLoad SmallLoadStand { get; set; }
     public BigLoad BigLoadStand { get; set; }
     public Heat HeatStand { get; set; }
-
     public MainRelay MainRelayVip { get; set; }
 
     private ObservableCollection<BaseDevice> devices = new();
@@ -57,6 +56,17 @@ public class Stand : Notify
     {
         get => vipsPrepareStand;
         set => Set(ref vipsPrepareStand, value);
+    }
+
+    /// <summary>
+    /// Список проверяемых Випов
+    /// </summary>
+    private ObservableCollection<Vip> vipsCheckedStand = new();
+
+    public ObservableCollection<Vip> VipsCheckedStand
+    {
+        get => vipsCheckedStand;
+        set => Set(ref vipsCheckedStand, value);
     }
 
     public ConfigVips ConfigVip { get; set; } = new ConfigVips();
@@ -259,47 +269,48 @@ public class Stand : Notify
     /// </summary>
     public void InvokeDevices()
     {
+        //TODO споросить тему
         foreach (var device in Devices)
         {
-            device.ConnectPort += OnCheckConnectPort;
-            device.ConnectDevice += OnCheckDevice;
-            device.Receive += Receive;
+            device.ConnectPort = OnCheckConnectPort;
+            device.ConnectDevice = OnCheckDevice;
+            device.Receive = Receive;
         }
 
         //TODO раскоменить елси чтот пойдет не так
         foreach (var relayVip in RelaysVips)
         {
-            relayVip.ConnectPort += OnCheckConnectPort;
-            relayVip.ConnectDevice += OnCheckDevice;
-            relayVip.Receive += Receive;
+            relayVip.ConnectPort = OnCheckConnectPort;
+            relayVip.ConnectDevice = OnCheckDevice;
+            relayVip.Receive = Receive;
         }
 
-        MainRelayVip.ConnectPort += OnCheckConnectPort;
-        MainRelayVip.ConnectDevice += OnCheckDevice;
-        MainRelayVip.Receive += Receive;
+        MainRelayVip.ConnectPort = OnCheckConnectPort;
+        MainRelayVip.ConnectDevice = OnCheckDevice;
+        MainRelayVip.Receive = Receive;
     }
 
     /// <summary>
     /// Установка приборов по умолчанию (для тестов)
     /// </summary>
-    public void SetDevices()
+    public void SetDevicesi()
     {
         if (true) //TODO (true) - если сеарилизатор недосутпен выводим исключение и создаем приборы со станрдартными настройками
         {
-            VoltmeterStand = new("GDM-78255A") { RowIndex = 0, ColumnIndex = 0 };
-            VoltmeterStand.SetConfigDevice(TypePort.SerialInput, "COM8", 115200, 1, 0, 8);
-            VoltmeterStand.ConnectPort += OnCheckConnectPort;
-            VoltmeterStand.ConnectDevice += OnCheckDevice;
-            VoltmeterStand.Receive += Receive;
-            Devices.Add(VoltmeterStand);
+            CurrentmeterStand = new("GDM-78255A") { RowIndex = 0, ColumnIndex = 0 };
+            CurrentmeterStand.SetConfigDevice(TypePort.SerialInput, "COM8", 115200, 1, 0, 8);
+            CurrentmeterStand.ConnectPort += OnCheckConnectPort;
+            CurrentmeterStand.ConnectDevice += OnCheckDevice;
+            CurrentmeterStand.Receive += Receive;
+            Devices.Add(CurrentmeterStand);
 
 
-            ThermometerStand = new("GDM-78255A") { RowIndex = 0, ColumnIndex = 2 };
-            ThermometerStand.SetConfigDevice(TypePort.SerialInput, "COM7", 115200, 1, 0, 8);
-            ThermometerStand.ConnectPort += OnCheckConnectPort;
-            ThermometerStand.ConnectDevice += OnCheckDevice;
-            ThermometerStand.Receive += Receive;
-            Devices.Add(ThermometerStand);
+            ThermoVoltmeterStand = new("GDM-78255A") { RowIndex = 0, ColumnIndex = 2 };
+            ThermoVoltmeterStand.SetConfigDevice(TypePort.SerialInput, "COM7", 115200, 1, 0, 8);
+            ThermoVoltmeterStand.ConnectPort += OnCheckConnectPort;
+            ThermoVoltmeterStand.ConnectDevice += OnCheckDevice;
+            ThermoVoltmeterStand.Receive += Receive;
+            Devices.Add(ThermoVoltmeterStand);
 
             SupplyStand = new("PSW7-800-2.88") { RowIndex = 0, ColumnIndex = 1 };
             SupplyStand.SetConfigDevice(TypePort.SerialInput, "COM5", 115200, 1, 0, 8);
@@ -444,7 +455,11 @@ public class Stand : Notify
         });
 
         //Добавляем предустановленные типы випов
-        ConfigVip.PrepareAddTypeVips();
+
+        //TODO Serialize comment
+        // ConfigVip.PrepareAddTypeVips();
+        //TODO Serialize comment
+
         TypeVips = ConfigVip.TypeVips;
     }
 
@@ -612,6 +627,7 @@ public class Stand : Notify
     private void Receive(BaseDevice device, string receive)
     {
         Debug.WriteLine($"{device.Name}/{receive}");
+
         if (!ReceiveInDevice.ContainsKey(device))
         {
             ReceiveInDevice.Add(device, new List<string>());
@@ -647,7 +663,7 @@ public class Stand : Notify
             await Task.Delay(TimeSpan.FromMilliseconds(100));
             MainRelayVip.Start();
             await Task.Delay(TimeSpan.FromMilliseconds(100));
-            
+
             //
             PercentCurrentTest = 20;
             //
@@ -847,11 +863,11 @@ public class Stand : Notify
         {
             relayVip.StatusTest = StatusDeviceTest.None;
         }
-        
+
         //предварительная настройка тестрировать ли вип => если у Випа есть имя то тестировать
         SetIsTestedVips();
         //вставка во временный список список Випов для проверки платок
-        var tempCheckVips = VipsPrepareStand.Where(x => x.IsTested);
+        var tempCheckVips = VipsPrepareStand.Where(x => x.IsTested).ToList();
         //временный список для проверяемых реле
         var tempRelays = GetRelayInVips(tempCheckVips);
 
@@ -859,6 +875,7 @@ public class Stand : Notify
 
         if (check)
         {
+            VipsCheckedStand = new ObservableCollection<Vip>(tempCheckVips);
             PercentCurrentTest = 100;
             TestRun = TypeOfTestRun.PrimaryCheckVipsReady;
         }
@@ -866,6 +883,7 @@ public class Stand : Notify
         PercentCurrentTest = 100;
         return check;
     }
+
 
     private bool isTestRun = true;
 
@@ -906,7 +924,7 @@ public class Stand : Notify
                     //ждем (если по прношесвтии этого времени в errorPortsList чтот появится значит проверка порта не прошла)
                     errorPortList = await CheckConnectPorts(tempCheckDevices);
                 }
-                
+
                 //если сбойные компорты есть 
                 if (errorPortList.Any())
                 {
@@ -1028,7 +1046,7 @@ public class Stand : Notify
 
     //
 
-    #region Инструменты отправки/приема команд на стенд
+    #region Инструменты отправки/приема команд в приборы
 
     /// <summary>
     /// Получение параметров приборов из типа Випа
@@ -1048,7 +1066,7 @@ public class Stand : Notify
             await Task.Delay(TimeSpan.FromMilliseconds(100), ctsReceiveDevice.Token);
         }
         //елси задлаче была прервана заранее полняем следующий код
-        catch (OperationCanceledException)when (token.IsCancellationRequested)
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
             return;
         }
@@ -1067,43 +1085,81 @@ public class Stand : Notify
     /// <param name="parameter">Параметр команды из типа Випа</param>
     /// <param name="token">Сброс вермени ожидания если прибор ответил раньше</param>
     /// <exception cref="StandException"></exception>
-    private async Task<bool> WriteReadCommandsChecked(BaseDevice device, string cmd,
+    private async Task<bool> WriteReadCommands(BaseDevice device, string cmd,
         string parameter = null, TempChecks tempChecks = null,
         CancellationToken token = default)
     {
-        try
+        string receiveInLib = null;
+        bool matches = false;
+
+        if (device is not RelayVip)
+        {
+            try
+            {
+                //запрос в прибор команды
+                receiveInLib = device.TransmitCmdInLib(cmd);
+
+                await Task.Delay(TimeSpan.FromMilliseconds(200), ctsReceiveDevice.Token);
+
+                //данные из листа приема от устройств
+                var receive = ReceiveInDevice[device];
+
+
+                if (receiveInLib != null && !string.IsNullOrWhiteSpace(receiveInLib))
+                {
+                    //проверка листа приема на содержание в ответе от прибора параметра команды -
+                    //берется из Recieve библиотеки
+                    matches = CastToNormalValues(receive.Last()).Contains(receiveInLib);
+                }
+                else
+                {
+                    //проверка листа приема на содержание в ответе от прибора параметра команды
+                    matches = CastToNormalValues(receive.Last()).Contains(parameter);
+                }
+
+                //очистка листа приема от устроойств
+                ReceiveInDevice[device].Clear();
+                //добавление результата проверки в список проверки
+                tempChecks?.Add(matches);
+                return matches;
+            }
+            //елси задлаче была прервана заранее полняем следующий код
+            catch (OperationCanceledException) when (token.IsCancellationRequested)
+            {
+                ctsReceiveDevice = new CancellationTokenSource();
+                var receive = ReceiveInDevice[device];
+
+                if (receiveInLib != null && !string.IsNullOrWhiteSpace(receiveInLib))
+                {
+                    //проверка листа приема на содержание в ответе от прибора параметра команды -
+                    //берется из Recieve библиотеки
+                    matches = CastToNormalValues(receive.Last()).Contains(receiveInLib);
+                }
+                else
+                {
+                    //проверка листа приема на содержание в ответе от прибора параметра команды
+                    matches = CastToNormalValues(receive.Last()).Contains(parameter);
+                }
+
+                ReceiveInDevice[device].Clear();
+                tempChecks?.Add(matches);
+                return matches;
+            }
+            catch (Exception e)
+            {
+                //если вылеатет какоето исключение записываем в лист провеки false
+                tempChecks?.Add(false);
+                throw new StandException($"StandException: ошибка \"{e.Message})]\" при проверке данных с устройства");
+            }
+        }
+
+        if (device is RelayVip relay)
         {
             //запрос в прибор команды
-            device.TransmitCmdInLib(cmd);
+            receiveInLib = relay.TransmitCmdInLib(cmd);
+        }
 
-            await Task.Delay(TimeSpan.FromMilliseconds(200), ctsReceiveDevice.Token);
-
-            //данные из листа приема от устройств
-            var receive = ReceiveInDevice[device];
-            //проверка листа приема на содержание в ответе от прибора параметра команды
-            bool matches = CastToNormalValues(receive.Last()).Contains(parameter);
-            //очистка листа приема от устроойств
-            ReceiveInDevice[device].Clear();
-            //добавление результата проверки в список проверки
-            tempChecks?.Add(matches);
-            return matches;
-        }
-        //елси задлаче была прервана заранее полняем следующий код
-        catch (OperationCanceledException)when (token.IsCancellationRequested)
-        {
-            ctsReceiveDevice = new CancellationTokenSource();
-            var receive = ReceiveInDevice[device];
-            bool matches = CastToNormalValues(receive.Last()).Contains(parameter);
-            ReceiveInDevice[device].Clear();
-            tempChecks?.Add(matches);
-            return matches;
-        }
-        catch (Exception e)
-        {
-            //если вылеатет какоето исключение записываем в лист провеки false
-            tempChecks?.Add(false);
-            throw new StandException($"StandException: ошибка  \"{e.Message})]\" при проверке данных с устройства");
-        }
+        return false;
     }
 
     /// <summary>
@@ -1113,15 +1169,65 @@ public class Stand : Notify
     /// <returns></returns>
     public string CastToNormalValues(string str)
     {
-        decimal myDecimalValue = 0;
-
-        if (str.Contains("E+"))
+        if (str != null)
         {
-            myDecimalValue = Decimal.Parse(str, System.Globalization.NumberStyles.Float);
-            return myDecimalValue.ToString(CultureInfo.InvariantCulture);
+            decimal myDecimalValue = 0;
+
+            if (str.Contains("E+"))
+            {
+                myDecimalValue = Decimal.Parse(str, System.Globalization.NumberStyles.Float);
+                return myDecimalValue.ToString(CultureInfo.InvariantCulture);
+            }
         }
 
         return str;
+    }
+
+    /// <summary>
+    /// Включение/выключение устройства
+    /// </summary>
+    /// <param name="device">Устройство</param>
+    /// <param name="values">Ответ который утройство должно отправить в ответ на запрос output</param>
+    /// <param name="on">true - вкл, false - выкл</param>
+    /// <returns>Результат включения/выключение</returns>
+    private async Task<bool> OutputDevice(BaseDevice device, BaseDeviceValues values, bool on = true)
+    {
+        if (on)
+        {
+            //если выход выкл 
+            if (await WriteReadCommands(device, "Get output", values.OutputOff,
+                    token: ctsReceiveDevice.Token))
+            {
+                //делаем выход вкл
+                await WriteCommand(device, "Set output on");
+            }
+
+            //если выход был или стал вкл продолжаем
+            if (await WriteReadCommands(device, "Get output", values.OutputOn,
+                    token: ctsReceiveDevice.Token))
+            {
+                return true;
+            }
+        }
+        else
+        {
+            //если выход вкл 
+            if (await WriteReadCommands(device, "Get output", values.OutputOn,
+                    token: ctsReceiveDevice.Token))
+            {
+                //делаем выход выкл
+                await WriteCommand(device, "Set output off");
+            }
+
+            //если выход был или стал вкл продолжаем
+            if (await WriteReadCommands(device, "Get output", values.OutputOff,
+                    token: ctsReceiveDevice.Token))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     #endregion
@@ -1129,6 +1235,8 @@ public class Stand : Notify
     //
 
     #region Замеры
+
+    Stopwatch measurementTimer = new();
 
     /// <summary>
     /// 0 замер
@@ -1147,66 +1255,100 @@ public class Stand : Notify
         TestCurrentDevice = BigLoadStand;
         TestRun = TypeOfTestRun.DeviceOperation;
 
+        //если прибор был вчелючен выключим его
+        await OutputDevice(BigLoadStand, GetParameterForDevice().BigLoadValues, false);
+
         //запрос на установку параметров генератора/большой нагрузки
         await WriteCommand(BigLoadStand, "Set freq", GetParameterForDevice().BigLoadValues.Freq);
         await WriteCommand(BigLoadStand, "Set ampl", GetParameterForDevice().BigLoadValues.Ampl);
         await WriteCommand(BigLoadStand, "Set dco", GetParameterForDevice().BigLoadValues.Dco);
         await WriteCommand(BigLoadStand, "Set squ", GetParameterForDevice().BigLoadValues.Squ);
-        percentCurrentTest = 10;
+
+        //
+        PercentCurrentTest = 10;
+        //
+
         //правильно ли были установлены пармтеры генератора/большой нагрузки
         TempChecks t = TempChecks.Start();
-        await WriteReadCommandsChecked(BigLoadStand, "Get freq", GetParameterForDevice().BigLoadValues.Freq, t,
+        //если прибор ответил правильно в t будет записан true
+        await WriteReadCommands(BigLoadStand, "Get freq", GetParameterForDevice().BigLoadValues.Freq, t,
             ctsReceiveDevice.Token);
-        await WriteReadCommandsChecked(BigLoadStand, "Get ampl", GetParameterForDevice().BigLoadValues.Ampl, t,
+        await WriteReadCommands(BigLoadStand, "Get ampl", GetParameterForDevice().BigLoadValues.Ampl, t,
             ctsReceiveDevice.Token);
-        await WriteReadCommandsChecked(BigLoadStand, "Get dco", GetParameterForDevice().BigLoadValues.Dco, t,
+        await WriteReadCommands(BigLoadStand, "Get dco", GetParameterForDevice().BigLoadValues.Dco, t,
             ctsReceiveDevice.Token);
-        await WriteReadCommandsChecked(BigLoadStand, "Get squ", GetParameterForDevice().BigLoadValues.Squ, t,
+        await WriteReadCommands(BigLoadStand, "Get squ", GetParameterForDevice().BigLoadValues.Squ, t,
             ctsReceiveDevice.Token);
         PercentCurrentTest = 20;
-        //проверяем список правильных ответов от приборов
-        if (t.IsOk)
+
+        //проверяем правильные ответы от приборов с помозтб класса t и пытаемся влючить устройство если все ок вернет тру
+        if (t.IsOk && await OutputDevice(BigLoadStand, GetParameterForDevice().BigLoadValues))
         {
-            return await OutputDevice(BigLoadStand, GetParameterForDevice().BigLoadValues);
+            //
+            PercentCurrentTest = 30;
+            //
 
-            //если выход генератора/большой нагрузки выкл 
-            if (await WriteReadCommandsChecked(BigLoadStand, "Get output",
-                    GetParameterForDevice().BigLoadValues.OutputOff,
-                    token: ctsReceiveDevice.Token))
-            {
-                //делаем выход генератора/большой нагрузки вкл
-                await WriteCommand(BigLoadStand, "Set Output on");
-            }
+            SupplyStand = Devices.GetTypeDevice<Supply>();
+            TestRun = TypeOfTestRun.DeviceOperation;
+            //статус проверяемого прибора для вьюмодели
+            TestCurrentDevice = SupplyStand;
+            //если прибор был включен выключим его
+            await OutputDevice(SupplyStand, GetParameterForDevice().BigLoadValues, false);
+            await WriteCommand(SupplyStand, "Set volt", GetParameterForDevice().SupplyValues.Voltage);
+            await WriteCommand(SupplyStand, "Set curr", GetParameterForDevice().SupplyValues.Current);
 
-            //если выход генератора/большой нагрузки был или стал вкл продолжаем
-            if (await WriteReadCommandsChecked(BigLoadStand, "Get output",
-                    GetParameterForDevice().BigLoadValues.OutputOn,
-                    token: ctsReceiveDevice.Token))
+            t = TempChecks.Start();
+            await WriteReadCommands(SupplyStand, "Get volt", GetParameterForDevice().SupplyValues.Voltage,
+                t, ctsReceiveDevice.Token);
+            await WriteReadCommands(SupplyStand, "Get curr", GetParameterForDevice().SupplyValues.Current,
+                t, ctsReceiveDevice.Token);
+            //
+            PercentCurrentTest = 50;
+            //
+            measurementTimer.Start();
+            //если прибор был выключен включим его
+            if (t.IsOk && await OutputDevice(SupplyStand, GetParameterForDevice().BigLoadValues))
             {
-                return true;
+                Debug.WriteLine($"Time suplly on {measurementTimer.Elapsed.Milliseconds}");
+                //ждем время согласно документации
+                TestRun = TypeOfTestRun.WaitSupplyMeasurementZero;
+
+                ThermoVoltmeterStand = Devices.GetTypeDevice<ThermoVoltmeter>();
+                //статус проверяемого прибора для вьюмодели
+                TestCurrentDevice = ThermoVoltmeterStand;
+                await Task.Delay(TimeSpan.FromMilliseconds(200));
+                await WriteCommand(ThermoVoltmeterStand, "Set volt meter",
+                    GetParameterForDevice().ThermoVoltmeterValues.VoltageMaxLimit);
+                t = TempChecks.Start();
+                await WriteReadCommands(ThermoVoltmeterStand, "Get volt meter",
+                    GetParameterForDevice().ThermoVoltmeterValues.VoltageMaxLimit,
+                    t, ctsReceiveDevice.Token);
+                await WriteReadCommands(ThermoVoltmeterStand, "Get func",
+                    GetParameterForDevice().ThermoVoltmeterValues.VoltageMaxLimit,
+                    t, ctsReceiveDevice.Token);
+                TestRun = TypeOfTestRun.WaitSupplyMeasurementZeroReady;
+                if (t.IsOk)
+                {
+                    EnabledRelayVips(VipsCheckedStand);
+                    return true;
+                }
             }
         }
-
+        ResetTestDeviceAndPercent();
         return false;
     }
 
-    private async Task<bool> OutputDevice(BaseDevice device, BaseDeviceValues values)
+    public async Task<bool> EnabledRelayVips(ObservableCollection<Vip> vipsCheckedStand)
     {
-        //если выход генератора/большой нагрузки выкл 
-        if (await WriteReadCommandsChecked(device, "Get output", values.OutputOff,
-                token: ctsReceiveDevice.Token))
+        TempChecks t = TempChecks.Start();
+        foreach (var vip in vipsCheckedStand)
         {
-            //делаем выход генератора/большой нагрузки вкл
-            await WriteCommand(device, "Set Output on");
+            await WriteReadCommands(vip.Relay, "On", tempChecks: t, token:ctsReceiveDevice.Token);
         }
-
-        //если выход генератора/большой нагрузки был или стал вкл продолжаем
-        if (await WriteReadCommandsChecked(device, "Get output", values.OutputOn,
-                token: ctsReceiveDevice.Token))
+        if (t.IsOk)
         {
             return true;
         }
-
         return false;
     }
 
@@ -1216,73 +1358,9 @@ public class Stand : Notify
     /// <returns>Результат нагрева плиты в заданное время/или нет</returns>
     public async Task<bool> WaitForTestMode()
     {
-        TestRun = TypeOfTestRun.None;
-        //Уведомляем что начался выход на режим 
-        TestRun = TypeOfTestRun.WaitSettingToOperatingMode;
-
-
-        //--TODO раскомменить когда добавится нагреватель--
-
-        //вытаскиваем из списка приборов - прибор нужного типа нагреватель плиты
-        //HeatStand = Devices.GetTypeDevice<Heat>();
-        //статус проверяемого прибора для вьюмодели
-        //TestCurrentDevice = HeatStand;
-        // //если выход нагреватель плиты выкл
-        // if (await WriteReadCommandsChecked(HeatStand, "Get output",
-        //         GetParameterForDevice().HeatValues.OutputOff,
-        //         token: ctsReceiveDevice.Token))
-        // {
-        //     //выход нагреватель плиты вкл
-        //     await WriteCommand(HeatStand, "Set output on");
-        // }
-        //
-        // //если выход нагреватель плиты вкл продолжаем
-        // if (await WriteReadCommandsChecked(HeatStand, "Get output",
-        //         GetParameterForDevice().HeatValues.OutputOn,
-        //         token: ctsReceiveDevice.Token))
-        // {
-
-        //--TODO раскомменить когда добавится нагреватель--
-
-        //вытаскиваем из списка приборов - прибор нужного типа нагреватель плиты
-        SupplyStand = Devices.GetTypeDevice<Supply>();
-        TestRun = TypeOfTestRun.DeviceOperation;
-        //статус проверяемого прибора для вьюмодели
-        TestCurrentDevice = SupplyStand;
-        await WriteCommand(SupplyStand, "Set volt", GetParameterForDevice().SupplyValues.Voltage);
-        await WriteCommand(SupplyStand, "Set curr", GetParameterForDevice().SupplyValues.Current);
-
-        TempChecks t = TempChecks.Start();
-        await WriteReadCommandsChecked(BigLoadStand, "Get volt", GetParameterForDevice().SupplyValues.Voltage,
-            t, ctsReceiveDevice.Token);
-        await WriteReadCommandsChecked(BigLoadStand, "Get curr", GetParameterForDevice().SupplyValues.Current,
-            t, ctsReceiveDevice.Token);
-        if (t.IsOk)
-        {
-            //TODO испарвить на supply
-            // //если выход источника выкл 
-            // if (await WriteReadCommandsChecked(BigLoadStand, "Get output",
-            //         GetParameterForDevice().BigLoadValues.OutputOff,
-            //         token: ctsReceiveDevice.Token))
-            // {
-            //     //делаем выход источника вкл
-            //     await WriteCommand(BigLoadStand, "Set output on");
-            // }
-            //
-            // //если выход источника был или стал вкл продолжаем
-            // if (await WriteReadCommandsChecked(BigLoadStand, "Get output",
-            //         GetParameterForDevice().BigLoadValues.OutputOn,
-            //         token: ctsReceiveDevice.Token))
-            // {
-            //     return true;
-            // }
-        }
-
-
-        //}//--TODO раскомменить когда добавится нагреватель--
-
-
+        ResetTestDeviceAndPercent();
         return false;
+        //TODO раскомменить когда добавится нагреватель
     }
 
     /// <summary>
@@ -1291,6 +1369,28 @@ public class Stand : Notify
     /// <returns>Успешен ли цикл/не сбойнул ли какойто прибор</returns>
     public async Task<bool> CyclicMeasurement()
     {
+        //Уведомляем что начался выход на режим 
+        TestRun = TypeOfTestRun.WaitHeatPlate;
+
+        //TODO раскомменить когда добавится нагреватель
+        //вытаскиваем из списка приборов - прибор нужного типа нагреватель плиты
+        HeatStand = Devices.GetTypeDevice<Heat>();
+        //статус проверяемого прибора для вьюмодели
+        TestCurrentDevice = HeatStand;
+
+        //если выход нагреватель плиты выкл
+        await OutputDevice(HeatStand, GetParameterForDevice().HeatValues, false);
+        if (await OutputDevice(HeatStand, GetParameterForDevice().HeatValues))
+        {
+            //TODO раскомменить когда добавится нагреватель
+
+            PercentCurrentTest = 40;
+            //
+            //вытаскиваем из списка приборов - прибор нужного типа блок питания
+            //TODO раскомменить когда добавится нагреватель
+        }
+
+
         TestRun = TypeOfTestRun.None;
         //Уведомляем что начался выход на режим 
         TestRun = TypeOfTestRun.CyclicMeasurement;

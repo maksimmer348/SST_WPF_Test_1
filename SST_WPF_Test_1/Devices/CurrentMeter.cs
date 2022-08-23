@@ -2,9 +2,9 @@
 
 namespace SST_WPF_Test_1;
 
-public class  CurrentMeter : BaseDevice
+public class  Currentmeter : BaseDevice
 {
-    public CurrentMeter(string name) : base(name)
+    public Currentmeter(string name) : base(name)
     {
         IsDeviceType = "Измеритель тока";
     }
