@@ -27,9 +27,9 @@ public class MainRelay : BaseDevice
         ReceiveRelay += ReceiveRelayMessage;
     }
 
-    public void CheckedConnectRelay(BaseDevice device)
+    public void TransmitCmdInLib(RelayVip device, string cmd)
     {
-        var selectCmd = GetLibItem("Status", device.Name);
+        var selectCmd = GetLibItem(cmd, device.Name);
 
         if (selectCmd == null)
         {
@@ -116,4 +116,16 @@ public class MainRelay : BaseDevice
             }
         }
     }
+
+    // public void EnabledRelay(BaseDevice device)
+    // {
+    //     var selectCmd = GetLibItem("Status", device.Name);
+    //     TransmitCmdInLib();
+    // }
+  
+    // public string RelayTransmitCmdInLib(RelayVip vipRelay, string cmd)
+    // {
+    //     var selectCmd = GetLibItem(cmd, vipRelay.Name);
+    //     
+    // }
 }

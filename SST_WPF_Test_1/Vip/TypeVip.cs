@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Globalization;
+using Newtonsoft.Json;
 
 namespace SST_WPF_Test_1;
 
@@ -25,6 +26,7 @@ public class TypeVip : Notify
     public double MaxVoltageIn { get; set; }
 
     private double maxVoltageOut1;
+
     public double MaxVoltageOut1
     {
         get => maxVoltageOut1;
@@ -36,6 +38,7 @@ public class TypeVip : Notify
     }
 
     private double maxVoltageOut2;
+
     public double MaxVoltageOut2
     {
         get => maxVoltageOut2;
@@ -49,13 +52,13 @@ public class TypeVip : Notify
     public double MaxCurrentIn { get; set; }
 
 
-
     //максимальные значения во время замера 0
     public double PrepareMaxCurrentIn { get; set; }
     public double PrepareMaxVoltageOut1 { get; set; }
     public double PrepareMaxVoltageOut2 { get; set; }
 
     private bool enableTypeVipName = true;
+
     public bool EnableTypeVipName
     {
         get => enableTypeVipName;
@@ -104,14 +107,95 @@ public class DeviceParameters
     public ThermoVoltmeterValues ThermoVoltmeterValues { get; set; }
 }
 
+
 public class ThermoVoltmeterValues : BaseDeviceValues
 {
-    public string VoltageMaxLimit { get; set; }
-   
+    [JsonIgnore] public string ReturnFuncGDM { get; set; }
+    [JsonIgnore] public string ReturnVoltageGDM { get; set; }
+    
+    private ModeThermoVoltmeter mode;
+
+    [JsonIgnore]
+    public ModeThermoVoltmeter Mode
+    {
+        get
+        {
+            return mode;
+        }
+        set
+        {
+            SetFuncVoltageGDM();
+            mode = value;
+        }
+    }
+
+    //
+    
+    private string voltageMaxLimit;
+
+    public string VoltageMaxLimit
+    {
+        get
+        {
+            return voltageMaxLimit;
+        }
+        set
+        {
+            SetFuncVoltageGDM();
+            voltageMaxLimit = value;
+        }
+    }
+
     public ThermoVoltmeterValues(string voltageMaxLimit, string outputOn, string outputOff) : base(outputOn, outputOff)
     {
         VoltageMaxLimit = voltageMaxLimit;
+        SetFuncVoltageGDM();
     }
+
+    void SetFuncVoltageGDM()
+    {
+        if (VoltageMaxLimit == null)
+        {
+           return;
+        }
+        else if (double.Parse(VoltageMaxLimit) == 0.1)
+        {
+            ReturnVoltageGDM = "1";
+        }
+        else if (int.Parse(VoltageMaxLimit) == 1)
+        {
+            ReturnVoltageGDM = "2";
+        }
+        else if (int.Parse(VoltageMaxLimit) == 10)
+        {
+            ReturnVoltageGDM = "3";
+        }
+        else if (int.Parse(VoltageMaxLimit) == 100)
+        {
+            ReturnVoltageGDM = "4";
+        }
+        else if (int.Parse(VoltageMaxLimit) == 1000)
+        {
+            ReturnVoltageGDM = "5";
+        }
+
+        if (Mode == ModeThermoVoltmeter.Voltage)
+        {
+            ReturnFuncGDM = "1";
+        }
+
+        if (Mode == ModeThermoVoltmeter.Themperature)
+        {
+            ReturnFuncGDM = "9";
+        }
+    }
+}
+
+public enum ModeThermoVoltmeter
+{
+    None,
+    Voltage,
+    Themperature
 }
 
 public class BaseDeviceValues

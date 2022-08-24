@@ -293,103 +293,101 @@ public class Stand : Notify
     /// <summary>
     /// Установка приборов по умолчанию (для тестов)
     /// </summary>
-    public void SetDevicesi()
-    {
-        if (true) //TODO (true) - если сеарилизатор недосутпен выводим исключение и создаем приборы со станрдартными настройками
-        {
-            CurrentmeterStand = new("GDM-78255A") { RowIndex = 0, ColumnIndex = 0 };
-            CurrentmeterStand.SetConfigDevice(TypePort.SerialInput, "COM8", 115200, 1, 0, 8);
-            CurrentmeterStand.ConnectPort += OnCheckConnectPort;
-            CurrentmeterStand.ConnectDevice += OnCheckDevice;
-            CurrentmeterStand.Receive += Receive;
-            Devices.Add(CurrentmeterStand);
-
-
-            ThermoVoltmeterStand = new("GDM-78255A") { RowIndex = 0, ColumnIndex = 2 };
-            ThermoVoltmeterStand.SetConfigDevice(TypePort.SerialInput, "COM7", 115200, 1, 0, 8);
-            ThermoVoltmeterStand.ConnectPort += OnCheckConnectPort;
-            ThermoVoltmeterStand.ConnectDevice += OnCheckDevice;
-            ThermoVoltmeterStand.Receive += Receive;
-            Devices.Add(ThermoVoltmeterStand);
-
-            SupplyStand = new("PSW7-800-2.88") { RowIndex = 0, ColumnIndex = 1 };
-            SupplyStand.SetConfigDevice(TypePort.SerialInput, "COM5", 115200, 1, 0, 8);
-            SupplyStand.ConnectPort += OnCheckConnectPort;
-            SupplyStand.ConnectDevice += OnCheckDevice;
-            SupplyStand.Receive += Receive;
-            Devices.Add(SupplyStand);
-
-            //TODO вернуть 
-            // SmallLoadStand = new("SMLL LOAD-87") { RowIndex = 0, ColumnIndex = 3 };
-            // SmallLoadStand.SetConfigDevice(TypePort.SerialInput, "COM60", 2400, 1, 0, 8);
-            // SmallLoadStand.ConnectPort += OnCheckConnectPort;
-            // SmallLoadStand.ConnectDevice += OnCheckDevice;
-            // SmallLoadStand.Receive += Receive;
-            //Devices.Add(SmallLoadStand);
-
-            BigLoadStand = new("AFG-72112") { RowIndex = 0, ColumnIndex = 4 };
-            BigLoadStand.SetConfigDevice(TypePort.SerialInput, "COM6", 115200, 1, 0, 8);
-            BigLoadStand.ConnectPort += OnCheckConnectPort;
-            BigLoadStand.ConnectDevice += OnCheckDevice;
-            BigLoadStand.Receive += Receive;
-            Devices.Add(BigLoadStand);
-
-            //TODO вернуть 
-            // HeatStand = new("Heat") { RowIndex = 0, ColumnIndex = 5 };
-            // HeatStand.SetConfigDevice(TypePort.SerialInput, "COM80", 9600, 1, 0, 8);
-            // HeatStand.ConnectPort += OnCheckConnectPort;
-            // HeatStand.ConnectDevice += OnCheckDevice;
-            // HeatStand.Receive += Receive;
-            //Devices.Add(HeatStand);
-
-            //TODO вернуть 
-            // Devices.Add(new SwitcherMeter("1") { RowIndex = 1, ColumnIndex = 0 });
-            // Devices.Add(new SwitcherMeter("2") { RowIndex = 1, ColumnIndex = 1 });
-            // Devices.Add(new SwitcherMeter("3") { RowIndex = 1, ColumnIndex = 2 });
-            // Devices.Add(new SwitcherMeter("4") { RowIndex = 1, ColumnIndex = 3 });
-            // Devices.Add(new SwitcherMeter("5") { RowIndex = 1, ColumnIndex = 4 });
-            // Devices.Add(new SwitcherMeter("6") { RowIndex = 1, ColumnIndex = 5 });
-            // Devices.Add(new SwitcherMeter("7") { RowIndex = 2, ColumnIndex = 0 });
-            // Devices.Add(new SwitcherMeter("8") { RowIndex = 2, ColumnIndex = 1 });
-            // Devices.Add(new SwitcherMeter("9") { RowIndex = 2, ColumnIndex = 2 });
-            // Devices.Add(new SwitcherMeter("10") { RowIndex = 2, ColumnIndex = 3 });
-            // Devices.Add(new SwitcherMeter("11") { RowIndex = 2, ColumnIndex = 4 });
-            // Devices.Add(new SwitcherMeter("12") { RowIndex = 2, ColumnIndex = 5 });
-
-            //TODO вернуть 
-            // foreach (var switcherMeter in Devices)
-            // {
-            //     if(switcherMeter is SwitcherMeter)
-            //     switcherMeter.SetConfigDevice(TypePort.SerialInput, "COM2", 9600, 1, 0, 8);
-            //     switcherMeter.ConnectPort += OnCheckConnectPort;
-            //     switcherMeter.ConnectDevice += OnCheckDevice;
-            //     switcherMeter.Receive += Receive;
-            // }
-
-            RelaysVips.Add(new RelayVip("1"));
-            RelaysVips.Add(new RelayVip("2"));
-            RelaysVips.Add(new RelayVip("3"));
-            RelaysVips.Add(new RelayVip("4"));
-            RelaysVips.Add(new RelayVip("5"));
-            RelaysVips.Add(new RelayVip("6"));
-            RelaysVips.Add(new RelayVip("7"));
-            RelaysVips.Add(new RelayVip("8"));
-            RelaysVips.Add(new RelayVip("9"));
-            RelaysVips.Add(new RelayVip("10"));
-            RelaysVips.Add(new RelayVip("11"));
-            RelaysVips.Add(new RelayVip("12"));
-            //TODO вернуть 
-            foreach (var relay in RelaysVips)
-            {
-                relay.SetConfigDevice(TypePort.SerialInput, "COM3", 9600, 1, 0, 8);
-                relay.ConnectPort += OnCheckConnectPort;
-                relay.ConnectDevice += OnCheckDevice;
-                relay.Receive += Receive;
-            }
-        }
-    }
-
-
+    // public void SetDevices()
+    // {
+    //     if (true) //TODO (true) - если сеарилизатор недосутпен выводим исключение и создаем приборы со станрдартными настройками
+    //     {
+    //         CurrentmeterStand = new("GDM-78255A") { RowIndex = 0, ColumnIndex = 0 };
+    //         CurrentmeterStand.SetConfigDevice(TypePort.SerialInput, "COM8", 115200, 1, 0, 8);
+    //         CurrentmeterStand.ConnectPort += OnCheckConnectPort;
+    //         CurrentmeterStand.ConnectDevice += OnCheckDevice;
+    //         CurrentmeterStand.Receive += Receive;
+    //         Devices.Add(CurrentmeterStand);
+    //
+    //
+    //         ThermoVoltmeterStand = new("GDM-78255A") { RowIndex = 0, ColumnIndex = 2 };
+    //         ThermoVoltmeterStand.SetConfigDevice(TypePort.SerialInput, "COM7", 115200, 1, 0, 8);
+    //         ThermoVoltmeterStand.ConnectPort += OnCheckConnectPort;
+    //         ThermoVoltmeterStand.ConnectDevice += OnCheckDevice;
+    //         ThermoVoltmeterStand.Receive += Receive;
+    //         Devices.Add(ThermoVoltmeterStand);
+    //
+    //         SupplyStand = new("PSW7-800-2.88") { RowIndex = 0, ColumnIndex = 1 };
+    //         SupplyStand.SetConfigDevice(TypePort.SerialInput, "COM5", 115200, 1, 0, 8);
+    //         SupplyStand.ConnectPort += OnCheckConnectPort;
+    //         SupplyStand.ConnectDevice += OnCheckDevice;
+    //         SupplyStand.Receive += Receive;
+    //         Devices.Add(SupplyStand);
+    //
+    //         //TODO вернуть 
+    //         // SmallLoadStand = new("SMLL LOAD-87") { RowIndex = 0, ColumnIndex = 3 };
+    //         // SmallLoadStand.SetConfigDevice(TypePort.SerialInput, "COM60", 2400, 1, 0, 8);
+    //         // SmallLoadStand.ConnectPort += OnCheckConnectPort;
+    //         // SmallLoadStand.ConnectDevice += OnCheckDevice;
+    //         // SmallLoadStand.Receive += Receive;
+    //         //Devices.Add(SmallLoadStand);
+    //
+    //         BigLoadStand = new("AFG-72112") { RowIndex = 0, ColumnIndex = 4 };
+    //         BigLoadStand.SetConfigDevice(TypePort.SerialInput, "COM6", 115200, 1, 0, 8);
+    //         BigLoadStand.ConnectPort += OnCheckConnectPort;
+    //         BigLoadStand.ConnectDevice += OnCheckDevice;
+    //         BigLoadStand.Receive += Receive;
+    //         Devices.Add(BigLoadStand);
+    //
+    //         //TODO вернуть 
+    //         // HeatStand = new("Heat") { RowIndex = 0, ColumnIndex = 5 };
+    //         // HeatStand.SetConfigDevice(TypePort.SerialInput, "COM80", 9600, 1, 0, 8);
+    //         // HeatStand.ConnectPort += OnCheckConnectPort;
+    //         // HeatStand.ConnectDevice += OnCheckDevice;
+    //         // HeatStand.Receive += Receive;
+    //         //Devices.Add(HeatStand);
+    //
+    //         //TODO вернуть 
+    //         // Devices.Add(new SwitcherMeter("1") { RowIndex = 1, ColumnIndex = 0 });
+    //         // Devices.Add(new SwitcherMeter("2") { RowIndex = 1, ColumnIndex = 1 });
+    //         // Devices.Add(new SwitcherMeter("3") { RowIndex = 1, ColumnIndex = 2 });
+    //         // Devices.Add(new SwitcherMeter("4") { RowIndex = 1, ColumnIndex = 3 });
+    //         // Devices.Add(new SwitcherMeter("5") { RowIndex = 1, ColumnIndex = 4 });
+    //         // Devices.Add(new SwitcherMeter("6") { RowIndex = 1, ColumnIndex = 5 });
+    //         // Devices.Add(new SwitcherMeter("7") { RowIndex = 2, ColumnIndex = 0 });
+    //         // Devices.Add(new SwitcherMeter("8") { RowIndex = 2, ColumnIndex = 1 });
+    //         // Devices.Add(new SwitcherMeter("9") { RowIndex = 2, ColumnIndex = 2 });
+    //         // Devices.Add(new SwitcherMeter("10") { RowIndex = 2, ColumnIndex = 3 });
+    //         // Devices.Add(new SwitcherMeter("11") { RowIndex = 2, ColumnIndex = 4 });
+    //         // Devices.Add(new SwitcherMeter("12") { RowIndex = 2, ColumnIndex = 5 });
+    //
+    //         //TODO вернуть 
+    //         // foreach (var switcherMeter in Devices)
+    //         // {
+    //         //     if(switcherMeter is SwitcherMeter)
+    //         //     switcherMeter.SetConfigDevice(TypePort.SerialInput, "COM2", 9600, 1, 0, 8);
+    //         //     switcherMeter.ConnectPort += OnCheckConnectPort;
+    //         //     switcherMeter.ConnectDevice += OnCheckDevice;
+    //         //     switcherMeter.Receive += Receive;
+    //         // }
+    //
+    //         RelaysVips.Add(new RelayVip("1"));
+    //         RelaysVips.Add(new RelayVip("2"));
+    //         RelaysVips.Add(new RelayVip("3"));
+    //         RelaysVips.Add(new RelayVip("4"));
+    //         RelaysVips.Add(new RelayVip("5"));
+    //         RelaysVips.Add(new RelayVip("6"));
+    //         RelaysVips.Add(new RelayVip("7"));
+    //         RelaysVips.Add(new RelayVip("8"));
+    //         RelaysVips.Add(new RelayVip("9"));
+    //         RelaysVips.Add(new RelayVip("10"));
+    //         RelaysVips.Add(new RelayVip("11"));
+    //         RelaysVips.Add(new RelayVip("12"));
+    //         //TODO вернуть 
+    //         foreach (var relay in RelaysVips)
+    //         {
+    //             relay.SetConfigDevice(TypePort.SerialInput, "COM3", 9600, 1, 0, 8);
+    //             relay.ConnectPort += OnCheckConnectPort;
+    //             relay.ConnectDevice += OnCheckDevice;
+    //             relay.Receive += Receive;
+    //         }
+    //     }
+    // }
     void SetPrepareVips()
     {
         VipsPrepareStand = new();
@@ -668,12 +666,14 @@ public class Stand : Notify
             PercentCurrentTest = 20;
             //
 
+            //тк все релейны платы висят на одном компорту то если маин реле проходит проверку, проверку проходят
+            //и все релейные платы на нем 
             if (TempVerifiedDevices.Contains(MainRelayVip))
             {
                 return new List<BaseDevice>();
             }
 
-            //если 
+            //после задержки в этом списке будет маин реле не прошедшее проверку
             return tempCheckDevices;
         }
 
@@ -720,9 +720,17 @@ public class Stand : Notify
                 {
                     TestCurrentDevice = device;
                     //отправляем команду проверки на устройство
-                    MainRelayVip.CheckedConnectRelay(device);
+                    MainRelayVip.TransmitCmdInLib((RelayVip)device, "Status");
+
                     //ждем
-                    await Task.Delay(TimeSpan.FromMilliseconds(300));
+                    if (externalDelay == 0)
+                    {
+                        await Task.Delay(TimeSpan.FromMilliseconds(300));
+                    }
+                    else
+                    {
+                        await Task.Delay(TimeSpan.FromMilliseconds(externalDelay));
+                    }
                 }
 
                 //после задержки в этом списке будут устройства не прошедшие проверку
@@ -738,7 +746,14 @@ public class Stand : Notify
                 }
 
                 //ждем
-                await Task.Delay(TimeSpan.FromMilliseconds(800), ctsCheckDevice.Token);
+                if (externalDelay == 0)
+                {
+                    await Task.Delay(TimeSpan.FromMilliseconds(800), ctsCheckDevice.Token);
+                }
+                else
+                {
+                    await Task.Delay(TimeSpan.FromMilliseconds(externalDelay));
+                }
 
                 //после задержки в этом списке будут устройства не прошедшие проверку
                 tempErrorDevices = GetErrorDevices(tempCheckDevices);
@@ -1057,6 +1072,19 @@ public class Stand : Notify
         return vipsPrepareStand[0].Type.GetDeviceParameters();
     }
 
+
+    /// <summary>
+    /// Установка параметров приборов в тип Випа
+    /// </summary>
+    /// <param name="bdv">Вид прибора в ктороый будут установлены значения</param>
+    void SetParameterThermoVoltmeter(ModeThermoVoltmeter mode = ModeThermoVoltmeter.None)
+    {
+        foreach (var vip in vipsPrepareStand)
+        {
+            vip.Type.Parameters.ThermoVoltmeterValues.Mode = mode;
+        }
+    }
+
     private async Task WriteCommand(BaseDevice device, string cmd, string parameter = null,
         CancellationToken token = default)
     {
@@ -1083,67 +1111,83 @@ public class Stand : Notify
     /// <param name="device">Проверяемый прибор</param>
     /// <param name="cmd">Стандартная команда из библиотеки</param>
     /// <param name="parameter">Параметр команды из типа Випа</param>
+    /// <param name="externalDelay">Внешняя задержка использование ее отключает токен</param>
     /// <param name="token">Сброс вермени ожидания если прибор ответил раньше</param>
     /// <exception cref="StandException"></exception>
     private async Task<bool> WriteReadCommands(BaseDevice device, string cmd,
-        string parameter = null, TempChecks tempChecks = null,
+        string parameter = null, TempChecks tempChecks = null, int externalDelay = 0,
         CancellationToken token = default)
     {
         string receiveInLib = null;
         bool matches = false;
 
-        if (device is not RelayVip)
+        if (device is not MainRelay)
         {
             try
             {
                 //запрос в прибор команды
                 receiveInLib = device.TransmitCmdInLib(cmd);
 
-                await Task.Delay(TimeSpan.FromMilliseconds(200), ctsReceiveDevice.Token);
-
-                //данные из листа приема от устройств
-                var receive = ReceiveInDevice[device];
-
-
-                if (receiveInLib != null && !string.IsNullOrWhiteSpace(receiveInLib))
+                if (externalDelay == 0)
                 {
-                    //проверка листа приема на содержание в ответе от прибора параметра команды -
-                    //берется из Recieve библиотеки
-                    matches = CastToNormalValues(receive.Last()).Contains(receiveInLib);
-                }
-                else
-                {
-                    //проверка листа приема на содержание в ответе от прибора параметра команды
-                    matches = CastToNormalValues(receive.Last()).Contains(parameter);
+                    await Task.Delay(TimeSpan.FromMilliseconds(200), ctsReceiveDevice.Token);
                 }
 
-                //очистка листа приема от устроойств
-                ReceiveInDevice[device].Clear();
-                //добавление результата проверки в список проверки
-                tempChecks?.Add(matches);
-                return matches;
+                if (externalDelay > 0)
+                {
+                    await Task.Delay(TimeSpan.FromMilliseconds(externalDelay));
+                }
+
+                //установка параметров для проверки GDM термо/вольтметра см. документацию GDM-8255A
+                if (device is ThermoVoltmeter t)
+                {
+                    if (t.Name.ToLower().Contains("gdm"))
+                    {
+                        if (cmd.Contains("Get volt"))
+                        {
+                            SetParameterThermoVoltmeter(ModeThermoVoltmeter.Voltage);
+
+                            return CheckedsDeviceOnParanmeter(device, receiveInLib, matches,
+                                GetParameterForDevice().ThermoVoltmeterValues.ReturnVoltageGDM, tempChecks);
+                        }
+
+                        if (cmd.Contains("Get term"))
+                        {
+                            SetParameterThermoVoltmeter(ModeThermoVoltmeter.Themperature);
+
+                            //TODO исправить ThermoVoltmeterValues.ReturnFuncGDM на другое вероятно или нет 
+                            return CheckedsDeviceOnParanmeter(device, receiveInLib, matches,
+                                GetParameterForDevice().ThermoVoltmeterValues.ReturnFuncGDM, tempChecks);
+                        }
+
+                        if (cmd.Contains("Get func"))
+                        {
+                            return CheckedsDeviceOnParanmeter(device, receiveInLib, matches,
+                                GetParameterForDevice().ThermoVoltmeterValues.ReturnFuncGDM, tempChecks);
+                        }
+                    }
+                }
+
+                var isGdmCheck = CheckGdm(device, cmd, receiveInLib, matches, tempChecks);
+                if (isGdmCheck.Item1 == false && isGdmCheck.Item2 == false)
+                {
+                    return CheckedsDeviceOnParanmeter(device, receiveInLib, matches, parameter, tempChecks);
+                }
+
+                return isGdmCheck.Item2;
             }
             //елси задлаче была прервана заранее полняем следующий код
             catch (OperationCanceledException) when (token.IsCancellationRequested)
             {
                 ctsReceiveDevice = new CancellationTokenSource();
-                var receive = ReceiveInDevice[device];
 
-                if (receiveInLib != null && !string.IsNullOrWhiteSpace(receiveInLib))
+                var isGdmCheck = CheckGdm(device, cmd, receiveInLib, matches, tempChecks);
+                if (isGdmCheck.Item1 == false && isGdmCheck.Item2 == false)
                 {
-                    //проверка листа приема на содержание в ответе от прибора параметра команды -
-                    //берется из Recieve библиотеки
-                    matches = CastToNormalValues(receive.Last()).Contains(receiveInLib);
-                }
-                else
-                {
-                    //проверка листа приема на содержание в ответе от прибора параметра команды
-                    matches = CastToNormalValues(receive.Last()).Contains(parameter);
+                    return CheckedsDeviceOnParanmeter(device, receiveInLib, matches, parameter, tempChecks);
                 }
 
-                ReceiveInDevice[device].Clear();
-                tempChecks?.Add(matches);
-                return matches;
+                return isGdmCheck.Item2;
             }
             catch (Exception e)
             {
@@ -1153,13 +1197,109 @@ public class Stand : Notify
             }
         }
 
-        if (device is RelayVip relay)
+        if (device is MainRelay main)
         {
+            foreach (var vip in VipsCheckedStand)
+            {
+                main.TransmitCmdInLib(vip.Relay, cmd);
+
+                if (externalDelay == 0)
+                {
+                    await Task.Delay(TimeSpan.FromMilliseconds(200), ctsReceiveDevice.Token);
+                }
+
+                if (externalDelay > 0)
+                {
+                    await Task.Delay(TimeSpan.FromMilliseconds(externalDelay));
+                }
+
+                return CheckedsDeviceOnParanmeter(device, receiveInLib, matches, parameter, tempChecks);
+            }
+
+
+            //receiveInLib = device.TransmitCmdInLib(cmd);
+            //
             //запрос в прибор команды
-            receiveInLib = relay.TransmitCmdInLib(cmd);
+            // receiveInLib = relay.TransmitCmdInLib(cmd);
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Проверка GDM устройств (см. документацию)
+    /// </summary>
+    /// <param name="device">Проверяемо утсройство</param>
+    /// <param name="cmd">Команда в кторой содержится нужна последовательность</param>
+    /// <param name="receiveInLib">Шаблонный ответ из бибилиотеки</param>
+    /// <param name="matches"></param>
+    /// <param name="tempChecks">Результат проверка листа приема на соответвие параметру из Типа Випа</param>
+    /// <returns>Item1 - соответвует ли device GDM устройству
+    /// Item2 - Прошла ли проверка устройства согласно алгоритму</returns>
+    (bool, bool) CheckGdm(BaseDevice device, string cmd,
+        string receiveInLib, bool matches, TempChecks tempChecks)
+    {
+        //установка параметров для проверки GDM термо/вольтметра см. документацию GDM-8255A
+        if (device is ThermoVoltmeter t)
+        {
+            var matchesGdm = false;
+            if (t.Name.ToLower().Contains("gdm"))
+            {
+                if (cmd.Contains("Get volt"))
+                {
+                    SetParameterThermoVoltmeter(ModeThermoVoltmeter.Voltage);
+
+                    CheckedsDeviceOnParanmeter(device, receiveInLib, matches,
+                        GetParameterForDevice().ThermoVoltmeterValues.ReturnVoltageGDM, tempChecks);
+                    return (true, matchesGdm);
+                }
+
+                if (cmd.Contains("Get term"))
+                {
+                    SetParameterThermoVoltmeter(ModeThermoVoltmeter.Themperature);
+                    matchesGdm = CheckedsDeviceOnParanmeter(device, receiveInLib, matches,
+                        GetParameterForDevice().ThermoVoltmeterValues.ReturnFuncGDM, tempChecks);
+                    return (true, matchesGdm);
+                }
+
+                if (cmd.Contains("Get func"))
+                {
+                    matchesGdm = CheckedsDeviceOnParanmeter(device, receiveInLib, matches,
+                        GetParameterForDevice().ThermoVoltmeterValues.ReturnFuncGDM, tempChecks);
+                    return (true, matchesGdm);
+                }
+            }
+        }
+
+        return (false, false);
+    }
+
+    bool CheckedsDeviceOnParanmeter(BaseDevice device, string receiveInLib, bool matches, string parameter,
+        TempChecks tempChecks)
+    {
+        receiveInLib = null;
+        matches = false;
+
+        //данные из листа приема от устройств
+        var receive = ReceiveInDevice[device];
+
+        if (receiveInLib != null && !string.IsNullOrWhiteSpace(receiveInLib))
+        {
+            //проверка листа приема на содержание в ответе от прибора параметра команды -
+            //берется из Recieve библиотеки
+            matches = CastToNormalValues(receive.Last()).Contains(receiveInLib);
+        }
+        else
+        {
+            //проверка листа приема на содержание в ответе от прибора параметра команды
+            matches = CastToNormalValues(receive.Last()).Contains(parameter);
+        }
+
+        //очистка листа приема от устроойств
+        ReceiveInDevice[device].Clear();
+        //добавление результата проверки в список проверки
+        tempChecks?.Add(matches);
+        return matches;
     }
 
     /// <summary>
@@ -1272,13 +1412,13 @@ public class Stand : Notify
         TempChecks t = TempChecks.Start();
         //если прибор ответил правильно в t будет записан true
         await WriteReadCommands(BigLoadStand, "Get freq", GetParameterForDevice().BigLoadValues.Freq, t,
-            ctsReceiveDevice.Token);
+            token: ctsReceiveDevice.Token);
         await WriteReadCommands(BigLoadStand, "Get ampl", GetParameterForDevice().BigLoadValues.Ampl, t,
-            ctsReceiveDevice.Token);
+            token: ctsReceiveDevice.Token);
         await WriteReadCommands(BigLoadStand, "Get dco", GetParameterForDevice().BigLoadValues.Dco, t,
-            ctsReceiveDevice.Token);
+            token: ctsReceiveDevice.Token);
         await WriteReadCommands(BigLoadStand, "Get squ", GetParameterForDevice().BigLoadValues.Squ, t,
-            ctsReceiveDevice.Token);
+            token: ctsReceiveDevice.Token);
         PercentCurrentTest = 20;
 
         //проверяем правильные ответы от приборов с помозтб класса t и пытаемся влючить устройство если все ок вернет тру
@@ -1299,15 +1439,15 @@ public class Stand : Notify
 
             t = TempChecks.Start();
             await WriteReadCommands(SupplyStand, "Get volt", GetParameterForDevice().SupplyValues.Voltage,
-                t, ctsReceiveDevice.Token);
+                t, token: ctsReceiveDevice.Token);
             await WriteReadCommands(SupplyStand, "Get curr", GetParameterForDevice().SupplyValues.Current,
-                t, ctsReceiveDevice.Token);
+                t, token: ctsReceiveDevice.Token);
             //
             PercentCurrentTest = 50;
             //
             measurementTimer.Start();
             //если прибор был выключен включим его
-            if (t.IsOk && await OutputDevice(SupplyStand, GetParameterForDevice().BigLoadValues))
+            if (t.IsOk && await OutputDevice(SupplyStand, GetParameterForDevice().SupplyValues))
             {
                 Debug.WriteLine($"Time suplly on {measurementTimer.Elapsed.Milliseconds}");
                 //ждем время согласно документации
@@ -1319,38 +1459,46 @@ public class Stand : Notify
                 await Task.Delay(TimeSpan.FromMilliseconds(200));
                 await WriteCommand(ThermoVoltmeterStand, "Set volt meter",
                     GetParameterForDevice().ThermoVoltmeterValues.VoltageMaxLimit);
+
                 t = TempChecks.Start();
                 await WriteReadCommands(ThermoVoltmeterStand, "Get volt meter",
                     GetParameterForDevice().ThermoVoltmeterValues.VoltageMaxLimit,
-                    t, ctsReceiveDevice.Token);
+                    t, token: ctsReceiveDevice.Token);
                 await WriteReadCommands(ThermoVoltmeterStand, "Get func",
                     GetParameterForDevice().ThermoVoltmeterValues.VoltageMaxLimit,
-                    t, ctsReceiveDevice.Token);
+                    t, token: ctsReceiveDevice.Token);
                 TestRun = TypeOfTestRun.WaitSupplyMeasurementZeroReady;
                 if (t.IsOk)
                 {
-                    EnabledRelayVips(VipsCheckedStand);
+                    await EnabledRelayVips();
                     return true;
                 }
             }
         }
+
         ResetTestDeviceAndPercent();
         return false;
     }
 
-    public async Task<bool> EnabledRelayVips(ObservableCollection<Vip> vipsCheckedStand)
+    public async Task<bool> EnabledRelayVips()
     {
+        List<BaseDevice> tempErrorDevices = new List<BaseDevice>();
         TempChecks t = TempChecks.Start();
-        foreach (var vip in vipsCheckedStand)
-        {
-            await WriteReadCommands(vip.Relay, "On", tempChecks: t, token:ctsReceiveDevice.Token);
-        }
-        if (t.IsOk)
-        {
-            return true;
-        }
+        await WriteReadCommands(MainRelayVip, "On", tempChecks: t, externalDelay: 5000);
+        //TODO спросить у темы как сделать вкл выкл випов наподобии checkDevices();
+        // foreach (var vip in VipsCheckedStand)
+        // {
+        //     MainRelayVip.TransmitCmdInLib(vip.Relay, "On");
+        //
+        //     await Task.Delay(TimeSpan.FromMilliseconds(5000));
+        //     //после задержки в этом списке будут устройства не прошедшие проверку
+        //     tempErrorDevices = GetErrorDevices(tempCheckDevices);
+        // }
+
+        //ждем
         return false;
     }
+
 
     /// <summary>
     /// Ожидание нагрева плиты и выход на режим

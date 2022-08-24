@@ -10,7 +10,7 @@ public class  Currentmeter : BaseDevice
     }
 }
 
-internal enum MeterMode
+public enum MeterMode
 {
     VoltageOut1,
     VoltageOut2
