@@ -9,3 +9,14 @@ public enum StatusDeviceTest
     Error,
     Ok
 }
+
+
+/// <summary>
+/// Вкллючено/выключено
+/// </summary>
+public enum OnOffStatus
+{
+    None = 0,
+    On,
+    Off
+}

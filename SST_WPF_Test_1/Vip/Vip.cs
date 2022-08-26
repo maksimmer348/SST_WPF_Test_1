@@ -18,12 +18,13 @@ public class Vip : Notify
     public bool IsTested { get; set; }
 
     public string number;
+
     public string Number
     {
         get => number;
         set
         {
-            if (!Set(ref number, value, nameof(Name))) return;//, nameof(IsTested))) return;
+            if (!Set(ref number, value, nameof(Name))) return; //, nameof(IsTested))) return;
 
             if (!string.IsNullOrWhiteSpace(number))
             {
@@ -43,6 +44,7 @@ public class Vip : Notify
         Id = id;
         Name = $"ВИП - {Id}";
     }
+
     private StatusDeviceTest statusTest;
 
     public StatusDeviceTest StatusTest
@@ -58,7 +60,28 @@ public class Vip : Notify
             StatusDeviceTest.Ok => Brushes.Green,
             _ => Brushes.DarkGray
         };
+
     
+    private OnOffStatus statusOnOff;
+    public OnOffStatus StatusOnOff
+    {
+        get => statusOnOff;
+        set => Set(ref statusOnOff, value, nameof(OnOffColor));
+    }
+
+    public object OnOffColor
+    {
+        get
+        {
+            return StatusOnOff switch
+            {
+                OnOffStatus.Off => Brushes.Red,
+                OnOffStatus.On => Brushes.Green,
+                _ => Brushes.DarkGray
+            };
+        }
+    }
+
     /// <summary>
     /// Тип Випа - регулирует максимальные значения температуры напряжения и пр.
     /// </summary>
@@ -81,8 +104,7 @@ public class Vip : Notify
     //расположение в таблице окна пограммы
     public int RowIndex { get; set; }
     public int ColumnIndex { get; set; }
+
+
     //
-
-
-
 }

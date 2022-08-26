@@ -475,6 +475,9 @@ public class Stand : Notify
         InitMainRelayVip();
     }
 
+    /// <summary>
+    /// Инициализация релейных плат випов через главную абстрактную плату тк все платы висят на 1 компорту
+    /// </summary>
     public void InitMainRelayVip()
     {
         MainRelayVip = new("MainRelay", RelaysVips);
@@ -503,7 +506,7 @@ public class Stand : Notify
         foreach (var vip in VipsPrepareStand)
         {
             vip.StatusTest = StatusDeviceTest.None;
-
+            vip.StatusOnOff = OnOffStatus.Off;
             if (!string.IsNullOrWhiteSpace(vip.Number))
             {
                 vip.IsTested = true;
@@ -590,31 +593,43 @@ public class Stand : Notify
     /// <param name="connect"></param>
     private void OnCheckDevice(BaseDevice baseDevice, bool connect)
     {
+        //для вьюмодели
         TestCurrentDevice = baseDevice;
+        //если коннект есть добавляем в список годных, ткущее устройство
         if (connect)
         {
             TempVerifiedDevices.Add(baseDevice);
         }
 
+        //если проверяемое устройство не реле випа 
         if (baseDevice is not RelayVip)
         {
+            //для вьюмодели
             PercentCurrentTest += ((1 / (float)Devices.Count) * 60);
 
-            //сраниваем списки
+            //сраниваем списки, если в ничего не будет те он будет аналогичен списку устройств 
             var ss = Devices.Except(TempVerifiedDevices).ToList();
 
+            //сбрасываем задержку ответа от прибора
             if (!ss.Any())
             {
+                //Debug.WriteLine("Cancel");
                 ctsCheckDevice.Cancel();
             }
         }
 
+        //для релейных палт не сбраываем задрежки проверок
         if (baseDevice is RelayVip or MainRelay)
         {
-            PercentCurrentTest += ((1 / (float)RelaysVips.Count) * 60);
+            var count = vipsPrepareStand.Where(x => x.IsTested).Count();
+            //для вьюмодели
+            PercentCurrentTest += ((1 / (float)count) * 60);
         }
     }
 
+    /// <summary>
+    /// Бибилиотека принимаемых от устройств данных key - Устройство с данными, value - список данных
+    /// </summary>
     private Dictionary<BaseDevice, List<string>> ReceiveInDevice = new Dictionary<BaseDevice, List<string>>();
 
     /// <summary>
@@ -624,15 +639,18 @@ public class Stand : Notify
     /// <param name="receive">Данные</param>
     private void Receive(BaseDevice device, string receive)
     {
-        Debug.WriteLine($"{device.Name}/{receive}");
-
+        //если прибор от кторого приходят данные не содержится в библиотеке а при первом приеме данных так и будет
         if (!ReceiveInDevice.ContainsKey(device))
         {
+            //добавляем туда данные и создаем список в ктороые будет записаны ответы от прибора
             ReceiveInDevice.Add(device, new List<string>());
-            ctsReceiveDevice.Cancel();
         }
 
+        //далее в библиотеку текущего приобра пишем данные
         ReceiveInDevice[device].Add(receive);
+        //Debug.WriteLine($"Device {device.IsDeviceType} - {device.Name}, сбросил ожидание и ответил {receive}");
+        //сбрасываем ожидание
+        ctsReceiveDevice.Cancel();
     }
 
     #endregion
@@ -641,6 +659,9 @@ public class Stand : Notify
 
     #region Инструменты проверки
 
+    /// <summary>
+    /// Временный список сюда записываться прошедшие проверку устройства
+    /// </summary>
     public ObservableCollection<BaseDevice> TempVerifiedDevices { get; set; } = new();
 
     /// <summary>
@@ -654,6 +675,7 @@ public class Stand : Notify
         //
         PercentCurrentTest = 0;
         //
+        //если мы имеем дело со списокм реле випов
         if (tempCheckDevices.All(x => x is RelayVip))
         {
             //тк все релейны платы висят на одном компорту проверяем только маин реле
@@ -700,6 +722,9 @@ public class Stand : Notify
         return tempErrorDevices;
     }
 
+    private Stopwatch stopwatch = new Stopwatch();
+    private Stopwatch stopwatchAll = new Stopwatch();
+
     /// <summary>
     /// Проверка устройств пингуются ли они
     /// </summary>
@@ -712,26 +737,31 @@ public class Stand : Notify
     {
         //сброс временного списка дефетктивынх приборов
         List<BaseDevice> tempErrorDevices = new List<BaseDevice>();
+
         try
         {
             if (tempCheckDevices.All(x => x is RelayVip))
             {
+                // stopwatch.Restart();
+                // stopwatchAll.Restart();
                 foreach (var device in tempCheckDevices)
                 {
                     TestCurrentDevice = device;
                     //отправляем команду проверки на устройство
-                    MainRelayVip.TransmitCmdInLib((RelayVip)device, "Status");
+                    MainRelayVip.TransmitCmdInLibRelay((RelayVip)device, "Status");
 
                     //ждем
                     if (externalDelay == 0)
                     {
-                        await Task.Delay(TimeSpan.FromMilliseconds(300));
+                        await Task.Delay(TimeSpan.FromMilliseconds(200));
                     }
                     else
                     {
                         await Task.Delay(TimeSpan.FromMilliseconds(externalDelay));
                     }
+                    // Debug.WriteLine($"{stopwatch.Elapsed.Milliseconds} mc loop/{device.Name}");
                 }
+                // Debug.WriteLine($"{stopwatchAll.Elapsed.Milliseconds}mc all");
 
                 //после задержки в этом списке будут устройства не прошедшие проверку
                 tempErrorDevices = GetErrorDevices(tempCheckDevices);
@@ -759,7 +789,7 @@ public class Stand : Notify
                 tempErrorDevices = GetErrorDevices(tempCheckDevices);
             }
         }
-        //елси задлаче была прервана заранее полняем следующий код
+        //если задача была прервана заранее, полняем следующий код
         catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
             //после прерывания задрежки в этом списке будут устройства не прошедшие проверку
@@ -783,12 +813,14 @@ public class Stand : Notify
     /// <returns></returns>
     private List<BaseDevice> GetErrorDevices(List<BaseDevice> checkedDevices)
     {
+        //если проверенных устройств вообще нет
         if (!TempVerifiedDevices.Any())
         {
+            //вернем список сбоынйх приборов целиком
             return checkedDevices.ToList();
         }
 
-        //сравниваем временный список утсройств со списком сформировванным из отвветивших приборов
+        //сравниваем временный список утсройств со списком сформировванным из ответивших приборов
         //и кладем в список сбойных устройств
         var tempErrorDevices = checkedDevices.Except(TempVerifiedDevices).ToList();
 
@@ -804,7 +836,7 @@ public class Stand : Notify
     /// </summary>
     /// <param name="tempCheckVips"></param>
     /// <returns></returns>
-    private List<BaseDevice> GetRelayInVips(IEnumerable<Vip> tempCheckVips)
+    private List<BaseDevice> GetRelayInVips(List<Vip> tempCheckVips)
     {
         var tempRelays = new List<BaseDevice>();
 
@@ -866,7 +898,7 @@ public class Stand : Notify
     /// Предварительная проверка випов
     /// </summary>
     /// <returns></returns>
-    public async Task<bool> PrimaryCheckVips()
+    public async Task<bool> PrimaryCheckVips(string cmd = null)
     {
         //сброс статуса теста
         TestRun = TypeOfTestRun.None;
@@ -891,6 +923,7 @@ public class Stand : Notify
         if (check)
         {
             VipsCheckedStand = new ObservableCollection<Vip>(tempCheckVips);
+
             PercentCurrentTest = 100;
             TestRun = TypeOfTestRun.PrimaryCheckVipsReady;
         }
@@ -909,7 +942,8 @@ public class Stand : Notify
     /// <param name="tempCheckDevices">Список устройств</param>
     /// <param name="checkCountAll">Колво попыток достучатся до устройств если они не отвечают</param>
     /// <returns></returns>
-    public async Task<bool> CheckBaseDevices(List<BaseDevice> tempCheckDevices, int checkCountAll = 3)
+    public async Task<bool> CheckBaseDevices(List<BaseDevice> tempCheckDevices, int checkCountAll = 3,
+        string cmd = null)
     {
         int checkCountCurrent = 1;
         isTestRun = true;
@@ -996,7 +1030,7 @@ public class Stand : Notify
                     List<BaseDevice> errorDevicesList =
                         await CheckConnectDevices(tempCheckDevices, ctsCheckDevice.Token);
 
-                    //если сбоынйу устройства есть
+                    //если сбойные устройства есть
                     if (errorDevicesList.Any())
                     {
                         //вписываем в них ошибку теста
@@ -1072,7 +1106,6 @@ public class Stand : Notify
         return vipsPrepareStand[0].Type.GetDeviceParameters();
     }
 
-
     /// <summary>
     /// Установка параметров приборов в тип Випа
     /// </summary>
@@ -1105,16 +1138,16 @@ public class Stand : Notify
     }
 
     /// <summary>
-    ///  Запрос и проверка на правильный ответ от прибора
+    ///  Запрос и проверка на соответвие ответа от прибора параметру заданному в этот прибор
     /// </summary>
-    /// <param name="tempChecks">Список правильных ответов (если прибор ответил верно item = true)</param>
     /// <param name="device">Проверяемый прибор</param>
-    /// <param name="cmd">Стандартная команда из библиотеки</param>
+    /// <param name="cmd">Стандартная команда из библиотеки отправляемая в прибор</param>
+    /// <param name="tempChecks">Список правильных ответов (если прибор ответил верно tempChecks = true)</param>
     /// <param name="parameter">Параметр команды из типа Випа</param>
     /// <param name="externalDelay">Внешняя задержка использование ее отключает токен</param>
     /// <param name="token">Сброс вермени ожидания если прибор ответил раньше</param>
     /// <exception cref="StandException"></exception>
-    private async Task<bool> WriteReadCommands(BaseDevice device, string cmd,
+    private async Task<bool> WriteReadCommand(BaseDevice device, string cmd,
         string parameter = null, TempChecks tempChecks = null, int externalDelay = 0,
         CancellationToken token = default)
     {
@@ -1169,12 +1202,13 @@ public class Stand : Notify
                 }
 
                 var isGdmCheck = CheckGdm(device, cmd, receiveInLib, matches, tempChecks);
-                if (isGdmCheck.Item1 == false && isGdmCheck.Item2 == false)
+
+                if (isGdmCheck.isGDM == false && isGdmCheck.result == false)
                 {
                     return CheckedsDeviceOnParanmeter(device, receiveInLib, matches, parameter, tempChecks);
                 }
 
-                return isGdmCheck.Item2;
+                return isGdmCheck.result;
             }
             //елси задлаче была прервана заранее полняем следующий код
             catch (OperationCanceledException) when (token.IsCancellationRequested)
@@ -1182,13 +1216,15 @@ public class Stand : Notify
                 ctsReceiveDevice = new CancellationTokenSource();
 
                 var isGdmCheck = CheckGdm(device, cmd, receiveInLib, matches, tempChecks);
-                if (isGdmCheck.Item1 == false && isGdmCheck.Item2 == false)
+
+                if (isGdmCheck.isGDM == false && isGdmCheck.result == false)
                 {
                     return CheckedsDeviceOnParanmeter(device, receiveInLib, matches, parameter, tempChecks);
                 }
 
-                return isGdmCheck.Item2;
+                return isGdmCheck.result;
             }
+
             catch (Exception e)
             {
                 //если вылеатет какоето исключение записываем в лист провеки false
@@ -1199,28 +1235,36 @@ public class Stand : Notify
 
         if (device is MainRelay main)
         {
-            foreach (var vip in VipsCheckedStand)
-            {
-                main.TransmitCmdInLib(vip.Relay, cmd);
-
-                if (externalDelay == 0)
-                {
-                    await Task.Delay(TimeSpan.FromMilliseconds(200), ctsReceiveDevice.Token);
-                }
-
-                if (externalDelay > 0)
-                {
-                    await Task.Delay(TimeSpan.FromMilliseconds(externalDelay));
-                }
-
-                return CheckedsDeviceOnParanmeter(device, receiveInLib, matches, parameter, tempChecks);
-            }
-
-
-            //receiveInLib = device.TransmitCmdInLib(cmd);
+            
+            
+            
+            // List<BaseDevice> tempErrorDevices = new List<BaseDevice>();
             //
-            //запрос в прибор команды
-            // receiveInLib = relay.TransmitCmdInLib(cmd);
+            // foreach (var vip in VipsCheckedStand)
+            // {
+            //     main.TransmitCmdInLibRelay(vip.Relay, cmd);
+            //
+            //     if (externalDelay == 0)
+            //     {
+            //         await Task.Delay(TimeSpan.FromMilliseconds(200));
+            //     }
+            //
+            //     if (externalDelay > 0)
+            //     {
+            //         await Task.Delay(TimeSpan.FromMilliseconds(externalDelay), ctsReceiveDevice.Token);
+            //     }
+            //
+            //
+            //     // return false;
+            //     //return CheckedsDeviceOnParanmeter(main, receiveInLib, matches, parameter, tempChecks);
+            // }
+
+            // tempErrorDevices = GetErrorDevices(VipsCheckedStand);
+            // return tempErrorDevices;
+            // //receiveInLib = device.TransmitCmdInLib(cmd);
+            // //
+            // //запрос в прибор команды
+            // // receiveInLib = relay.TransmitCmdInLib(cmd);
         }
 
         return false;
@@ -1236,7 +1280,7 @@ public class Stand : Notify
     /// <param name="tempChecks">Результат проверка листа приема на соответвие параметру из Типа Випа</param>
     /// <returns>Item1 - соответвует ли device GDM устройству
     /// Item2 - Прошла ли проверка устройства согласно алгоритму</returns>
-    (bool, bool) CheckGdm(BaseDevice device, string cmd,
+    (bool isGDM, bool result) CheckGdm(BaseDevice device, string cmd,
         string receiveInLib, bool matches, TempChecks tempChecks)
     {
         //установка параметров для проверки GDM термо/вольтметра см. документацию GDM-8255A
@@ -1287,6 +1331,7 @@ public class Stand : Notify
         {
             //проверка листа приема на содержание в ответе от прибора параметра команды -
             //берется из Recieve библиотеки
+
             matches = CastToNormalValues(receive.Last()).Contains(receiveInLib);
         }
         else
@@ -1335,7 +1380,7 @@ public class Stand : Notify
         if (on)
         {
             //если выход выкл 
-            if (await WriteReadCommands(device, "Get output", values.OutputOff,
+            if (await WriteReadCommand(device, "Get output", values.OutputOff,
                     token: ctsReceiveDevice.Token))
             {
                 //делаем выход вкл
@@ -1343,7 +1388,7 @@ public class Stand : Notify
             }
 
             //если выход был или стал вкл продолжаем
-            if (await WriteReadCommands(device, "Get output", values.OutputOn,
+            if (await WriteReadCommand(device, "Get output", values.OutputOn,
                     token: ctsReceiveDevice.Token))
             {
                 return true;
@@ -1352,7 +1397,7 @@ public class Stand : Notify
         else
         {
             //если выход вкл 
-            if (await WriteReadCommands(device, "Get output", values.OutputOn,
+            if (await WriteReadCommand(device, "Get output", values.OutputOn,
                     token: ctsReceiveDevice.Token))
             {
                 //делаем выход выкл
@@ -1360,7 +1405,7 @@ public class Stand : Notify
             }
 
             //если выход был или стал вкл продолжаем
-            if (await WriteReadCommands(device, "Get output", values.OutputOff,
+            if (await WriteReadCommand(device, "Get output", values.OutputOff,
                     token: ctsReceiveDevice.Token))
             {
                 return true;
@@ -1372,7 +1417,7 @@ public class Stand : Notify
 
     #endregion
 
-    //
+//
 
     #region Замеры
 
@@ -1411,13 +1456,13 @@ public class Stand : Notify
         //правильно ли были установлены пармтеры генератора/большой нагрузки
         TempChecks t = TempChecks.Start();
         //если прибор ответил правильно в t будет записан true
-        await WriteReadCommands(BigLoadStand, "Get freq", GetParameterForDevice().BigLoadValues.Freq, t,
+        await WriteReadCommand(BigLoadStand, "Get freq", GetParameterForDevice().BigLoadValues.Freq, t,
             token: ctsReceiveDevice.Token);
-        await WriteReadCommands(BigLoadStand, "Get ampl", GetParameterForDevice().BigLoadValues.Ampl, t,
+        await WriteReadCommand(BigLoadStand, "Get ampl", GetParameterForDevice().BigLoadValues.Ampl, t,
             token: ctsReceiveDevice.Token);
-        await WriteReadCommands(BigLoadStand, "Get dco", GetParameterForDevice().BigLoadValues.Dco, t,
+        await WriteReadCommand(BigLoadStand, "Get dco", GetParameterForDevice().BigLoadValues.Dco, t,
             token: ctsReceiveDevice.Token);
-        await WriteReadCommands(BigLoadStand, "Get squ", GetParameterForDevice().BigLoadValues.Squ, t,
+        await WriteReadCommand(BigLoadStand, "Get squ", GetParameterForDevice().BigLoadValues.Squ, t,
             token: ctsReceiveDevice.Token);
         PercentCurrentTest = 20;
 
@@ -1438,9 +1483,9 @@ public class Stand : Notify
             await WriteCommand(SupplyStand, "Set curr", GetParameterForDevice().SupplyValues.Current);
 
             t = TempChecks.Start();
-            await WriteReadCommands(SupplyStand, "Get volt", GetParameterForDevice().SupplyValues.Voltage,
+            await WriteReadCommand(SupplyStand, "Get volt", GetParameterForDevice().SupplyValues.Voltage,
                 t, token: ctsReceiveDevice.Token);
-            await WriteReadCommands(SupplyStand, "Get curr", GetParameterForDevice().SupplyValues.Current,
+            await WriteReadCommand(SupplyStand, "Get curr", GetParameterForDevice().SupplyValues.Current,
                 t, token: ctsReceiveDevice.Token);
             //
             PercentCurrentTest = 50;
@@ -1449,7 +1494,7 @@ public class Stand : Notify
             //если прибор был выключен включим его
             if (t.IsOk && await OutputDevice(SupplyStand, GetParameterForDevice().SupplyValues))
             {
-                Debug.WriteLine($"Time suplly on {measurementTimer.Elapsed.Milliseconds}");
+                //Debug.WriteLine($"Time suplly on {measurementTimer.Elapsed.Milliseconds}");
                 //ждем время согласно документации
                 TestRun = TypeOfTestRun.WaitSupplyMeasurementZero;
 
@@ -1461,10 +1506,10 @@ public class Stand : Notify
                     GetParameterForDevice().ThermoVoltmeterValues.VoltageMaxLimit);
 
                 t = TempChecks.Start();
-                await WriteReadCommands(ThermoVoltmeterStand, "Get volt meter",
+                await WriteReadCommand(ThermoVoltmeterStand, "Get volt meter",
                     GetParameterForDevice().ThermoVoltmeterValues.VoltageMaxLimit,
                     t, token: ctsReceiveDevice.Token);
-                await WriteReadCommands(ThermoVoltmeterStand, "Get func",
+                await WriteReadCommand(ThermoVoltmeterStand, "Get func",
                     GetParameterForDevice().ThermoVoltmeterValues.VoltageMaxLimit,
                     t, token: ctsReceiveDevice.Token);
                 TestRun = TypeOfTestRun.WaitSupplyMeasurementZeroReady;
@@ -1484,7 +1529,14 @@ public class Stand : Notify
     {
         List<BaseDevice> tempErrorDevices = new List<BaseDevice>();
         TempChecks t = TempChecks.Start();
-        await WriteReadCommands(MainRelayVip, "On", tempChecks: t, externalDelay: 5000);
+        foreach (var vip in VipsCheckedStand)
+        {
+            vip.StatusOnOff = OnOffStatus.Off;
+        }
+
+        await WriteReadCommand(MainRelayVip, "On", tempChecks: t, externalDelay: 6000);
+
+
         //TODO спросить у темы как сделать вкл выкл випов наподобии checkDevices();
         // foreach (var vip in VipsCheckedStand)
         // {

@@ -303,6 +303,24 @@ public class BaseDevice : Notify
         }
     }
 
+    protected ( KeyValuePair<DeviceIdentCmd, DeviceCmd> cmd, BaseDevice baseDevice) GetLibItemInReceive(string receiveCmd,
+        string deviceName,
+        List<BaseDevice> baseDevices)
+    {
+        try
+        {
+            var deviceCmd = LibCmd.DeviceCommands
+                .FirstOrDefault(x => x.Key.NameDevice == deviceName && x.Value.Receive == receiveCmd);
+            var baceDevice = baseDevices.FirstOrDefault(x => x.Name == deviceName);
+
+            return (deviceCmd, baceDevice);
+        }
+        catch (Exception e)
+        {
+            throw new DeviceException($"DeviceException: Проблема с библиотекой команд {e.Message}");
+        }
+    }
+
     /// <summary>
     /// Обработка события коннект выбраного компорта
     /// </summary>
@@ -318,7 +336,7 @@ public class BaseDevice : Notify
     private void MessageReceived(byte[] data)
     {
         var receive = "";
-        
+
         if (Name == "MainRelay")
         {
             if (TypeReceive == TypeCmd.Text)
@@ -348,7 +366,7 @@ public class BaseDevice : Notify
         if (TypeReceive == TypeCmd.Text)
         {
             receive = Encoding.UTF8.GetString(data);
-            
+
             if (receive.Contains(selectCmd.Receive))
             {
                 ConnectDevice.Invoke(this, true);

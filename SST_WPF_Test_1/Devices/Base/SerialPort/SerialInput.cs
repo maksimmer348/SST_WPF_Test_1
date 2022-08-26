@@ -81,7 +81,7 @@ public class SerialInput : ISerialLib
         {
             if (!port.IsConnected)
             {
-                Debug.WriteLine($"SerialInput message: {GetPortNum} включаен");
+               //Debug.WriteLine($"SerialInput message: {GetPortNum} включаен");
                 return port.Connect();
             }
 
@@ -103,7 +103,7 @@ public class SerialInput : ISerialLib
     {
         try
         {
-            Debug.WriteLine($"SerialInput message: {GetPortNum} отключен");
+            //Debug.WriteLine($"SerialInput message: {GetPortNum} отключен");
             port.Disconnect();
         }
         catch (Exception e)

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
@@ -27,7 +28,7 @@ public class MainRelay : BaseDevice
         ReceiveRelay += ReceiveRelayMessage;
     }
 
-    public void TransmitCmdInLib(RelayVip device, string cmd)
+    public void TransmitCmdInLibRelay(RelayVip device, string cmd)
     {
         var selectCmd = GetLibItem(cmd, device.Name);
 
@@ -66,55 +67,68 @@ public class MainRelay : BaseDevice
 
     private void ReceiveRelayMessage(string receive)
     {
-        if (receive.Substring(2).Contains("ad"))
-        {
-            var cmdInLib = GetLibItem("Status", "1");
-            if (receive.Substring(4).Contains(cmdInLib.Receive))
-            {
-                ((RelayVip)relays[0]).IdName = "ad";
-                ConnectDevice?.Invoke(relays[0], true);
-            }
-        }
-
-        else if (receive.Substring(2).Contains("ae"))
-        {
-            var cmdInLib = GetLibItem("Status", "2");
-            if (receive.Substring(4).Contains(cmdInLib.Receive))
-            {
-                ((RelayVip)relays[1]).IdName = "ae";
-                ConnectDevice?.Invoke(relays[1], true);
-            }
-        }
-
-        else if (receive.Substring(2).Contains("af"))
-        {
-            var cmdInLib = GetLibItem("Status", "3");
-            if (receive.Substring(4).Contains(cmdInLib.Receive))
-            {
-                ((RelayVip)relays[2]).IdName = "af";
-                ConnectDevice?.Invoke(relays[2], true);
-            }
-        }
-
-        else if (receive.Substring(2).Contains("b0"))
-        {
-            var cmdInLib = GetLibItem("Status", "4");
-            if (receive.Substring(4).Contains(cmdInLib.Receive))
-            {
-                ((RelayVip)relays[2]).IdName = "b0";
-                ConnectDevice?.Invoke(relays[3], true);
-            }
-        }
+        (KeyValuePair<DeviceIdentCmd, DeviceCmd> cmd, BaseDevice baseDevice) cmdInLib = 
+            (new KeyValuePair<DeviceIdentCmd, DeviceCmd>(), null);
         
-        else if (receive.Substring(2).Contains("b9"))
+        try
         {
-            var cmdInLib = GetLibItem("Status", "5");
-            if (receive.Substring(4).Contains(cmdInLib.Receive))
+            var addrVip = receive.Substring(2, 2); //TODO если строка неправильной длины поробовать еще раз
+            var cmdVip = receive.Substring(4, 2); //TODO если строка неправильной длины поробовать еще раз
+
+            cmdInLib = RelayLibEncode(cmdVip, addrVip);
+            
+            if (cmdInLib.cmd.Value.Receive == cmdVip)
             {
-                ((RelayVip)relays[2]).IdName = "af";
-                ConnectDevice?.Invoke(relays[4], true);
+                ConnectDevice?.Invoke(cmdInLib.baseDevice, true);
             }
         }
+        catch (ArgumentOutOfRangeException e)
+        {
+            ConnectDevice?.Invoke(cmdInLib.baseDevice, false);
+            return;
+        }
+        catch (Exception e)
+        {
+            ConnectDevice?.Invoke(cmdInLib.baseDevice, false);
+            return;
+        }
+    }
+
+    private (KeyValuePair<DeviceIdentCmd, DeviceCmd> cmd, BaseDevice device) RelayLibEncode(string cmdVip,
+        string vipName)
+    {
+        (KeyValuePair<DeviceIdentCmd, DeviceCmd> cmd, BaseDevice baseDevice) cmdInLib = 
+        (new KeyValuePair<DeviceIdentCmd, DeviceCmd>(), null);
+        switch (vipName)
+        {
+            case "ad":
+            {
+                cmdInLib = GetLibItemInReceive(cmdVip, "1", relays);
+                break;
+            }
+            case "ae":
+            {
+                cmdInLib = GetLibItemInReceive(cmdVip, "2", relays);
+                break;
+            }
+            case "af":
+            {
+                cmdInLib = GetLibItemInReceive(cmdVip, "3", relays);
+                break;
+            }
+            case "b0":
+            {
+                cmdInLib = GetLibItemInReceive(cmdVip, "4", relays);
+                break;
+            }
+            case "b9":
+            {
+                cmdInLib = GetLibItemInReceive(cmdVip, "5", relays);
+                break;
+            }
+        }
+
+        return cmdInLib;
     }
 
     // public void EnabledRelay(BaseDevice device)
@@ -122,7 +136,7 @@ public class MainRelay : BaseDevice
     //     var selectCmd = GetLibItem("Status", device.Name);
     //     TransmitCmdInLib();
     // }
-  
+
     // public string RelayTransmitCmdInLib(RelayVip vipRelay, string cmd)
     // {
     //     var selectCmd = GetLibItem(cmd, vipRelay.Name);

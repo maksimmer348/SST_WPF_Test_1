@@ -191,7 +191,7 @@ TestAllTime}" DockPanel.Dock="Left" MinWidth="100"/>
                                HorizontalAlignment="Stretch">
                         <ComboBox Margin="7" DockPanel.Dock="Left" MinHeight="10" MinWidth="200"
                                   HorizontalAlignment="Stretch" ItemsSource="{Binding AllTypeVips}"
-                                  SelectedItem="{Binding SelectTypeVip, UpdateSourceTrigger=PropertyChanged}">
+                                  SelectedItem="{Binding SelectTypeVip, UpdateSourceTrigger=PropertyChanged}" SelectedIndex="{Binding SelectTypeVipIndex}">
                             <ComboBox.ItemTemplate>
                                 <DataTemplate>
                                     <Grid>
@@ -334,6 +334,9 @@ TestAllTime}" DockPanel.Dock="Left" MinWidth="100"/>
                                 <Button Grid.Row="1" Grid.Column="0">
 
                                     <DockPanel Margin="5" IsEnabled="{Binding IsTested}">
+                                        <Ellipse Margin="10" DockPanel.Dock="Left" MinHeight="20" MinWidth="20"
+                                                 Fill="{Binding OnOffColor}"
+                                                 HorizontalAlignment="Center" VerticalAlignment="Center" />
                                         <Rectangle Margin="10" DockPanel.Dock="Left" MinHeight="20" MinWidth="20"
                                                    Fill="{Binding StatusColor}"
                                                    HorizontalAlignment="Center" VerticalAlignment="Center" />

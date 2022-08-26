@@ -329,6 +329,7 @@ public class ViewModel : Notify
 
     async Task OnStartTestDevicesCmdExecuted(object p)
     {
+        
         if (SelectTab == 0)
         {
             try
@@ -959,6 +960,14 @@ public class ViewModel : Notify
         set => Set(ref percentCurrentTest, value);
     }
 
+    private double selectTypeVipIndex;
+    
+    public double SelectTypeVipIndex
+    {
+        get => selectTypeVipIndex;
+        set => Set(ref selectTypeVipIndex, value);
+    }
+    
     private double selectTab;
 
     /// <summary>
@@ -974,6 +983,19 @@ public class ViewModel : Notify
             if (selectTab == 4 || selectTab == 1)
             {
                 AllTypeVips = standTest.ConfigVip.TypeVips;
+            }
+            if (selectTab == 1)
+            {
+                for (var index = 0; index < AllPrepareVips.Count; index++)
+                {
+                    if (index < 4)
+                    {
+                        var VARIABLE = AllPrepareVips[index];
+                        var rnd = Random.Shared.Next(1000, 10000);
+                        VARIABLE.number = rnd.ToString();
+                    }
+                }
+                SelectTypeVipIndex = 0;
             }
         }
     }
@@ -1727,7 +1749,7 @@ public class ViewModel : Notify
         set => Set(ref currentTypeVipSettings, value);
     }
 
-
+  
     #endregion
 
     #endregion
